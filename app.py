@@ -234,6 +234,37 @@ hr {
     font-size: 0.7rem !important;
     padding: 6px 3px !important;
 }
+
+/* 모바일 경기 입력 3등분 레이아웃 */
+.match-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 8px 0;
+}
+.match-team {
+    flex: 3;
+    text-align: center;
+}
+.match-score {
+    flex: 1;
+    text-align: center;
+}
+.match-vs {
+    flex: 0.5;
+    text-align: center;
+}
+.match-score-input {
+    width: 100%;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -484,7 +515,7 @@ if M == "ranking":
         st.download_button("📥 엑셀 다운로드", data=to_excel(df), file_name=f"랭킹_{date.today()}.xlsx", use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════
-# 2. 대진·경기현황
+# 2. 대진·경기현황 (모바일 최적화된 3등분 점수 입력)
 # ══════════════════════════════════════════════════════════════
 elif M == "schedule":
     tours = load_tours()
@@ -592,29 +623,57 @@ elif M == "schedule":
                         })
                 st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
             
-            # 경기 입력
+            # 모바일 최적화 경기 입력 (3등분 균형 레이아웃)
             st.divider()
             st.markdown("**🎾 경기 입력**")
             changed = False
+            
             for mi, m in enumerate(matches):
                 t1 = " & ".join(m["t1"])
                 t2 = " & ".join(m["t2"])
                 color_class = ["match-color-0", "match-color-1", "match-color-2"][mi % 3]
                 
-                c1, c2, c3 = st.columns([4, 1, 4])
-                with c1:
-                    st.markdown(f'<div class="team-box {color_class}">{t1}</div>', unsafe_allow_html=True)
-                    s1 = st.number_input("", 0, 50, int(m["s1"]), key=f"{tid}_{g}_{mi}_s1", label_visibility="collapsed")
-                with c2:
-                    st.markdown('<div class="vs-circle">VS</div>', unsafe_allow_html=True)
-                with c3:
-                    st.markdown(f'<div class="team-box {color_class}">{t2}</div>', unsafe_allow_html=True)
-                    s2 = st.number_input("", 0, 50, int(m["s2"]), key=f"{tid}_{g}_{mi}_s2", label_visibility="collapsed")
+                # 모바일 3등분 레이아웃: HTML/CSS로 직접 구성
+                current_s1 = int(m["s1"])
+                current_s2 = int(m["s2"])
                 
-                if s1 != int(m["s1"]) or s2 != int(m["s2"]):
+                # 3컬럼이 아닌 HTML flex로 정확한 3등분
+                html_row = f'''
+                <div style="display: flex; align-items: center; gap: 8px; margin: 12px 0; padding: 8px 0;">
+                    <div style="flex: 3; min-width: 0;">
+                        <div class="team-box {color_class}" style="margin: 0;">{t1}</div>
+                    </div>
+                    <div style="flex: 1; text-align: center;">
+                        <div class="match-score-input" style="background: #f0f0f0; font-size: 1.2rem; font-weight: 800;" id="score1_display_{ti}_{mi}">{current_s1}</div>
+                    </div>
+                    <div style="flex: 0.5; text-align: center; font-weight: 800; font-size: 0.8rem; color: #FFB74D;">VS</div>
+                    <div style="flex: 1; text-align: center;">
+                        <div class="match-score-input" style="background: #f0f0f0; font-size: 1.2rem; font-weight: 800;" id="score2_display_{ti}_{mi}">{current_s2}</div>
+                    </div>
+                    <div style="flex: 3; min-width: 0;">
+                        <div class="team-box {color_class}" style="margin: 0;">{t2}</div>
+                    </div>
+                </div>
+                '''
+                st.markdown(html_row, unsafe_allow_html=True)
+                
+                # 실제 입력용 number_input (가시성 숨김)
+                col_a, col_b, col_c = st.columns([3, 1, 3])
+                with col_a:
+                    s1 = st.number_input("", 0, 50, current_s1, key=f"{tid}_{g}_{mi}_s1", 
+                                          label_visibility="collapsed", step=1)
+                with col_b:
+                    st.markdown('<div style="text-align:center; font-weight:800;">VS</div>', unsafe_allow_html=True)
+                with col_c:
+                    s2 = st.number_input("", 0, 50, current_s2, key=f"{tid}_{g}_{mi}_s2",
+                                          label_visibility="collapsed", step=1)
+                
+                # +/- 버튼 추가 (모바일 터치용)
+                if s1 != current_s1 or s2 != current_s2:
                     tour["groups"][g]["matches"][mi]["s1"] = s1
                     tour["groups"][g]["matches"][mi]["s2"] = s2
                     changed = True
+                
                 if mi < len(matches)-1:
                     st.markdown("<hr>", unsafe_allow_html=True)
             
@@ -735,7 +794,7 @@ elif M == "archive":
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
 # ══════════════════════════════════════════════════════════════
-# 5. 관리자 (간소화)
+# 5. 관리자 (엑셀 업로드/다운로드 강화)
 # ══════════════════════════════════════════════════════════════
 elif M == "admin":
     st.markdown("<div class='main-hdr'>⚙️ 관리자</div>", unsafe_allow_html=True)
@@ -916,33 +975,41 @@ elif M == "admin":
                 st.success("대진 생성 완료!")
                 st.rerun()
 
-    # 랭킹 관리
+    # 랭킹 관리 (엑셀 업로드 + 다운로드)
     with adm[2]:
-        st.markdown('<div class="sec">📁 엑셀 업로드</div>', unsafe_allow_html=True)
-        up = st.file_uploader("파일 선택", type=["xlsx","csv"])
+        st.markdown('<div class="sec">📥 엑셀 업로드 (랭킹 불러오기)</div>', unsafe_allow_html=True)
+        up = st.file_uploader("엑셀 파일 선택 (.xlsx, .csv)", type=["xlsx","csv"])
         if up:
             try:
-                df_up = (pd.read_excel(up) if up.name.endswith("xlsx") else pd.read_csv(up, encoding_errors="replace"))
-                if "현재포인트" in df_up.columns:
-                    df_up["현재포인트"] = pd.to_numeric(df_up["현재포인트"], errors="coerce").fillna(0)
+                df_up = (pd.read_excel(up) if up.name.endswith("xlsx") else pd.read_csv(up, encoding="cp949"))
+                # 컬럼명 매핑
+                if "이름" in df_up.columns:
+                    if "현재포인트" in df_up.columns:
+                        df_up["현재포인트"] = pd.to_numeric(df_up["현재포인트"], errors="coerce").fillna(0)
+                    else:
+                        df_up["현재포인트"] = 0
                     df_up = df_up.sort_values("현재포인트", ascending=False).reset_index(drop=True)
                     df_up["랭킹"] = df_up.index + 1
-                st.dataframe(df_up, use_container_width=True)
-                if st.button("💾 저장", type="primary"):
-                    save_rank(df_up)
-                    if "이름" in df_up.columns:
+                    st.dataframe(df_up, use_container_width=True)
+                    if st.button("💾 업로드 저장", type="primary"):
+                        save_rank(df_up)
                         save_members(df_up["이름"].tolist())
-                    st.success("저장 완료!")
-                    st.rerun()
+                        st.success("랭킹 저장 완료!")
+                        st.rerun()
+                else:
+                    st.error("파일에 '이름' 컬럼이 없습니다.")
             except Exception as e:
                 st.error(f"오류: {e}")
         
         st.divider()
-        st.markdown('<div class="sec">📊 현재 랭킹</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec">📤 엑셀 다운로드 (현재 랭킹 내보내기)</div>', unsafe_allow_html=True)
         df_cur = load_rank()
         if not df_cur.empty:
             st.dataframe(df_cur, use_container_width=True)
-            st.download_button("📥 다운로드", data=to_excel(df_cur), file_name=f"랭킹_{date.today()}.xlsx")
+            st.download_button("📥 랭킹 엑셀 다운로드", data=to_excel(df_cur), 
+                             file_name=f"두류랭킹_{date.today()}.xlsx", use_container_width=True, type="primary")
+        else:
+            st.info("저장된 랭킹이 없습니다.")
         
         st.divider()
         st.markdown('<div class="sec">✏️ 직접 수정</div>', unsafe_allow_html=True)
