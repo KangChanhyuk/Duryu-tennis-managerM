@@ -118,7 +118,7 @@ div[data-testid="stDataFrame"] table th,
 div[data-testid="stDataEditor"] table th {
     text-align: center !important;
     vertical-align: middle !important;
-    padding: 6px 3px !important;
+    padding: 8px 3px !important;
     font-size: 0.7rem !important;
     font-weight: 800 !important;
     background: linear-gradient(135deg, #E8F5E9, #C8E6C9) !important;
@@ -130,7 +130,7 @@ div[data-testid="stDataFrame"] table td,
 div[data-testid="stDataEditor"] table td {
     text-align: center !important;
     vertical-align: middle !important;
-    padding: 5px 3px !important;
+    padding: 6px 3px !important;
     font-size: 0.72rem !important;
     white-space: nowrap;
     border-bottom: 1px solid #f0f0f0 !important;
@@ -149,31 +149,9 @@ div[data-testid="stDataFrame"] {
     box-shadow: 0 2px 8px rgba(27,94,32,0.08) !important;
 }
 
-/* ── Streamlit 내부 글라이드 그리드(캔버스 기반) 가운데 정렬 ── */
-div[data-testid="stDataFrame"] [data-testid="glideDataEditorContainer"],
-div[data-testid="stDataFrame"] [class*="dvn-scroller"],
-div[data-testid="stDataFrame"] [class*="gdg-cell"],
-div[data-testid="stDataFrame"] [class*="cell-"],
-div[data-testid="stDataFrame"] span,
-div[data-testid="stDataFrame"] p,
-div[data-testid="stDataFrame"] div {
-    text-align: center !important;
-    justify-content: center !important;
-}
-
-/* ── 고정 헤더/셀 가운데 정렬 (Streamlit 1.x 글라이드 그리드) ── */
-[data-testid="stDataFrame"] [role="columnheader"],
-[data-testid="stDataFrame"] [role="gridcell"] {
-    text-align: center !important;
-    justify-content: center !important;
-    display: flex !important;
-    align-items: center !important;
-}
-
 /* ══════════════════════════════════════════════
-   ★ 점수판 입력 레이아웃 수정 ★
-   - 팀 이름 바로 아래 해당 팀 점수
-   - - | 숫자 | + 완벽한 1:1:1 비율
+   ★ 점수판 입력 레이아웃 - 완벽한 1:1:1 비율 ★
+   왼쪽(-), 가운데(숫자), 오른쪽(+) 동일 너비
 ══════════════════════════════════════════════ */
 div[data-testid="stNumberInput"] {
     display: flex !important;
@@ -191,11 +169,12 @@ div[data-testid="stNumberInput"] {
     padding: 0 !important;
 }
 
-/* 왼쪽 - 버튼 */
+/* 왼쪽 - 버튼 (표시) */
 div[data-testid="stNumberInput"] button:first-of-type {
     order: 1 !important;
-    flex: 1 1 33.33% !important;
-    width: 33.33% !important;
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
     height: 56px !important;
     background: linear-gradient(135deg, #FFCDD2, #EF9A9A) !important;
     color: #B71C1C !important;
@@ -210,22 +189,18 @@ div[data-testid="stNumberInput"] button:first-of-type {
     justify-content: center !important;
     transition: background 0.15s ease !important;
     padding: 0 !important;
-    min-width: 0 !important;
 }
 div[data-testid="stNumberInput"] button:first-of-type:hover {
     background: linear-gradient(135deg, #EF9A9A, #E53935) !important;
-    color: #fff !important;
-}
-div[data-testid="stNumberInput"] button:first-of-type:active {
-    background: #C62828 !important;
     color: #fff !important;
 }
 
 /* 가운데 숫자 입력 */
 div[data-testid="stNumberInput"] input[type="number"] {
     order: 2 !important;
-    flex: 1 1 33.33% !important;
-    width: 33.33% !important;
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
     text-align: center !important;
     font-size: 1.6rem !important;
     font-weight: 900 !important;
@@ -237,7 +212,6 @@ div[data-testid="stNumberInput"] input[type="number"] {
     padding: 0 !important;
     -moz-appearance: textfield !important;
     letter-spacing: -0.02em !important;
-    min-width: 0 !important;
 }
 div[data-testid="stNumberInput"] input[type="number"]::-webkit-inner-spin-button,
 div[data-testid="stNumberInput"] input[type="number"]::-webkit-outer-spin-button {
@@ -248,8 +222,9 @@ div[data-testid="stNumberInput"] input[type="number"]::-webkit-outer-spin-button
 /* 오른쪽 + 버튼 */
 div[data-testid="stNumberInput"] button:last-of-type {
     order: 3 !important;
-    flex: 1 1 33.33% !important;
-    width: 33.33% !important;
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
     height: 56px !important;
     background: linear-gradient(135deg, #C8E6C9, #66BB6A) !important;
     color: #1B5E20 !important;
@@ -264,14 +239,9 @@ div[data-testid="stNumberInput"] button:last-of-type {
     justify-content: center !important;
     transition: background 0.15s ease !important;
     padding: 0 !important;
-    min-width: 0 !important;
 }
 div[data-testid="stNumberInput"] button:last-of-type:hover {
     background: linear-gradient(135deg, #66BB6A, #2E7D32) !important;
-    color: #fff !important;
-}
-div[data-testid="stNumberInput"] button:last-of-type:active {
-    background: #1B5E20 !important;
     color: #fff !important;
 }
 
@@ -347,24 +317,7 @@ div[data-testid="stNumberInput"] label {
 }
 .stButton > button[kind="primary"]:hover {
     background: linear-gradient(135deg, #1B5E20, #2E7D32) !important;
-    box-shadow: 0 4px 14px rgba(27,94,32,0.4) !important;
     transform: translateY(-1px) !important;
-}
-
-/* ══════════════════════════════════════════════
-   입력 필드
-══════════════════════════════════════════════ */
-.stTextInput > div > div > input,
-.stTextArea > div > div > textarea,
-.stSelectbox > div > div {
-    min-height: 44px !important;
-    border-radius: 8px !important;
-    font-size: 0.85rem !important;
-}
-.stTextInput > div > div > input:focus,
-.stTextArea > div > div > textarea:focus {
-    border-color: #4CAF50 !important;
-    box-shadow: 0 0 0 2px rgba(76,175,80,0.2) !important;
 }
 
 /* ══════════════════════════════════════════════
@@ -425,42 +378,6 @@ div[data-testid="stNumberInput"] label {
     font-weight: 800;
     color: #1B5E20;
 }
-.kdk-bracket tbody tr:nth-child(even) { background: #FAFAFA; }
-
-/* ══════════════════════════════════════════════
-   기타 유틸
-══════════════════════════════════════════════ */
-hr { margin: 10px 0; border-color: #E8F5E9; }
-
-.p-tag {
-    display: inline-block;
-    background: #E8F5E9;
-    border: 1px solid #66BB6A;
-    border-radius: 20px;
-    padding: 3px 8px;
-    margin: 3px 4px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #1B5E20;
-}
-
-.court-line {
-    height: 3px;
-    background: linear-gradient(90deg, transparent, #4CAF50 20%, #FFEB3B 50%, #4CAF50 80%, transparent);
-    margin: 6px -0.5rem 0;
-    border-radius: 0;
-}
-
-/* ══════════════════════════════════════════════
-   카드류
-══════════════════════════════════════════════ */
-.tour-card, .rank-card {
-    padding: 8px 12px;
-    margin: 6px 0;
-    border-radius: 10px;
-    border: 1px solid #C8E6C9;
-    background: #FAFFF9;
-}
 
 .score-divider {
     border: none;
@@ -468,43 +385,13 @@ hr { margin: 10px 0; border-color: #E8F5E9; }
     margin: 14px 0;
 }
 
-div[data-testid="stToast"] {
-    background: #2E7D32 !important;
-    color: #fff !important;
-    border-radius: 10px !important;
-    font-weight: 700 !important;
+/* 기타 */
+hr { margin: 10px 0; border-color: #E8F5E9; }
+.court-line {
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #4CAF50 20%, #FFEB3B 50%, #4CAF50 80%, transparent);
+    margin: 6px -0.5rem 0;
 }
-
-/* ══════════════════════════════════════════════
-   ★ expander 내부 영어 텍스트(arrow 등) 숨기기 ★
-══════════════════════════════════════════════ */
-[data-testid="stExpander"] summary p,
-[data-testid="stExpander"] summary span,
-[data-testid="stExpander"] > div > div > div > div > p {
-    font-size: 0 !important;
-    visibility: hidden !important;
-}
-/* streamlit 내부 _arrowVegaLiteChart 영어 제목 숨기기 */
-[data-testid="stArrowVegaLiteChart"] .vega-embed summary,
-[data-testid="stArrowVegaLiteChart"] details summary { display: none !important; }
-
-/* ── DataFrame 헤더 폰트/정렬 재확인 ── */
-[data-testid="stDataFrame"] [data-testid="glideDataEditorContainer"] * {
-    text-align: center !important;
-    justify-content: center !important;
-}
-
-/* ══════════════════════════════════════════════
-   ★ Streamlit 글라이드 그리드 셀 텍스트 가운데 ★
-   (캔버스 기반이라 CSS로 완전 제어 불가하므로
-    column_config width 조정 + 아래 wrapper로 보완)
-══════════════════════════════════════════════ */
-.dvn-scroller { justify-content: center !important; }
-.dvn-scroller * { text-align: center !important; justify-content: center !important; }
-
-/* ── 하단 스크롤바 숨김 (선택) ── */
-div[data-testid="stDataFrame"] ::-webkit-scrollbar { height: 4px; }
-div[data-testid="stDataFrame"] ::-webkit-scrollbar-thumb { background: #C8E6C9; border-radius: 4px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -719,7 +606,7 @@ if "participants" not in st.session_state: st.session_state.participants = []
 MENU_DEFS = [
     ("ranking", "🏆\n랭킹"),
     ("schedule", "📅\n대진"),
-    ("result", "📊\n결과"),
+    ("result", "📊\n경기결과조회"),
     ("archive", "📂\n기록"),
     ("admin", "⚙️\n관리"),
 ]
@@ -877,29 +764,21 @@ elif M == "schedule":
                 t2 = " & ".join(m["t2"])
                 color_class = ["match-color-0", "match-color-1", "match-color-2"][mi % 3]
 
-                # ── 팀1 이름 ──
+                # 팀1 이름
                 st.markdown(f'<div class="team-box {color_class}">{t1}</div>', unsafe_allow_html=True)
 
-                # ── 팀1 점수 입력 (- | 숫자 | +) ──
-                s1 = st.number_input(
-                    "", 0, 50, int(m["s1"]),
-                    key=f"{tid}_{g}_{mi}_s1",
-                    label_visibility="collapsed"
-                )
-
-                # ── VS 구분 ──
-                c_vs1, c_vs2, c_vs3 = st.columns([2, 1, 2])
-                with c_vs2:
+                col_s1, col_vs, col_s2 = st.columns([1, 0.5, 1])
+                with col_s1:
+                    s1 = st.number_input("", 0, 50, int(m["s1"]),
+                                         key=f"{tid}_{g}_{mi}_s1",
+                                         label_visibility="collapsed")
+                with col_vs:
                     st.markdown('<div class="vs-circle">VS</div>', unsafe_allow_html=True)
+                with col_s2:
+                    s2 = st.number_input("", 0, 50, int(m["s2"]),
+                                         key=f"{tid}_{g}_{mi}_s2",
+                                         label_visibility="collapsed")
 
-                # ── 팀2 점수 입력 (- | 숫자 | +) ──
-                s2 = st.number_input(
-                    "", 0, 50, int(m["s2"]),
-                    key=f"{tid}_{g}_{mi}_s2",
-                    label_visibility="collapsed"
-                )
-
-                # ── 팀2 이름 ──
                 st.markdown(f'<div class="team-box {color_class}">{t2}</div>', unsafe_allow_html=True)
 
                 if s1 != int(m["s1"]) or s2 != int(m["s2"]):
@@ -916,9 +795,10 @@ elif M == "schedule":
                 st.toast("✅ 저장됨", icon="✅")
 
 # ══════════════════════════════════════════════════════════════
-# 3. 경기 결과
+# 3. 경기 결과 조회
 # ══════════════════════════════════════════════════════════════
 elif M == "result":
+    st.markdown("<div class='main-hdr'>📊 경기결과조회</div>", unsafe_allow_html=True)
     tours = load_tours()
     active = [k for k,v in tours.items() if v.get("status")=="진행중"]
     if not active:
@@ -926,7 +806,7 @@ elif M == "result":
         st.stop()
     tid = active[-1]
     tour = tours[tid]
-    st.markdown(f"<div class='main-hdr'>📊 {tour['title']}</div>", unsafe_allow_html=True)
+    st.markdown(f"**🏆 {tour['title']}** | {tour.get('date','')} | {tour.get('place','')}")
 
     for g, ginfo in tour["groups"].items():
         mode = ginfo["mode"]
@@ -967,7 +847,7 @@ elif M == "result":
                 })
         show_centered_df(pd.DataFrame(rows))
 
-        # ── 전체 경기 결과 (영어 텍스트 없이 한국어만) ──
+        # 전체 경기 결과
         with st.expander("📋 전체 경기 결과 보기"):
             mrows = []
             for m in matches:
