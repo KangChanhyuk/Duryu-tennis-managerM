@@ -10,178 +10,351 @@ from io import BytesIO
 st.set_page_config(page_title="두류 랭킹", page_icon="🎾",
                    layout="wide", initial_sidebar_state="collapsed")
 
-# 모바일 최적화 CSS (터치/가독성 개선)
+# ── UI 개선 CSS (기능 코드 무변경, UI만 수정) ──────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap');
-* {
-    font-family: 'Noto Sans KR', sans-serif !important;
-    box-sizing: border-box;
-}
-.block-container { 
-    padding: 0 0.5rem 0.6rem 0.5rem !important; 
-    max-width: 100% !important;
-}
 
-/* 네비게이션 바 (모바일: 버튼 간격 조정, 텍스트 작게) */
+/* ── 기본 리셋 ── */
+* { font-family: 'Noto Sans KR', sans-serif !important; box-sizing: border-box; }
+.block-container { padding: 0 0.5rem 0.6rem 0.5rem !important; max-width: 100% !important; }
+
+/* ══════════════════════════════════════════════
+   네비게이션 바
+══════════════════════════════════════════════ */
 section.main [data-testid="stHorizontalBlock"]:first-of-type .stButton > button {
     background: transparent !important;
     color: rgba(255,255,255,0.8) !important;
-    border: none !important; 
+    border: none !important;
     border-radius: 0 !important;
     font-size: 0.65rem !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     padding: 10px 2px 6px !important;
     line-height: 1.2 !important;
-    white-space: normal !important;   /* 여러 줄 허용 */
+    white-space: normal !important;
     word-break: keep-all;
     box-shadow: none !important;
     min-height: 52px !important;
-    border-bottom: 2px solid transparent !important;
+    border-bottom: 3px solid transparent !important;
+    letter-spacing: 0.02em !important;
+    transition: all 0.2s ease !important;
 }
 section.main [data-testid="stHorizontalBlock"]:first-of-type .stButton > button:hover {
-    background: rgba(255,255,255,0.1) !important;
+    background: rgba(255,255,255,0.12) !important;
+    color: #fff !important;
 }
 section.main [data-testid="stHorizontalBlock"]:first-of-type .stButton > button[kind="primary"] {
-    background: rgba(255,255,255,0.15) !important;
+    background: rgba(255,255,255,0.18) !important;
     color: #fff !important;
-    border-bottom: 2px solid #A5D6A7 !important;
+    border-bottom: 3px solid #FFEB3B !important;  /* 테니스 볼 노랑 */
 }
 
+/* ══════════════════════════════════════════════
+   헤더 / 섹션 타이틀
+══════════════════════════════════════════════ */
 .main-hdr {
-    background: linear-gradient(135deg,#1D5B2E,#388E3C);
-    color:#fff; 
-    padding: 0.5rem 0.6rem; 
-    border-radius: 10px;
-    margin-bottom: 0.6rem; 
+    background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #388E3C 100%);
+    color: #fff;
+    padding: 0.55rem 0.8rem;
+    border-radius: 12px;
+    margin-bottom: 0.7rem;
     font-size: 1rem;
-    font-weight: 800; 
+    font-weight: 900;
     text-align: center;
+    letter-spacing: 0.03em;
+    box-shadow: 0 3px 12px rgba(27,94,32,0.35);
+    position: relative;
+    overflow: hidden;
+}
+.main-hdr::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(255,235,59,0.15);  /* 테니스 볼 */
+    pointer-events: none;
 }
 .sec {
-    font-size: 0.9rem; 
-    font-weight: 800; 
-    color:#1D5B2E;
-    border-left: 4px solid #66BB6A; 
-    padding-left: 8px; 
-    margin: 10px 0 6px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #1B5E20;
+    border-left: 4px solid #4CAF50;
+    padding: 2px 0 2px 9px;
+    margin: 12px 0 7px;
+    letter-spacing: 0.01em;
 }
 
-/* 탭 크기 조정 */
+/* ══════════════════════════════════════════════
+   탭
+══════════════════════════════════════════════ */
 button[data-baseweb="tab"] {
     font-size: 0.7rem !important;
-    font-weight: 600 !important;
-    padding: 6px 6px !important;
+    font-weight: 700 !important;
+    padding: 6px 8px !important;
     border-radius: 8px 8px 0 0 !important;
+    letter-spacing: 0.01em !important;
 }
 button[data-baseweb="tab"][aria-selected="true"] {
-    background: linear-gradient(135deg,#1D5B2E,#388E3C) !important;
+    background: linear-gradient(135deg, #1B5E20, #388E3C) !important;
+    color: #fff !important;
 }
 
-/* 테이블: 가로 스크롤 + 폰트 작게 */
+/* ══════════════════════════════════════════════
+   ★ 랭킹 테이블 / 데이터프레임 강력 가운데 정렬 ★
+══════════════════════════════════════════════ */
+/* 모든 dataframe/data_editor 셀 */
+div[data-testid="stDataFrame"] *,
+div[data-testid="stDataEditor"] * {
+    text-align: center !important;
+}
 div[data-testid="stDataFrame"] table,
 div[data-testid="stDataEditor"] table {
     width: 100% !important;
-    font-size: 0.7rem !important;
-    text-align: center !important;
+    font-size: 0.72rem !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
 }
 div[data-testid="stDataFrame"] table th,
-div[data-testid="stDataFrame"] table td {
+div[data-testid="stDataEditor"] table th {
     text-align: center !important;
     vertical-align: middle !important;
-    padding: 4px 2px !important;
+    padding: 6px 3px !important;
     font-size: 0.7rem !important;
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, #E8F5E9, #C8E6C9) !important;
+    color: #1B5E20 !important;
+    border-bottom: 2px solid #4CAF50 !important;
     white-space: nowrap;
+}
+div[data-testid="stDataFrame"] table td,
+div[data-testid="stDataEditor"] table td {
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 5px 3px !important;
+    font-size: 0.72rem !important;
+    white-space: nowrap;
+    border-bottom: 1px solid #f0f0f0 !important;
+}
+/* 짝수행 배경 */
+div[data-testid="stDataFrame"] table tr:nth-child(even) td {
+    background: #F9FBF9 !important;
+}
+div[data-testid="stDataFrame"] table tr:hover td {
+    background: #E8F5E9 !important;
+    transition: background 0.15s ease !important;
 }
 div[data-testid="stDataFrame"] {
     overflow-x: auto !important;
+    border-radius: 10px !important;
+    border: 1px solid #C8E6C9 !important;
+    box-shadow: 0 2px 8px rgba(27,94,32,0.08) !important;
+}
+/* Streamlit 내부 셀 span, div 강제 가운데 */
+div[data-testid="stDataFrame"] [data-testid="glideDataEditorContainer"] *,
+div[data-testid="stDataFrame"] canvas + div * {
+    text-align: center !important;
+    justify-content: center !important;
 }
 
-/* 숫자 입력 필드 (터치 영역) */
-input[type="number"] {
-    text-align: center !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    min-height: 44px !important;
+/* ══════════════════════════════════════════════
+   ★ 점수판 입력 레이아웃 (3등분: - | 숫자 | +) ★
+══════════════════════════════════════════════ */
+/* number_input 전체 컨테이너 */
+div[data-testid="stNumberInput"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    background: #fff !important;
+    border-radius: 12px !important;
+    border: 2px solid #C8E6C9 !important;
+    overflow: hidden !important;
+    box-shadow: 0 2px 8px rgba(27,94,32,0.10) !important;
+    min-height: 52px !important;
 }
-div[data-testid="stNumberInput"] input {
+/* - 버튼 (왼쪽) */
+div[data-testid="stNumberInput"] button:first-of-type {
+    order: 1 !important;
+    flex: 1 1 0 !important;
+    width: 33.33% !important;
+    min-width: 0 !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    background: linear-gradient(135deg, #FFCDD2, #EF9A9A) !important;
+    color: #B71C1C !important;
+    border: none !important;
+    border-radius: 0 !important;
+    border-right: 1px solid #E0E0E0 !important;
+    font-size: 1.3rem !important;
+    font-weight: 900 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background 0.15s ease !important;
+}
+div[data-testid="stNumberInput"] button:first-of-type:hover {
+    background: linear-gradient(135deg, #EF9A9A, #E53935) !important;
+    color: #fff !important;
+}
+div[data-testid="stNumberInput"] button:first-of-type:active {
+    background: #C62828 !important;
+    color: #fff !important;
+    transform: scale(0.97) !important;
+}
+/* 숫자 입력 (가운데) */
+div[data-testid="stNumberInput"] input[type="number"] {
+    order: 2 !important;
+    flex: 1 1 0 !important;
+    width: 33.33% !important;
+    min-width: 0 !important;
     text-align: center !important;
-    font-weight: 600 !important;
-    font-size: 0.85rem !important;
-    padding: 6px !important;
-    min-height: 44px !important;
+    font-size: 1.5rem !important;
+    font-weight: 900 !important;
+    color: #1B5E20 !important;
+    border: none !important;
+    outline: none !important;
+    background: #fff !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    padding: 0 !important;
+    -moz-appearance: textfield !important;
+    letter-spacing: -0.02em !important;
+}
+/* 크롬 스피너 숨기기 */
+div[data-testid="stNumberInput"] input[type="number"]::-webkit-inner-spin-button,
+div[data-testid="stNumberInput"] input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+/* + 버튼 (오른쪽) */
+div[data-testid="stNumberInput"] button:last-of-type {
+    order: 3 !important;
+    flex: 1 1 0 !important;
+    width: 33.33% !important;
+    min-width: 0 !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    background: linear-gradient(135deg, #C8E6C9, #66BB6A) !important;
+    color: #1B5E20 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    border-left: 1px solid #E0E0E0 !important;
+    font-size: 1.3rem !important;
+    font-weight: 900 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background 0.15s ease !important;
+}
+div[data-testid="stNumberInput"] button:last-of-type:hover {
+    background: linear-gradient(135deg, #66BB6A, #2E7D32) !important;
+    color: #fff !important;
+}
+div[data-testid="stNumberInput"] button:last-of-type:active {
+    background: #1B5E20 !important;
+    color: #fff !important;
+    transform: scale(0.97) !important;
+}
+/* label 숨기기 (label_visibility="collapsed" 대응) */
+div[data-testid="stNumberInput"] label {
+    display: none !important;
 }
 
-/* 팀/선수 박스 */
+/* ══════════════════════════════════════════════
+   팀 / 선수 박스
+══════════════════════════════════════════════ */
 .team-box {
     border-radius: 10px;
-    padding: 6px 5px !important;
-    font-weight: 700 !important;
+    padding: 7px 5px !important;
+    font-weight: 800 !important;
     font-size: 0.75rem !important;
     text-align: center;
     margin: 4px 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
     line-height: 1.3;
-    min-height: 48px;
+    min-height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     word-break: keep-all;
+    letter-spacing: 0.01em;
 }
-.tg{background:linear-gradient(135deg,#66BB6A,#43A047);color:#fff}
-.tb{background:linear-gradient(135deg,#42A5F5,#1E88E5);color:#fff}
-.to{background:linear-gradient(135deg,#FFA726,#FB8C00);color:#fff}
-.tp{background:linear-gradient(135deg,#AB47BC,#8E24AA);color:#fff}
-.tr{background:linear-gradient(135deg,#EF5350,#E53935);color:#fff}
-.tt{background:linear-gradient(135deg,#26A69A,#00897B);color:#fff}
+.tg { background: linear-gradient(135deg,#66BB6A,#43A047); color:#fff; }
+.tb { background: linear-gradient(135deg,#42A5F5,#1E88E5); color:#fff; }
+.to { background: linear-gradient(135deg,#FFA726,#FB8C00); color:#fff; }
+.tp { background: linear-gradient(135deg,#AB47BC,#8E24AA); color:#fff; }
+.tr { background: linear-gradient(135deg,#EF5350,#E53935); color:#fff; }
+.tt { background: linear-gradient(135deg,#26A69A,#00897B); color:#fff; }
 
+/* 경기 색상 */
 .match-color-0 { background: linear-gradient(135deg,#66BB6A,#43A047) !important; }
 .match-color-1 { background: linear-gradient(135deg,#42A5F5,#1E88E5) !important; }
 .match-color-2 { background: linear-gradient(135deg,#FFA726,#FB8C00) !important; }
 
+/* VS 서클 */
 .vs-circle {
-    background:#FFB74D;
-    color:#fff;
-    border-radius:50%;
-    width: 32px !important;
-    height: 32px !important;
+    background: linear-gradient(135deg,#FFB74D,#F57C00);
+    color: #fff;
+    border-radius: 50%;
+    width: 34px !important;
+    height: 34px !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 800;
-    font-size: 0.7rem;
+    font-weight: 900;
+    font-size: 0.65rem;
     margin: 0 auto;
+    box-shadow: 0 2px 6px rgba(245,124,0,0.4);
+    letter-spacing: -0.02em;
 }
 
-hr { margin: 8px 0; }
-
-.p-tag {
-    display: inline-block;
-    background: #E8F5E9;
-    border: 1px solid #66BB6A;
-    border-radius: 20px;
-    padding: 3px 8px;
-    margin: 3px 4px;
-    font-size: 0.7rem;
-    font-weight: 600;
-}
-
+/* ══════════════════════════════════════════════
+   버튼 공통
+══════════════════════════════════════════════ */
 .stButton > button {
     border-radius: 10px !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     font-size: 0.8rem !important;
     padding: 8px 10px !important;
     min-height: 44px !important;
+    letter-spacing: 0.01em !important;
+    transition: all 0.18s ease !important;
+}
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #2E7D32, #388E3C) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 3px 10px rgba(46,125,50,0.3) !important;
+}
+.stButton > button[kind="primary"]:hover {
+    background: linear-gradient(135deg, #1B5E20, #2E7D32) !important;
+    box-shadow: 0 4px 14px rgba(27,94,32,0.4) !important;
+    transform: translateY(-1px) !important;
 }
 
+/* ══════════════════════════════════════════════
+   입력 필드
+══════════════════════════════════════════════ */
 .stTextInput > div > div > input,
 .stTextArea > div > div > textarea,
 .stSelectbox > div > div {
     min-height: 44px !important;
+    border-radius: 8px !important;
+    font-size: 0.85rem !important;
+}
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus {
+    border-color: #4CAF50 !important;
+    box-shadow: 0 0 0 2px rgba(76,175,80,0.2) !important;
 }
 
-/* 매트릭스 테이블 (모바일 가로 스크롤) */
+/* ══════════════════════════════════════════════
+   전적 매트릭스 테이블
+══════════════════════════════════════════════ */
 .matrix-table {
     width: 100%;
     border-collapse: collapse;
@@ -192,28 +365,32 @@ hr { margin: 8px 0; }
 }
 .matrix-table th, .matrix-table td {
     padding: 5px 4px;
-    border: 1px solid #ddd;
-    text-align: center;
+    border: 1px solid #e0e0e0;
+    text-align: center !important;
     vertical-align: middle;
 }
 .matrix-table thead th {
-    background: #f0f4f0;
-    font-weight: 700;
-    color: #1D5B2E;
+    background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+    font-weight: 800;
+    color: #1B5E20;
+    border-bottom: 2px solid #4CAF50;
 }
 .matrix-table tbody th {
-    background: #f9f9f9;
+    background: #F5F5F5;
     font-weight: 700;
-    text-align: center;
+    text-align: center !important;
 }
-.matrix-grey { background-color: #d0d0d0; color: #d0d0d0; }
-.matrix-x { color: #bbb; }
+.matrix-grey { background-color: #BDBDBD; color: #BDBDBD; }
+.matrix-x { color: #BDBDBD; }
 
-/* KDK 대진표 */
+/* ══════════════════════════════════════════════
+   KDK 대진표
+══════════════════════════════════════════════ */
 .kdk-bracket {
-    background: #f5f5f5;
+    background: linear-gradient(135deg, #F1F8E9, #F9FBF9);
     border-radius: 10px;
-    padding: 8px;
+    border: 1px solid #C8E6C9;
+    padding: 10px;
     margin: 6px 0;
     font-size: 0.65rem;
     overflow-x: auto;
@@ -226,20 +403,69 @@ hr { margin: 8px 0; }
 .kdk-bracket th, .kdk-bracket td {
     padding: 5px 6px;
     border: 1px solid #ddd;
-    text-align: center;
+    text-align: center !important;
 }
 .kdk-bracket thead th {
-    background: #e8f5e9;
-    font-weight: 700;
-    color: #1D5B2E;
+    background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+    font-weight: 800;
+    color: #1B5E20;
 }
-.kdk-bracket tbody tr:nth-child(even) {
-    background: #fafafa;
+.kdk-bracket tbody tr:nth-child(even) { background: #FAFAFA; }
+
+/* ══════════════════════════════════════════════
+   기타 유틸
+══════════════════════════════════════════════ */
+hr { margin: 10px 0; border-color: #E8F5E9; }
+
+.p-tag {
+    display: inline-block;
+    background: #E8F5E9;
+    border: 1px solid #66BB6A;
+    border-radius: 20px;
+    padding: 3px 8px;
+    margin: 3px 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #1B5E20;
 }
 
-/* 카드/랭킹 여백 */
-.tour-card, .rank-card { padding: 6px 10px; margin: 6px 0; border-radius: 10px; }
-.dataframe th { font-size: 0.65rem !important; padding: 4px 2px !important; }
+/* 테니스 코트 라인 장식 (푸터) */
+.court-line {
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #4CAF50 20%, #FFEB3B 50%, #4CAF50 80%, transparent);
+    margin: 6px -0.5rem 0;
+    border-radius: 0;
+}
+
+/* ══════════════════════════════════════════════
+   카드류
+══════════════════════════════════════════════ */
+.tour-card, .rank-card {
+    padding: 8px 12px;
+    margin: 6px 0;
+    border-radius: 10px;
+    border: 1px solid #C8E6C9;
+    background: #FAFFF9;
+}
+
+/* dataframe 헤더 강제 가운데 추가 레이어 */
+.dvn-scroller { text-align: center !important; }
+.dvn-scroller * { text-align: center !important; }
+
+/* 점수판 경기 구분선 */
+.score-divider {
+    border: none;
+    border-top: 1px dashed #C8E6C9;
+    margin: 10px 0;
+}
+
+/* 토스트 */
+div[data-testid="stToast"] {
+    background: #2E7D32 !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -461,8 +687,8 @@ MENU_DEFS = [
 ]
 
 st.markdown("""
-<div style="background:#1D5B2E;padding:8px 12px 0 12px;margin:0 -0.5rem 0 -0.5rem;">
-  <div style="text-align:center;color:rgba(255,255,255,0.55);font-size:0.6rem;letter-spacing:1px;margin-bottom:2px">🎾 두류 테니스</div>
+<div style="background:linear-gradient(135deg,#1B5E20,#2E7D32);padding:8px 12px 0 12px;margin:0 -0.5rem 0 -0.5rem;">
+  <div style="text-align:center;color:rgba(255,255,255,0.6);font-size:0.6rem;letter-spacing:2px;margin-bottom:2px;font-weight:700;">🎾 &nbsp; 두 류 테 니 스 &nbsp; 🎾</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -476,7 +702,7 @@ for col, (key, label) in zip(nav_cols, MENU_DEFS):
             st.rerun()
 
 st.markdown("""
-<div style="background:#1D5B2E;height:4px;margin:0 -0.5rem 8px -0.5rem;"></div>
+<div style="background:linear-gradient(90deg,#1B5E20,#4CAF50,#FFEB3B,#4CAF50,#1B5E20);height:4px;margin:0 -0.5rem 10px -0.5rem;"></div>
 """, unsafe_allow_html=True)
 
 M = st.session_state.menu
@@ -525,14 +751,14 @@ elif M == "schedule":
             cls = GCLS[ti % len(GCLS)]
             player_with_number = ginfo.get("player_with_number", {})
             is_fixed = (mode == "고정페어")
-            
+
             if is_fixed:
                 stats = group_stats_fixed(matches)
                 rank_items = list(stats.keys())
             else:
                 stats = group_stats_kdk(matches)
                 rank_items = list(stats.keys())
-            
+
             st.markdown("**📋 전적 매트릭스**")
             if matches and rank_items:
                 if is_fixed:
@@ -571,11 +797,11 @@ elif M == "schedule":
                     html += "</tr>"
                 html += "</tbody></table>"
                 st.markdown(html, unsafe_allow_html=True)
-            
+
             if not is_fixed and player_with_number:
                 st.divider()
                 display_kdk_bracket(len(player_with_number), ginfo.get("games", 3), player_with_number)
-            
+
             st.divider()
             st.markdown("**🏅 현재 순위**")
             if rank_items:
@@ -602,7 +828,7 @@ elif M == "schedule":
                 rank_df = pd.DataFrame(rows)
                 rank_col_cfg = {c: st.column_config.TextColumn(c, width="small") for c in rank_df.columns}
                 st.dataframe(rank_df, use_container_width=True, hide_index=True, column_config=rank_col_cfg)
-            
+
             st.divider()
             st.markdown("**🎾 경기 입력**")
             changed = False
@@ -610,24 +836,44 @@ elif M == "schedule":
                 t1 = " & ".join(m["t1"])
                 t2 = " & ".join(m["t2"])
                 color_class = ["match-color-0", "match-color-1", "match-color-2"][mi % 3]
-                
-                c1, c2, c3 = st.columns([4, 1, 4])
-                with c1:
+
+                # ── 팀명 행 ──
+                name_c1, name_c2, name_c3 = st.columns([5, 2, 5])
+                with name_c1:
                     st.markdown(f'<div class="team-box {color_class}">{t1}</div>', unsafe_allow_html=True)
-                    s1 = st.number_input("", 0, 50, int(m["s1"]), key=f"{tid}_{g}_{mi}_s1", label_visibility="collapsed")
-                with c2:
+                with name_c2:
                     st.markdown('<div class="vs-circle">VS</div>', unsafe_allow_html=True)
-                with c3:
+                with name_c3:
                     st.markdown(f'<div class="team-box {color_class}">{t2}</div>', unsafe_allow_html=True)
-                    s2 = st.number_input("", 0, 50, int(m["s2"]), key=f"{tid}_{g}_{mi}_s2", label_visibility="collapsed")
-                
+
+                # ── 점수 입력 행 (- | 숫자 | + 3등분 균형) ──
+                sc1, sc_gap, sc2 = st.columns([5, 2, 5])
+                with sc1:
+                    s1 = st.number_input(
+                        "", 0, 50, int(m["s1"]),
+                        key=f"{tid}_{g}_{mi}_s1",
+                        label_visibility="collapsed"
+                    )
+                with sc_gap:
+                    st.markdown(
+                        '<div style="display:flex;align-items:center;justify-content:center;'
+                        'height:52px;font-size:1rem;font-weight:900;color:#9E9E9E;">:</div>',
+                        unsafe_allow_html=True
+                    )
+                with sc2:
+                    s2 = st.number_input(
+                        "", 0, 50, int(m["s2"]),
+                        key=f"{tid}_{g}_{mi}_s2",
+                        label_visibility="collapsed"
+                    )
+
                 if s1 != int(m["s1"]) or s2 != int(m["s2"]):
                     tour["groups"][g]["matches"][mi]["s1"] = s1
                     tour["groups"][g]["matches"][mi]["s2"] = s2
                     changed = True
                 if mi < len(matches)-1:
-                    st.markdown("<hr>", unsafe_allow_html=True)
-            
+                    st.markdown("<hr class='score-divider'>", unsafe_allow_html=True)
+
             if changed:
                 tours[tid] = tour
                 save_tours(tours)
@@ -651,20 +897,20 @@ elif M == "result":
         matches = ginfo["matches"]
         player_with_number = ginfo.get("player_with_number", {})
         is_fixed = (mode == "고정페어")
-        
+
         if is_fixed:
             stats = group_stats_fixed(matches)
             ranked = sorted(stats.keys(), key=lambda t: (-stats[t]["승"], -stats[t]["득실"]))
         else:
             stats = group_stats_kdk(matches)
             ranked = sorted(stats.keys(), key=lambda p: (-stats[p]["승"], -stats[p]["득실"]))
-        
+
         st.markdown(f'<div class="sec">{g} ({mode})</div>', unsafe_allow_html=True)
-        
+
         if not is_fixed and player_with_number:
             display_kdk_bracket(len(player_with_number), ginfo.get("games", 3), player_with_number)
             st.divider()
-        
+
         st.markdown("**🏆 최종 순위**")
         rows = []
         for i, item in enumerate(ranked):
@@ -686,9 +932,9 @@ elif M == "result":
         res_df = pd.DataFrame(rows)
         res_col_cfg = {c: st.column_config.TextColumn(c, width="small") for c in res_df.columns}
         st.dataframe(res_df, use_container_width=True, hide_index=True, column_config=res_col_cfg)
-        
+
         with st.expander("📋 전체 경기 결과"):
-            mrows = [{"경기": f"{' & '.join(m['t1'])} vs {' & '.join(m['t2'])}", 
+            mrows = [{"경기": f"{' & '.join(m['t1'])} vs {' & '.join(m['t2'])}",
                       "결과": f"{m['s1']}:{m['s2']}"} for m in matches]
             st.dataframe(pd.DataFrame(mrows), use_container_width=True, hide_index=True)
 
@@ -714,19 +960,19 @@ elif M == "archive":
         matches = ginfo["matches"]
         player_with_number = ginfo.get("player_with_number", {})
         is_fixed = (mode == "고정페어")
-        
+
         if is_fixed:
             stats = group_stats_fixed(matches)
             ranked = sorted(stats.keys(), key=lambda t: (-stats[t]["승"], -stats[t]["득실"]))
         else:
             stats = group_stats_kdk(matches)
             ranked = sorted(stats.keys(), key=lambda p: (-stats[p]["승"], -stats[p]["득실"]))
-        
+
         st.markdown(f'<div class="sec">{g} ({mode})</div>', unsafe_allow_html=True)
         if not is_fixed and player_with_number:
             display_kdk_bracket(len(player_with_number), ginfo.get("games", 3), player_with_number)
             st.divider()
-        
+
         rows = []
         for i, item in enumerate(ranked):
             pt = rank_pts(i+1, mode)
@@ -784,7 +1030,7 @@ elif M == "admin":
                         st.rerun()
                     else:
                         st.warning("이미 존재")
-        
+
         st.divider()
         st.markdown('<div class="sec">대회 목록</div>', unsafe_allow_html=True)
         tours = load_tours()
@@ -809,23 +1055,23 @@ elif M == "admin":
                         save_tours(tours)
                         st.success("상태 수정됨!")
                         st.rerun()
-                
+
                 if st.button(f"✏️ 상세 수정", key=f"detail_edit_{tid2}", use_container_width=True):
                     st.session_state.edit_tour_id = tid2
                     st.rerun()
-                
+
                 if st.button(f"🗑 삭제", key=f"del_{tid2}", use_container_width=True):
                     del tours[tid2]
                     save_tours(tours)
                     st.rerun()
                 st.divider()
-        
+
         # 상세 수정 모드
         edit_id = st.session_state.get("edit_tour_id")
         if edit_id and edit_id in tours:
             edit_tour = tours[edit_id]
             st.markdown(f'<div class="sec">✏️ "{edit_tour["title"]}" 상세 수정</div>', unsafe_allow_html=True)
-            
+
             new_title  = st.text_input("대회명", value=edit_tour["title"], key="edit_title")
             try:
                 default_date = pd.to_datetime(edit_tour.get("date", str(date.today()))).date()
@@ -834,7 +1080,7 @@ elif M == "admin":
             new_date   = st.date_input("날짜", value=default_date, key="edit_date")
             new_place  = st.text_input("장소", value=edit_tour.get("place", ""), key="edit_place")
             new_courts = st.selectbox("코트 수", [1,2,3], index=max(0, edit_tour.get("courts", 2)-1), key="edit_courts")
-            
+
             col_save, col_cancel = st.columns(2)
             with col_save:
                 if st.button("💾 기본 정보 저장", type="primary", use_container_width=True, key="save_basic_info"):
@@ -851,19 +1097,19 @@ elif M == "admin":
                     st.session_state.edit_tour_id = None
                     st.rerun()
             st.divider()
-            
+
             st.markdown('<div class="sec">🎲 그룹 설정 수정</div>', unsafe_allow_html=True)
             st.caption("※ 그룹 설정을 변경하면 기존 대진이 초기화됩니다.")
-            
-            current_groups     = edit_tour.get("groups", {})
+
+            current_groups      = edit_tour.get("groups", {})
             current_group_names = list(current_groups.keys())
-            
+
             col_info1, col_info2 = st.columns(2)
             with col_info1:
                 gcnt = st.number_input("그룹 수", 1, 6, value=max(1, len(current_group_names)), key="edit_gcnt")
             with col_info2:
                 st.write(f"현재 {len(current_group_names)}개 그룹")
-            
+
             gcfg = {}
             group_names = [f"{chr(65+i)}그룹" for i in range(int(gcnt))]
             for i, gn in enumerate(group_names):
@@ -889,14 +1135,14 @@ elif M == "admin":
                     current_count = len(existing.get("players", []))
                     st.write(f"현재 {current_count}명")
                 gcfg[gn] = (sz, md, gc)
-            
+
             total       = sum(c[0] for c in gcfg.values())
             all_players = edit_tour.get("players", [])
             if total == len(all_players):
                 st.success(f"✅ 참가자 {len(all_players)}명 / 배정 {total}명")
             else:
                 st.warning(f"⚠️ 참가자 {len(all_players)}명 / 배정 {total}명 (차이 {len(all_players)-total:+d}명)")
-            
+
             if st.button("🎲 그룹 설정 적용 및 대진 재생성", type="primary", use_container_width=True, key="apply_group_config"):
                 players_sorted = all_players
                 ptr = 0
@@ -932,17 +1178,17 @@ elif M == "admin":
                                format_func=lambda k: tours[k]['title'],
                                key="adm1_sel_tid")
         tour = tours[sel_tid]
-        
+
         if tour.get("groups"):
             st.info(f"✅ 현재 {len(tour['groups'])}개 그룹")
             for gname, ginfo in tour["groups"].items():
                 st.markdown(f"- **{gname}**: {ginfo['mode']} 방식, {len(ginfo['players'])}명")
-        
+
         st.markdown('<div class="sec">📝 참가자 명단 (일괄 입력)</div>', unsafe_allow_html=True)
         member_roster = load_members()
         default_text  = ", ".join(tour.get("players", st.session_state.participants))
         part_input    = st.text_area("참가자 명단", value=default_text, height=100)
-        
+
         if st.button("✅ 명단 저장 (기존 그룹 유지)", use_container_width=True, type="primary", key="save_roster"):
             raw_names    = part_input.replace("\n", ",").split(",")
             parsed       = [n.strip() for n in raw_names if n.strip()]
@@ -953,15 +1199,15 @@ elif M == "admin":
             save_tours(tours)
             st.success(f"{len(parsed_sorted)}명 저장됨")
             st.rerun()
-        
+
         st.markdown('<div class="sec">✏️ 개별 참가자 수정 (대진 유지)</div>', unsafe_allow_html=True)
         if tour.get("groups"):
             groups = list(tour["groups"].keys())
             if groups:
-                sel_group      = st.selectbox("그룹 선택", groups, key="adm1_edit_group")
+                sel_group       = st.selectbox("그룹 선택", groups, key="adm1_edit_group")
                 current_players = tour["groups"][sel_group]["players"].copy()
                 st.markdown(f"**현재 {sel_group} 참가자:** {', '.join(current_players) if current_players else '없음'}")
-                
+
                 if current_players:
                     sel_player = st.selectbox("삭제할 참가자", current_players, key="adm1_del_player")
                     if st.button("🗑 삭제", use_container_width=True, key="adm1_del_btn"):
@@ -976,9 +1222,9 @@ elif M == "admin":
                         save_tours(tours)
                         st.success(f"'{sel_player}' 삭제됨")
                         st.rerun()
-                
+
                 st.markdown("---")
-                
+
                 new_name = st.text_input("새 참가자 이름", placeholder="예: 홍길동", key="adm1_add_player")
                 if st.button("➕ 추가", use_container_width=True, key="adm1_add_btn"):
                     if new_name and new_name.strip():
@@ -989,7 +1235,7 @@ elif M == "admin":
                                 if "players" not in tour:
                                     tour["players"] = []
                                 tour["players"].append(new_name)
-                            
+
                             mode = tour["groups"][sel_group]["mode"]
                             gc   = tour["groups"][sel_group].get("games", 3)
                             if mode == "고정페어":
@@ -1008,9 +1254,9 @@ elif M == "admin":
                             st.rerun()
                         else:
                             st.warning("이미 있는 참가자입니다.")
-                
+
                 st.markdown("---")
-                
+
                 all_players_with_group = [
                     (p, g) for g in groups for p in tour["groups"][g]["players"]
                 ]
@@ -1023,7 +1269,7 @@ elif M == "admin":
                         if st.button("🔄 이동", use_container_width=True, key="adm1_move_btn"):
                             tour["groups"][current_group]["players"].remove(move_player)
                             tour["groups"][target_group]["players"].append(move_player)
-                            
+
                             for grp in [current_group, target_group]:
                                 mode = tour["groups"][grp]["mode"]
                                 gc   = tour["groups"][grp].get("games", 3)
@@ -1038,7 +1284,7 @@ elif M == "admin":
                                 else:
                                     new_ms, _ = make_singles(tour["groups"][grp]["players"])
                                 tour["groups"][grp]["matches"] = new_ms
-                            
+
                             save_tours(tours)
                             st.success(f"'{move_player}' {target_group}으로 이동됨")
                             st.rerun()
@@ -1067,7 +1313,7 @@ elif M == "admin":
                     st.rerun()
             except Exception as e:
                 st.error(f"오류: {e}")
-        
+
         st.divider()
         st.markdown('<div class="sec">📊 현재 랭킹</div>', unsafe_allow_html=True)
         df_cur = load_rank()
@@ -1076,7 +1322,7 @@ elif M == "admin":
             st.download_button("📥 다운로드", data=to_excel(df_cur),
                                file_name=f"랭킹_{date.today()}.xlsx",
                                key="adm2_download")
-        
+
         st.divider()
         st.markdown('<div class="sec">✏️ 직접 수정</div>', unsafe_allow_html=True)
         df_edit = load_rank()
@@ -1099,11 +1345,11 @@ elif M == "admin":
                                 format_func=lambda k: tours[k]['title'],
                                 key="adm3_sel_tid")
         tour3 = tours[sel_tid2]
-        
+
         if not tour3.get("groups"):
             st.warning("대진 없음")
             st.stop()
-        
+
         earn = {}
         for g, ginfo in tour3["groups"].items():
             mode     = ginfo["mode"]
@@ -1122,12 +1368,12 @@ elif M == "admin":
                         earn[p] = earn.get(p, 0) + pt
                 else:
                     earn[item] = earn.get(item, 0) + pt
-        
+
         if earn:
             earn_df = pd.DataFrame(earn.items(), columns=["선수", "획득포인트"])
             earn_col_cfg = {c: st.column_config.TextColumn(c, width="small") for c in earn_df.columns}
             st.dataframe(earn_df, use_container_width=True, column_config=earn_col_cfg)
-        
+
         c1, c2 = st.columns(2)
         with c1:
             if st.button("🏆 랭킹 반영", type="primary", use_container_width=True, key="adm3_apply"):
