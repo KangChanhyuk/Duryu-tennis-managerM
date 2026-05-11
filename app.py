@@ -23,7 +23,7 @@ st.markdown("""
     max-width: 100% !important;
 }
 
-/* 네비게이션 바 (모바일: 버튼 간격 조정, 텍스트 작게) */
+/* 네비게이션 바 */
 section.main [data-testid="stHorizontalBlock"]:first-of-type .stButton > button {
     background: transparent !important;
     color: rgba(255,255,255,0.8) !important;
@@ -33,7 +33,7 @@ section.main [data-testid="stHorizontalBlock"]:first-of-type .stButton > button 
     font-weight: 600 !important;
     padding: 10px 2px 6px !important;
     line-height: 1.2 !important;
-    white-space: normal !important;   /* 여러 줄 허용 */
+    white-space: normal !important;
     word-break: keep-all;
     box-shadow: none !important;
     min-height: 52px !important;
@@ -78,7 +78,7 @@ button[data-baseweb="tab"][aria-selected="true"] {
     background: linear-gradient(135deg,#1D5B2E,#388E3C) !important;
 }
 
-/* 테이블: 가로 스크롤 + 폰트 작게 */
+/* 테이블: 가운데 정렬 강제 */
 div[data-testid="stDataFrame"] table,
 div[data-testid="stDataEditor"] table {
     width: 100% !important;
@@ -86,30 +86,96 @@ div[data-testid="stDataEditor"] table {
     text-align: center !important;
 }
 div[data-testid="stDataFrame"] table th,
-div[data-testid="stDataFrame"] table td {
+div[data-testid="stDataFrame"] table td,
+div[data-testid="stDataFrame"] div[data-testid="glideDataEditor"] *,
+div[data-testid="stDataFrame"] [role="gridcell"],
+div[data-testid="stDataFrame"] [role="columnheader"] {
     text-align: center !important;
     vertical-align: middle !important;
-    padding: 4px 2px !important;
+    padding: 4px 4px !important;
     font-size: 0.7rem !important;
     white-space: nowrap;
 }
 div[data-testid="stDataFrame"] {
     overflow-x: auto !important;
 }
-
-/* 숫자 입력 필드 (터치 영역) */
-input[type="number"] {
-    text-align: center !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    min-height: 44px !important;
+/* Streamlit DataFrame 내부 셀 가운데 정렬 (Glide Data Grid) */
+div[data-testid="stDataFrame"] canvas {
+    display: block;
 }
-div[data-testid="stNumberInput"] input {
+.dvn-scroller, .dvn-scroller * {
     text-align: center !important;
-    font-weight: 600 !important;
-    font-size: 0.85rem !important;
-    padding: 6px !important;
-    min-height: 44px !important;
+}
+
+/* ══════════════════════════════════════════
+   숫자 입력 +/- 버튼 대형화 (핵심 변경)
+   ══════════════════════════════════════════ */
+/* 숫자 입력 전체 컨테이너 */
+div[data-testid="stNumberInput"] {
+    width: 100% !important;
+}
+/* 숫자 입력 래퍼 */
+div[data-testid="stNumberInput"] > div {
+    display: flex !important;
+    align-items: stretch !important;
+    border: 2px solid #66BB6A !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    min-height: 56px !important;
+}
+/* 숫자 표시 필드 */
+div[data-testid="stNumberInput"] input[type="number"] {
+    text-align: center !important;
+    font-size: 1.3rem !important;
+    font-weight: 800 !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    min-height: 56px !important;
+    padding: 0 4px !important;
+    flex: 1 !important;
+    -moz-appearance: textfield !important;
+}
+div[data-testid="stNumberInput"] input[type="number"]::-webkit-outer-spin-button,
+div[data-testid="stNumberInput"] input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+/* + / - 버튼 공통 스타일 */
+div[data-testid="stNumberInput"] button {
+    background: linear-gradient(135deg,#1D5B2E,#388E3C) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    font-size: 1.6rem !important;
+    font-weight: 900 !important;
+    min-width: 52px !important;
+    min-height: 56px !important;
+    width: 52px !important;
+    height: 56px !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    transition: background 0.15s !important;
+    flex-shrink: 0 !important;
+}
+div[data-testid="stNumberInput"] button:hover {
+    background: linear-gradient(135deg,#388E3C,#43A047) !important;
+}
+div[data-testid="stNumberInput"] button:active {
+    background: linear-gradient(135deg,#145222,#1D5B2E) !important;
+}
+/* - 버튼 (첫 번째) */
+div[data-testid="stNumberInput"] button:first-of-type {
+    border-radius: 10px 0 0 10px !important;
+}
+/* + 버튼 (두 번째) */
+div[data-testid="stNumberInput"] button:last-of-type {
+    border-radius: 0 10px 10px 0 !important;
 }
 
 /* 팀/선수 박스 */
@@ -181,7 +247,7 @@ hr { margin: 8px 0; }
     min-height: 44px !important;
 }
 
-/* 매트릭스 테이블 (모바일 가로 스크롤) */
+/* 매트릭스 테이블 */
 .matrix-table {
     width: 100%;
     border-collapse: collapse;
@@ -237,11 +303,145 @@ hr { margin: 8px 0; }
     background: #fafafa;
 }
 
+/* 구글 시트 연동 배너 */
+.gsheet-banner {
+    background: linear-gradient(135deg,#0F9D58,#34A853);
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+.gsheet-banner-warn {
+    background: linear-gradient(135deg,#F4B400,#F9A825);
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
 /* 카드/랭킹 여백 */
 .tour-card, .rank-card { padding: 6px 10px; margin: 6px 0; border-radius: 10px; }
 .dataframe th { font-size: 0.65rem !important; padding: 4px 2px !important; }
+
+/* 랭킹 테이블 전용 가운데 정렬 */
+[data-testid="stDataFrame"] [role="gridcell"] span,
+[data-testid="stDataFrame"] [role="columnheader"] span {
+    text-align: center !important;
+    justify-content: center !important;
+    display: flex !important;
+}
 </style>
 """, unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════════
+# 구글 시트 연동 헬퍼
+# ══════════════════════════════════════════════════════════════
+GSHEET_CONFIG_FILE = "gsheet_config.json"
+
+def load_gsheet_config():
+    if os.path.exists(GSHEET_CONFIG_FILE):
+        with open(GSHEET_CONFIG_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {"enabled": False, "sheet_id": "", "credentials_json": ""}
+
+def save_gsheet_config(cfg):
+    with open(GSHEET_CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, ensure_ascii=False, indent=2)
+
+def get_gsheet_client(creds_json_str):
+    """gspread 클라이언트 반환. 실패 시 None 반환."""
+    try:
+        import gspread
+        from google.oauth2.service_account import Credentials
+        creds_dict = json.loads(creds_json_str)
+        scopes = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive",
+        ]
+        creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+        return gspread.authorize(creds)
+    except Exception as e:
+        return None
+
+def sync_ranking_to_gsheet(df, sheet_id, creds_json_str):
+    """랭킹 DataFrame을 구글 시트에 업로드."""
+    try:
+        gc = get_gsheet_client(creds_json_str)
+        if gc is None:
+            return False, "gspread 또는 google-auth 패키지가 설치되지 않았습니다."
+        sh = gc.open_by_key(sheet_id)
+        try:
+            ws = sh.worksheet("랭킹")
+        except Exception:
+            ws = sh.add_worksheet(title="랭킹", rows=200, cols=20)
+        ws.clear()
+        data = [df.columns.tolist()] + df.fillna("").values.tolist()
+        ws.update(data)
+        return True, "✅ 구글 시트 동기화 완료!"
+    except Exception as e:
+        return False, f"오류: {e}"
+
+def sync_ranking_from_gsheet(sheet_id, creds_json_str):
+    """구글 시트에서 랭킹 DataFrame 로드."""
+    try:
+        gc = get_gsheet_client(creds_json_str)
+        if gc is None:
+            return None, "gspread 또는 google-auth 패키지가 설치되지 않았습니다."
+        sh = gc.open_by_key(sheet_id)
+        ws = sh.worksheet("랭킹")
+        rows = ws.get_all_values()
+        if not rows:
+            return None, "시트가 비어 있습니다."
+        df = pd.DataFrame(rows[1:], columns=rows[0])
+        for c in ["현재포인트", "3월 포인트", "부과점"]:
+            if c in df.columns:
+                df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
+        return df, "✅ 구글 시트에서 불러오기 완료!"
+    except Exception as e:
+        return None, f"오류: {e}"
+
+def sync_tours_to_gsheet(tours, sheet_id, creds_json_str):
+    """대진/결과 전체를 구글 시트에 동기화."""
+    try:
+        gc = get_gsheet_client(creds_json_str)
+        if gc is None:
+            return False, "gspread 패키지 없음"
+        sh = gc.open_by_key(sheet_id)
+        # 대회 목록 시트
+        try:
+            ws_t = sh.worksheet("대회목록")
+        except Exception:
+            ws_t = sh.add_worksheet(title="대회목록", rows=200, cols=10)
+        ws_t.clear()
+        rows_t = [["대회ID", "제목", "날짜", "장소", "코트수", "상태"]]
+        for tid, tv in tours.items():
+            rows_t.append([tid, tv.get("title",""), tv.get("date",""), tv.get("place",""),
+                           str(tv.get("courts",2)), tv.get("status","")])
+        ws_t.update(rows_t)
+
+        # 경기 결과 시트
+        try:
+            ws_m = sh.worksheet("경기결과")
+        except Exception:
+            ws_m = sh.add_worksheet(title="경기결과", rows=2000, cols=10)
+        ws_m.clear()
+        rows_m = [["대회ID", "그룹", "방식", "팀1", "팀2", "점수1", "점수2"]]
+        for tid, tv in tours.items():
+            for gname, ginfo in tv.get("groups", {}).items():
+                for m in ginfo.get("matches", []):
+                    rows_m.append([
+                        tid, gname, ginfo.get("mode",""),
+                        " & ".join(m["t1"]), " & ".join(m["t2"]),
+                        str(m.get("s1",0)), str(m.get("s2",0))
+                    ])
+        ws_m.update(rows_m)
+        return True, "✅ 대회/경기 결과 시트 동기화 완료!"
+    except Exception as e:
+        return False, f"오류: {e}"
 
 # ══════════════════════════════════════════════════════════════
 # 파일 경로 / 상수
@@ -277,7 +477,7 @@ KDK_4G = {
 }
 
 # ══════════════════════════════════════════════════════════════
-# 데이터 함수 (변경 없음)
+# 데이터 함수
 # ══════════════════════════════════════════════════════════════
 def load_rank():
     if not os.path.exists(RANK_FILE):
@@ -296,6 +496,10 @@ def save_rank(df):
         df = df.sort_values("현재포인트", ascending=False).reset_index(drop=True)
         df["랭킹"] = df.index + 1
     df.to_csv(RANK_FILE, index=False)
+    # 구글 시트 자동 동기화
+    gcfg = load_gsheet_config()
+    if gcfg.get("enabled") and gcfg.get("sheet_id") and gcfg.get("credentials_json"):
+        sync_ranking_to_gsheet(df, gcfg["sheet_id"], gcfg["credentials_json"])
 
 def load_members():
     if os.path.exists(MEMBER_FILE):
@@ -317,6 +521,10 @@ def load_tours():
 def save_tours(d):
     with open(TOUR_FILE,"w",encoding="utf-8") as f:
         json.dump(d, f, ensure_ascii=False, indent=2)
+    # 구글 시트 자동 동기화
+    gcfg = load_gsheet_config()
+    if gcfg.get("enabled") and gcfg.get("sheet_id") and gcfg.get("credentials_json"):
+        sync_tours_to_gsheet(d, gcfg["sheet_id"], gcfg["credentials_json"])
 
 def to_excel(df):
     buf = BytesIO()
@@ -450,7 +658,7 @@ if "menu" not in st.session_state: st.session_state.menu = "ranking"
 if "participants" not in st.session_state: st.session_state.participants = []
 
 # ══════════════════════════════════════════════════════════════
-# 네비게이션 바 (모바일 대응: 버튼 행)
+# 네비게이션 바
 # ══════════════════════════════════════════════════════════════
 MENU_DEFS = [
     ("ranking", "🏆\n랭킹"),
@@ -482,10 +690,16 @@ st.markdown("""
 M = st.session_state.menu
 
 # ══════════════════════════════════════════════════════════════
-# 1. 랭킹
+# 1. 랭킹 (가운데 정렬 강화)
 # ══════════════════════════════════════════════════════════════
 if M == "ranking":
     st.markdown("<div class='main-hdr'>🏆 두류 랭킹</div>", unsafe_allow_html=True)
+
+    # 구글 시트 연동 상태 표시
+    gcfg = load_gsheet_config()
+    if gcfg.get("enabled") and gcfg.get("sheet_id"):
+        st.markdown("<div class='gsheet-banner'>🟢 구글 시트 연동 활성화 — 데이터가 자동으로 공유됩니다</div>", unsafe_allow_html=True)
+
     df = load_rank()
     if df.empty:
         st.info("등록된 랭킹이 없습니다.")
@@ -493,12 +707,43 @@ if M == "ranking":
         icons = ["🥇","🥈","🥉"]
         disp = df.copy()
         disp.insert(0, "순위", [icons[i] if i<3 else str(i+1) for i in range(len(disp))])
-        col_cfg = {c: st.column_config.TextColumn(c, width="small") for c in disp.columns}
-        st.dataframe(disp, use_container_width=True, hide_index=True, column_config=col_cfg)
+
+        # 모든 컬럼을 TextColumn + width="small" + 가운데 정렬로 설정
+        col_cfg = {}
+        for c in disp.columns:
+            col_cfg[c] = st.column_config.TextColumn(c, width="small")
+
+        st.dataframe(
+            disp,
+            use_container_width=True,
+            hide_index=True,
+            column_config=col_cfg,
+        )
+
+        # HTML 랭킹 테이블 (완전 가운데 정렬 보장)
+        cols_show = ["순위","이름","현재포인트","그룹"]
+        available_cols = [c for c in cols_show if c in disp.columns]
+        th_html = "".join(f"<th>{c}</th>" for c in available_cols)
+        rows_html = ""
+        for _, row in disp.iterrows():
+            rows_html += "<tr>" + "".join(f"<td>{row.get(c,'')}</td>" for c in available_cols) + "</tr>"
+        st.markdown(f"""
+<style>
+.rank-html-table {{ width:100%; border-collapse:collapse; font-size:0.75rem; text-align:center; }}
+.rank-html-table th {{ background:#1D5B2E; color:#fff; padding:6px 4px; text-align:center; }}
+.rank-html-table td {{ padding:5px 4px; border-bottom:1px solid #eee; text-align:center; }}
+.rank-html-table tr:nth-child(even) td {{ background:#f9f9f9; }}
+</style>
+<table class="rank-html-table">
+<thead><tr>{th_html}</tr></thead>
+<tbody>{rows_html}</tbody>
+</table>
+""", unsafe_allow_html=True)
+
         st.download_button("📥 엑셀 다운로드", data=to_excel(df), file_name=f"랭킹_{date.today()}.xlsx", use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════
-# 2. 대진·경기현황 (변경 없음)
+# 2. 대진·경기현황
 # ══════════════════════════════════════════════════════════════
 elif M == "schedule":
     tours = load_tours()
@@ -634,7 +879,7 @@ elif M == "schedule":
                 st.toast("✅ 저장됨", icon="✅")
 
 # ══════════════════════════════════════════════════════════════
-# 3. 경기 결과 (변경 없음)
+# 3. 경기 결과
 # ══════════════════════════════════════════════════════════════
 elif M == "result":
     tours = load_tours()
@@ -693,7 +938,7 @@ elif M == "result":
             st.dataframe(pd.DataFrame(mrows), use_container_width=True, hide_index=True)
 
 # ══════════════════════════════════════════════════════════════
-# 4. 지난 대회 (변경 없음)
+# 4. 지난 대회
 # ══════════════════════════════════════════════════════════════
 elif M == "archive":
     st.markdown("<div class='main-hdr'>📂 지난 대회</div>", unsafe_allow_html=True)
@@ -749,7 +994,7 @@ elif M == "archive":
         st.dataframe(arc_df, use_container_width=True, hide_index=True, column_config=arc_col_cfg)
 
 # ══════════════════════════════════════════════════════════════
-# 5. 관리자 (모든 기능 유지, 크기만 최적화)
+# 5. 관리자
 # ══════════════════════════════════════════════════════════════
 elif M == "admin":
     st.markdown("<div class='main-hdr'>⚙️ 관리자</div>", unsafe_allow_html=True)
@@ -762,7 +1007,7 @@ elif M == "admin":
         st.stop()
     st.success("관리자 모드")
 
-    adm = st.tabs(["🏆 대회", "👥 참가자·대진", "📋 랭킹", "💾 반영"])
+    adm = st.tabs(["🏆 대회", "👥 참가자·대진", "📋 랭킹", "💾 반영", "🔗 구글 시트"])
 
     # ── 대회 관리 ──────────────────────────────────────────────
     with adm[0]:
@@ -921,7 +1166,7 @@ elif M == "admin":
                 st.success("그룹 설정 적용 완료!")
                 st.rerun()
 
-    # ── 참가자·대진 (개별 수정) ─────────────────────────────────
+    # ── 참가자·대진 ─────────────────────────────────────────────
     with adm[1]:
         tours = load_tours()
         active_t = [k for k,v in tours.items() if v.get("status") == "진행중"]
@@ -1157,3 +1402,109 @@ elif M == "admin":
                 save_tours(tours)
                 st.success("초기화 완료!")
                 st.rerun()
+
+    # ══════════════════════════════════════════════════════════
+    # 🔗 구글 시트 연동 탭 (신규)
+    # ══════════════════════════════════════════════════════════
+    with adm[4]:
+        st.markdown('<div class="sec">🔗 구글 시트 연동 설정</div>', unsafe_allow_html=True)
+
+        gcfg = load_gsheet_config()
+
+        st.markdown("""
+<div style="background:#E8F5E9;border-radius:10px;padding:10px 14px;font-size:0.78rem;margin-bottom:10px;">
+<b>📌 연동 방법 (3단계)</b><br><br>
+<b>① Google Cloud Console</b> → 새 프로젝트 생성<br>
+<b>②</b> "Google Sheets API" + "Google Drive API" 활성화<br>
+<b>③</b> 서비스 계정 생성 → JSON 키 다운로드<br>
+<b>④</b> 구글 시트를 만들고, 서비스 계정 이메일을 <b>편집자</b>로 공유<br>
+<b>⑤</b> 아래에 시트 ID와 JSON 키 붙여넣기<br><br>
+<b>시트 ID 찾기:</b> 시트 URL에서<br>
+<code>docs.google.com/spreadsheets/d/<b>[여기가 ID]</b>/edit</code>
+</div>
+""", unsafe_allow_html=True)
+
+        enabled = st.toggle("구글 시트 연동 활성화", value=gcfg.get("enabled", False), key="gs_toggle")
+        sheet_id = st.text_input("구글 시트 ID", value=gcfg.get("sheet_id", ""), placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms")
+        creds_input = st.text_area(
+            "서비스 계정 JSON 키",
+            value=gcfg.get("credentials_json", ""),
+            height=160,
+            placeholder='{"type": "service_account", "project_id": "...", "private_key_id": "...", ...}'
+        )
+
+        col_gs1, col_gs2 = st.columns(2)
+        with col_gs1:
+            if st.button("💾 설정 저장", type="primary", use_container_width=True, key="gs_save"):
+                new_cfg = {
+                    "enabled": enabled,
+                    "sheet_id": sheet_id.strip(),
+                    "credentials_json": creds_input.strip()
+                }
+                save_gsheet_config(new_cfg)
+                st.success("설정 저장됨!")
+                st.rerun()
+        with col_gs2:
+            if st.button("🔄 연결 테스트", use_container_width=True, key="gs_test"):
+                if not sheet_id.strip() or not creds_input.strip():
+                    st.warning("시트 ID와 JSON 키를 먼저 입력하세요.")
+                else:
+                    gc = get_gsheet_client(creds_input.strip())
+                    if gc is None:
+                        st.error("❌ gspread 패키지 없음. 서버에 `pip install gspread google-auth` 실행 필요.")
+                    else:
+                        try:
+                            sh = gc.open_by_key(sheet_id.strip())
+                            st.success(f"✅ 연결 성공! 시트명: {sh.title}")
+                        except Exception as e:
+                            st.error(f"❌ 연결 실패: {e}")
+
+        st.divider()
+        st.markdown('<div class="sec">📤 수동 동기화</div>', unsafe_allow_html=True)
+
+        col_up1, col_up2 = st.columns(2)
+        with col_up1:
+            if st.button("📤 랭킹 → 시트 업로드", use_container_width=True, key="gs_upload_rank"):
+                gcfg2 = load_gsheet_config()
+                if not gcfg2.get("sheet_id") or not gcfg2.get("credentials_json"):
+                    st.warning("설정을 먼저 저장하세요.")
+                else:
+                    df_r2 = load_rank()
+                    ok, msg = sync_ranking_to_gsheet(df_r2, gcfg2["sheet_id"], gcfg2["credentials_json"])
+                    (st.success if ok else st.error)(msg)
+
+        with col_up2:
+            if st.button("📤 경기결과 → 시트 업로드", use_container_width=True, key="gs_upload_tours"):
+                gcfg2 = load_gsheet_config()
+                if not gcfg2.get("sheet_id") or not gcfg2.get("credentials_json"):
+                    st.warning("설정을 먼저 저장하세요.")
+                else:
+                    tours2 = load_tours()
+                    ok, msg = sync_tours_to_gsheet(tours2, gcfg2["sheet_id"], gcfg2["credentials_json"])
+                    (st.success if ok else st.error)(msg)
+
+        st.divider()
+        st.markdown('<div class="sec">📥 시트 → 랭킹 가져오기</div>', unsafe_allow_html=True)
+        st.caption("⚠️ 구글 시트의 '랭킹' 워크시트 내용으로 현재 랭킹을 덮어씁니다.")
+        if st.button("📥 구글 시트에서 랭킹 불러오기", use_container_width=True, key="gs_download_rank"):
+            gcfg2 = load_gsheet_config()
+            if not gcfg2.get("sheet_id") or not gcfg2.get("credentials_json"):
+                st.warning("설정을 먼저 저장하세요.")
+            else:
+                df_from_gs, msg = sync_ranking_from_gsheet(gcfg2["sheet_id"], gcfg2["credentials_json"])
+                if df_from_gs is not None:
+                    save_rank(df_from_gs)
+                    st.success(msg + f" ({len(df_from_gs)}명 로드됨)")
+                    st.rerun()
+                else:
+                    st.error(msg)
+
+        st.divider()
+        st.markdown("""
+<div style="background:#FFF8E1;border-radius:10px;padding:10px 14px;font-size:0.75rem;">
+<b>⚙️ 패키지 설치 안내</b><br>
+Streamlit Cloud 사용 시 <code>requirements.txt</code>에 아래 추가:<br>
+<code>gspread</code><br>
+<code>google-auth</code>
+</div>
+""", unsafe_allow_html=True)
