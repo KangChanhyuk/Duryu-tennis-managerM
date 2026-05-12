@@ -1,6 +1,3 @@
-gspread
-google-auth
+streamlit
 pandas
 openpyxl
-xlsxwriter
-streamlit
