@@ -19,20 +19,16 @@ st.markdown("""
 
 :root {
     --green-dark:   #1B5E20;
-    --green-mid:    #2E7D32;
     --green-main:   #388E3C;
     --green-light:  #66BB6A;
-    --green-pale:   #C8E6C9;
     --green-bg:     #F1F8F1;
     --yellow:       #FFD600;
-    --yellow-light: #FFF9C4;
     --white:        #FFFFFF;
     --grey-100:     #F5F5F5;
     --grey-200:     #EEEEEE;
     --grey-300:     #E0E0E0;
     --grey-500:     #9E9E9E;
     --grey-700:     #616161;
-    --grey-900:     #212121;
     --shadow-sm:    0 2px 8px rgba(0,0,0,0.08);
     --shadow-md:    0 4px 16px rgba(0,0,0,0.12);
     --radius-sm:    8px;
@@ -40,7 +36,10 @@ st.markdown("""
     --radius-lg:    20px;
 }
 
-* { font-family: 'Noto Sans KR', 'Nunito', sans-serif !important; box-sizing: border-box; }
+* {
+    font-family: 'Noto Sans KR', 'Nunito', sans-serif !important;
+    box-sizing: border-box;
+}
 
 /* ── 전체 배경 ── */
 .block-container {
