@@ -3,6 +3,7 @@ import pandas as pd
 import random, os, json
 from datetime import date
 from io import BytesIO
+import functools
 
 # ══════════════════════════════════════════════════════════════
 # 앱 설정
@@ -15,7 +16,7 @@ st.set_page_config(
 )
 
 # ══════════════════════════════════════════════════════════════
-# CSS — 모바일 완전 최적화
+# CSS — 모바일 완전 최적화 (동일)
 # ══════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
@@ -54,7 +55,7 @@ html, body { font-size: 16px; }
 /* Streamlit 기본 패딩 제거 */
 .block-container {
   padding: 0 0.5rem 3rem !important;
-  max-width: 480px !important;   /* 모바일 최대 너비 */
+  max-width: 480px !important;
   margin: 0 auto !important;
   background: var(--bg) !important;
 }
@@ -214,75 +215,53 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td {
   background: var(--g5) !important;
 }
 
-/* ════════════════════════════════════════
-   점수 입력 — 모바일 최우선 대형 UI
-════════════════════════════════════════ */
-div[data-testid="stNumberInput"] {
-  display: flex !important;
-  flex-direction: column !important;
+/* ─── 커스텀 점수 입력 버튼 ( - / 점수 / + ) ─── */
+.score-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  background: var(--card);
+  border-radius: var(--r2);
+  padding: 6px 8px;
+  border: 1.5px solid var(--g3);
+  box-shadow: var(--sh);
 }
-div[data-testid="stNumberInput"] > div {
-  display: flex !important;
-  align-items: stretch !important;
-  gap: 0 !important;
-  height: 72px !important;
-  border-radius: var(--r2) !important;
-  overflow: hidden !important;
-  border: 2.5px solid var(--g3) !important;
-  background: var(--card) !important;
-  box-shadow: var(--sh) !important;
+.score-btn {
+  background: var(--g4);
+  color: var(--g0);
+  font-size: 1.6rem;
+  font-weight: 900;
+  width: 56px;
+  height: 56px;
+  border-radius: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: all 0.1s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
-div[data-testid="stNumberInput"] input {
-  flex: 1 !important;
-  text-align: center !important;
-  font-weight: 900 !important;
-  font-size: 2rem !important;
-  color: var(--g0) !important;
-  background: transparent !important;
-  border: none !important;
-  border-left: 1.5px solid var(--g4) !important;
-  border-right: 1.5px solid var(--g4) !important;
-  min-height: 72px !important;
-  padding: 0 4px !important;
-  line-height: 1 !important;
-  box-shadow: none !important;
-  outline: none !important;
-  -webkit-appearance: none !important;
+.score-btn:active {
+  transform: scale(0.94);
+  background: var(--g2);
+  color: white;
 }
-div[data-testid="stNumberInput"] input:focus {
-  background: var(--g5) !important;
-  outline: none !important;
-  border-color: var(--g3) !important;
-  box-shadow: none !important;
+.score-value {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--g0);
+  min-width: 60px;
+  text-align: center;
+  line-height: 1;
 }
-/* +/− 버튼 — 손가락으로 누르기 쉽게 */
-div[data-testid="stNumberInput"] button {
-  flex-shrink: 0 !important;
-  width: 72px !important;
-  min-width: 72px !important;
-  min-height: 72px !important;
-  height: 72px !important;
-  font-size: 1.8rem !important;
-  font-weight: 900 !important;
-  background: var(--g4) !important;
-  color: var(--g0) !important;
-  border: none !important;
-  border-radius: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-  transition: background .12s !important;
-  -webkit-user-select: none !important;
-  user-select: none !important;
+/* 버튼 호버 효과는 모바일에서는 크게 의미 없지만 유지 */
+.score-btn:hover {
+  background: var(--g3);
+  color: white;
 }
-div[data-testid="stNumberInput"] button:hover  { background: var(--g3) !important; color: #fff !important; }
-div[data-testid="stNumberInput"] button:active { background: var(--g2) !important; color: #fff !important; }
-div[data-testid="stNumberInput"] button svg { display: none !important; }
-/* ─ 감소 버튼 (왼쪽) ─ */
-div[data-testid="stNumberInput"] button:first-child::after { content: "−"; line-height:1; }
-/* ─ 증가 버튼 (오른쪽) ─ */
-div[data-testid="stNumberInput"] button:last-child::after  { content: "+"; line-height:1; }
 
 /* ─── 경기 카드 ─── */
 .match-card {
@@ -347,22 +326,8 @@ div[data-testid="stNumberInput"] button:last-child::after  { content: "+"; line-
   letter-spacing: .5px;
 }
 
-/* ─── 점수 합계 표시 ─── */
-.score-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 4px;
-}
-.score-chip {
-  background: var(--g0);
-  color: #fff;
-  border-radius: 8px;
-  padding: 3px 10px;
-  font-size: .7rem;
-  font-weight: 800;
-}
+/* ─── 점수 합계 표시 (사용 안 함, 대신 커스텀) ─── */
+/* 삭제 or 유지 */
 
 /* ─── 일반 버튼 ─── */
 .stButton > button {
@@ -469,7 +434,7 @@ details > summary {
   min-height: 44px !important; display: flex !important; align-items: center !important;
 }
 
-/* ─── 하단 여백 (모바일 홈 인디케이터용) ─── */
+/* ─── 하단 여백 ─── */
 .bottom-pad { height: 40px; }
 
 /* ─── 스크롤바 얇게 ─── */
@@ -636,7 +601,7 @@ def kdk_bracket_html(n, gperson, p2n):
                  f"{i+1}</span></td>"
                  f"<td style='text-align:left;padding-left:10px'>{t1} vs {t2}</td></tr>")
     return (f'<div class="kdk"><div class="kdk-title">📋 {title}</div>'
-            f'<table><thead><tr><th style="width:38px">순서</th><th>대진</th></tr></thead>'
+            f'<td><thead><tr><th style="width:38px">순서</th><th>대진</th></tr></thead>'
             f'<tbody>{rows}</tbody></table></div>')
 
 def show_kdk(n, gperson, p2n):
@@ -677,7 +642,30 @@ def matrix_html(matches, rank_items, is_fixed, player_with_number):
         body += "</tr>"
     return (f'<div class="mx-wrap">'
             f'<table class="mx"><thead><tr><th></th>{header}</tr></thead>'
-            f'<tbody>{body}</tbody></table></div>')
+            f'<tbody>{body}</tbody></tr></div>')
+
+# ══════════════════════════════════════════════════════════════
+# 점수 변경 콜백 ( - / + 버튼용 )
+# ══════════════════════════════════════════════════════════════
+def adjust_score(tid: str, group_name: str, match_idx: int, team: str, delta: int):
+    """점수 +/- 버튼 콜백: 현재 대회의 해당 경기 점수를 변경하고 저장"""
+    tours = load_tours()
+    if tid not in tours:
+        return
+    try:
+        match = tours[tid]["groups"][group_name]["matches"][match_idx]
+    except (KeyError, IndexError):
+        return
+    if team == 'A':
+        new_val = match['s1'] + delta
+        if new_val >= 0:
+            match['s1'] = new_val
+    else:  # team == 'B'
+        new_val = match['s2'] + delta
+        if new_val >= 0:
+            match['s2'] = new_val
+    save_tours(tours)
+    # Streamlit이 자동으로 리렌더링함 (버튼 클릭 후)
 
 # ══════════════════════════════════════════════════════════════
 # 세션
@@ -732,7 +720,7 @@ if M == "ranking":
                            file_name=f"랭킹_{date.today()}.xlsx", use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════
-# 2. 대진 / 경기 입력
+# 2. 대진 / 경기 입력 (수정: -/점수/+ UI)
 # ══════════════════════════════════════════════════════════════
 elif M == "schedule":
     tours  = load_tours()
@@ -768,19 +756,18 @@ elif M == "schedule":
             rit = list(st.keys())
 
             # 매트릭스
-            import streamlit as _st
-            _st.markdown("<div class='sec'>📋 전적 매트릭스</div>", unsafe_allow_html=True)
-            _st.markdown(matrix_html(ms, rit, fx, p2n), unsafe_allow_html=True)
+            st.markdown("<div class='sec'>📋 전적 매트릭스</div>", unsafe_allow_html=True)
+            st.markdown(matrix_html(ms, rit, fx, p2n), unsafe_allow_html=True)
 
             # KDK 대진표
             if not fx and p2n:
-                _st.divider()
+                st.divider()
                 show_kdk(len(p2n), gi.get("games",3), p2n)
 
-            _st.divider()
+            st.divider()
 
             # 현재 순위
-            _st.markdown("<div class='sec'>🏅 현재 순위</div>", unsafe_allow_html=True)
+            st.markdown("<div class='sec'>🏅 현재 순위</div>", unsafe_allow_html=True)
             if rit:
                 ranked = sorted(rit, key=lambda x: (-st[x]["승"],-st[x]["득실"]))
                 rows = []
@@ -794,47 +781,66 @@ elif M == "schedule":
                                      "승":st[item]["승"],"패":st[item]["패"],
                                      "득실":f'{st[item]["득실"]:+d}',"비고":grade(i+1)})
                 rdf = pd.DataFrame(rows)
-                rcfg = {c: _st.column_config.TextColumn(c,width="small") for c in rdf.columns}
-                _st.dataframe(rdf, use_container_width=True, hide_index=True, column_config=rcfg)
+                rcfg = {c: st.column_config.TextColumn(c,width="small") for c in rdf.columns}
+                st.dataframe(rdf, use_container_width=True, hide_index=True, column_config=rcfg)
 
-            _st.divider()
-            _st.markdown("<div class='sec'>🎾 경기 입력</div>", unsafe_allow_html=True)
+            st.divider()
+            st.markdown("<div class='sec'>🎾 경기 입력 (- / 점수 / +)</div>", unsafe_allow_html=True)
 
-            changed = False
+            # ----- 커스텀 점수 입력 UI -----
             for mi, m in enumerate(ms):
                 t1s = " & ".join(m["t1"]); t2s = " & ".join(m["t2"])
-                _st.markdown(
+                st.markdown(
                     f'<div class="match-card">'
                     f'<span class="match-no">MATCH {mi+1}</span>',
                     unsafe_allow_html=True)
 
-                c1, c2, c3 = _st.columns([5,2,5])
-                with c1:
-                    _st.markdown(f'<div class="team-box {cls}">{t1s}</div>', unsafe_allow_html=True)
-                    s1 = _st.number_input("A", 0, 99, int(m["s1"]),
-                                          key=f"{tid}_{g}_{mi}_s1",
-                                          label_visibility="collapsed")
-                with c2:
-                    _st.markdown(
+                # 세로 정렬을 위해 행 구성: 팀명과 점수 컨트롤을 각 열에 배치
+                col_left, col_vs, col_right = st.columns([5,2,5])
+
+                with col_left:
+                    st.markdown(f'<div class="team-box {cls}">{t1s}</div>', unsafe_allow_html=True)
+                    # A팀 점수 컨트롤: - / 값 / +
+                    st.markdown('<div class="score-control">', unsafe_allow_html=True)
+                    c1, c2, c3 = st.columns([1,2,1])
+                    with c1:
+                        st.button("−", key=f"dec_{tid}_{g}_{mi}_A", 
+                                  on_click=adjust_score, args=(tid, g, mi, 'A', -1),
+                                  use_container_width=True)
+                    with c2:
+                        st.markdown(f"<div class='score-value'>{int(m['s1'])}</div>", unsafe_allow_html=True)
+                    with c3:
+                        st.button("+", key=f"inc_{tid}_{g}_{mi}_A",
+                                  on_click=adjust_score, args=(tid, g, mi, 'A', 1),
+                                  use_container_width=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+                with col_vs:
+                    st.markdown(
                         '<div style="height:52px;display:flex;align-items:center;'
                         'justify-content:center;"><div class="vs">VS</div></div>'
                         '<div class="vs-label">점 수</div>',
                         unsafe_allow_html=True)
-                with c3:
-                    _st.markdown(f'<div class="team-box {cls}">{t2s}</div>', unsafe_allow_html=True)
-                    s2 = _st.number_input("B", 0, 99, int(m["s2"]),
-                                          key=f"{tid}_{g}_{mi}_s2",
-                                          label_visibility="collapsed")
-                _st.markdown('</div>', unsafe_allow_html=True)
 
-                if s1 != int(m["s1"]) or s2 != int(m["s2"]):
-                    tour["groups"][g]["matches"][mi]["s1"] = s1
-                    tour["groups"][g]["matches"][mi]["s2"] = s2
-                    changed = True
+                with col_right:
+                    st.markdown(f'<div class="team-box {cls}">{t2s}</div>', unsafe_allow_html=True)
+                    # B팀 점수 컨트롤
+                    st.markdown('<div class="score-control">', unsafe_allow_html=True)
+                    c1, c2, c3 = st.columns([1,2,1])
+                    with c1:
+                        st.button("−", key=f"dec_{tid}_{g}_{mi}_B",
+                                  on_click=adjust_score, args=(tid, g, mi, 'B', -1),
+                                  use_container_width=True)
+                    with c2:
+                        st.markdown(f"<div class='score-value'>{int(m['s2'])}</div>", unsafe_allow_html=True)
+                    with c3:
+                        st.button("+", key=f"inc_{tid}_{g}_{mi}_B",
+                                  on_click=adjust_score, args=(tid, g, mi, 'B', 1),
+                                  use_container_width=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
 
-            if changed:
-                tours[tid] = tour; save_tours(tours)
-                import streamlit as __st; __st.toast("✅ 저장됨", icon="✅")
+                st.markdown('</div>', unsafe_allow_html=True)
+            # ----- end custom score -----
 
 # ══════════════════════════════════════════════════════════════
 # 3. 경기 결과
@@ -1144,38 +1150,72 @@ elif M == "admin":
             st.markdown("<div class='ic'>ℹ️ 그룹 없음. 대회 탭에서 그룹 설정 먼저.</div>",
                         unsafe_allow_html=True)
 
-    # ── 랭킹 ──
+    # ── 랭킹 (엑셀 업로드 + CSV 텍스트 대체 입력 추가) ──
     with adm[2]:
-        st.markdown('<div class="sec">📁 엑셀 업로드</div>', unsafe_allow_html=True)
-        up = st.file_uploader("파일 선택",type=["xlsx","csv"])
-        if up:
-            try:
-                du = pd.read_excel(up) if up.name.endswith("xlsx") else pd.read_csv(up,encoding_errors="replace")
-                if "현재포인트" in du.columns:
-                    du["현재포인트"] = pd.to_numeric(du["현재포인트"],errors="coerce").fillna(0)
-                    du = du.sort_values("현재포인트",ascending=False).reset_index(drop=True)
-                    du["랭킹"] = du.index+1
-                st.dataframe(du,use_container_width=True)
-                if st.button("💾 저장",type="primary",key="a2su"):
-                    save_rank(du)
-                    if "이름" in du.columns: save_members(du["이름"].tolist())
-                    st.success("✅ 저장!"); st.rerun()
-            except Exception as e: st.error(f"오류: {e}")
+        st.markdown('<div class="sec">📁 랭킹 데이터 가져오기</div>', unsafe_allow_html=True)
+
+        upload_method = st.radio("입력 방식", ["📂 파일 업로드 (Excel/CSV)", "✍️ CSV 내용 직접 붙여넣기"],
+                                 horizontal=True, key="rank_upload_method")
+
+        if upload_method == "📂 파일 업로드 (Excel/CSV)":
+            up = st.file_uploader("파일 선택", type=["xlsx", "csv"])
+            if up:
+                try:
+                    if up.name.endswith("xlsx"):
+                        du = pd.read_excel(up)
+                    else:
+                        du = pd.read_csv(up, encoding_errors="replace")
+                    if "현재포인트" in du.columns:
+                        du["현재포인트"] = pd.to_numeric(du["현재포인트"], errors="coerce").fillna(0)
+                        du = du.sort_values("현재포인트", ascending=False).reset_index(drop=True)
+                        du["랭킹"] = du.index+1
+                    st.dataframe(du, use_container_width=True)
+                    if st.button("💾 저장 (파일)", type="primary", key="a2su"):
+                        save_rank(du)
+                        if "이름" in du.columns:
+                            save_members(du["이름"].tolist())
+                        st.success("✅ 저장 완료!"); st.rerun()
+                except Exception as e:
+                    st.error(f"파일 읽기 오류: {e}")
+        else:
+            st.markdown("📋 **CSV 형식** (첫 행은 컬럼명, 쉼표 구분, 인코딩 UTF-8)", unsafe_allow_html=True)
+            csv_text = st.text_area("CSV 내용 붙여넣기", height=250,
+                                    placeholder="랭킹,이름,현재포인트,3월 포인트,결과,부과점,그룹,비고\n1,홍길동,120,0,,,,\n2,김철수,95,0,,,,")
+            if st.button("미리보기 및 저장", type="primary", key="csv_preview"):
+                if csv_text.strip():
+                    try:
+                        from io import StringIO
+                        du = pd.read_csv(StringIO(csv_text))
+                        # 필수 컬럼 정리
+                        if "현재포인트" in du.columns:
+                            du["현재포인트"] = pd.to_numeric(du["현재포인트"], errors="coerce").fillna(0)
+                            du = du.sort_values("현재포인트", ascending=False).reset_index(drop=True)
+                            du["랭킹"] = du.index+1
+                        st.dataframe(du, use_container_width=True)
+                        if st.button("💾 최종 저장", key="csv_save_confirm"):
+                            save_rank(du)
+                            if "이름" in du.columns:
+                                save_members(du["이름"].tolist())
+                            st.success("✅ CSV 데이터 저장 완료!"); st.rerun()
+                    except Exception as e:
+                        st.error(f"CSV 파싱 오류: {e}")
+                else:
+                    st.warning("내용을 입력해주세요.")
 
         st.divider()
         st.markdown('<div class="sec">📊 현재 랭킹</div>', unsafe_allow_html=True)
         dc = load_rank()
         if not dc.empty:
-            st.dataframe(dc,use_container_width=True)
-            st.download_button("📥 다운로드",data=to_excel(dc),
-                               file_name=f"랭킹_{date.today()}.xlsx",key="a2dl")
+            st.dataframe(dc, use_container_width=True)
+            st.download_button("📥 다운로드", data=to_excel(dc),
+                               file_name=f"랭킹_{date.today()}.xlsx", key="a2dl")
 
         st.divider()
         st.markdown('<div class="sec">✏️ 직접 수정</div>', unsafe_allow_html=True)
         de = load_rank()
         if not de.empty:
-            edited = st.data_editor(de,use_container_width=True,hide_index=True,num_rows="dynamic")
-            if st.button("💾 저장",type="primary",key="a2se"):
+            edited = st.data_editor(de, use_container_width=True, hide_index=True, num_rows="dynamic")
+            if st.button("💾 저장 (직접 수정)", type="primary", key="a2se"):
                 save_rank(edited); save_members(edited["이름"].tolist())
                 st.success("✅ 저장!"); st.rerun()
 
