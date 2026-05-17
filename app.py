@@ -15,186 +15,162 @@ st.set_page_config(
 )
 
 # ══════════════════════════════════════════════════════════════
-# CSS (모바일 최적화 + 터치 영역 확보)
+# CSS (모바일 최적화 + 터치 영역 확보 + 가운데 정렬 강화)
 # ══════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
 
-/* ── 변수 ── */
 :root {
   --g0:#1B5E20; --g1:#2E7D32; --g2:#388E3C;
   --g3:#66BB6A; --g4:#C8E6C9; --g5:#E8F5E9;
   --yel:#FFD600; --ora:#FB8C00;
   --bg:#F0F7F0; --card:#fff; --bd:#DCEDC8;
-  --tx:#1A1A1A; --tx2:#555;
   --r1:10px; --r2:16px; --r3:24px;
   --sh:0 2px 10px rgba(0,0,0,.08);
   --sh2:0 4px 20px rgba(0,0,0,.13);
-
   --mc0:#2E7D32; --mc1:#1565C0; --mc2:#E65100; --mc3:#6A1B9A; --mc4:#00695C;
 }
 
-*,*::before,*::after{
-  font-family:'Noto Sans KR',sans-serif!important;
-  box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent;
-}
-
-.block-container{
-  padding:0 0.9rem 5rem!important;
-  max-width:540px!important;
-  margin:0 auto!important;
-  background:var(--bg)!important;
-}
-.stApp{background:var(--bg)!important;}
+*{ font-family:'Noto Sans KR',sans-serif!important; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+.block-container{ padding:0 0.9rem 5rem!important; max-width:540px!important; margin:0 auto!important; background:var(--bg)!important; }
+.stApp{ background:var(--bg)!important; }
 
 /* 헤더 */
 .hdr{
   background:linear-gradient(135deg,var(--g0) 0%,var(--g2) 70%,#43A047 100%);
-  margin:0 -0.9rem 0;
-  padding:16px 22px 0;
-  position:relative;overflow:hidden;
-  box-shadow:var(--sh2);
+  margin:0 -0.9rem 0; padding:16px 22px 0; position:relative; overflow:hidden; box-shadow:var(--sh2);
 }
 .hdr::after{ content:'🎾'; position:absolute; right:16px; top:10px; font-size:2.8rem; opacity:.12; }
-.hdr-title{color:#fff; font-size:1.1rem; font-weight:900; margin:0 0 2px;}
-.hdr-sub{color:rgba(255,255,255,.5); font-size:.6rem; letter-spacing:2px; margin-bottom:10px;}
-
+.hdr-title{ color:#fff; font-size:1.1rem; font-weight:900; margin:0 0 2px; }
+.hdr-sub{ color:rgba(255,255,255,.5); font-size:.6rem; letter-spacing:2px; margin-bottom:10px; }
 .nav-bar{ background:linear-gradient(135deg,var(--g0),var(--g2)); height:4px; margin:0 -0.9rem 14px; }
 
 /* 네비게이션 버튼 */
 section.main [data-testid="stHorizontalBlock"]:first-of-type .stButton>button{
-  background:transparent!important; color:rgba(255,255,255,.7)!important;
-  border:none!important; border-radius:0!important;
-  font-size:.7rem!important; font-weight:700!important;
-  padding:10px 2px!important; line-height:1.4!important;
-  white-space:pre-line!important; min-height:54px!important;
-  border-bottom:3px solid transparent!important;
+  background:transparent!important; color:rgba(255,255,255,.7)!important; border:none!important; border-radius:0!important;
+  font-size:.7rem!important; font-weight:700!important; padding:10px 2px!important; line-height:1.4!important;
+  white-space:pre-line!important; min-height:54px!important; border-bottom:3px solid transparent!important;
 }
 section.main [data-testid="stHorizontalBlock"]:first-of-type .stButton>button[kind="primary"]{
-  color:#fff!important; border-bottom:3px solid var(--yel)!important;
-  background:rgba(255,255,255,.1)!important;
+  color:#fff!important; border-bottom:3px solid var(--yel)!important; background:rgba(255,255,255,.1)!important;
 }
 
 .pg-title{
-  background:linear-gradient(135deg,var(--g0),var(--g2));
-  color:#fff; padding:13px 18px; border-radius:var(--r2);
-  margin:0 0 14px; font-size:1.05rem; font-weight:900; text-align:center;
-  box-shadow:var(--sh2);
+  background:linear-gradient(135deg,var(--g0),var(--g2)); color:#fff; padding:13px 18px; border-radius:var(--r2);
+  margin:0 0 14px; font-size:1.05rem; font-weight:900; text-align:center; box-shadow:var(--sh2);
 }
 .sec{
-  font-size:.88rem; font-weight:800; color:var(--g0);
-  border-left:4px solid var(--g3); padding-left:9px; margin:18px 0 8px;
+  font-size:.88rem; font-weight:800; color:var(--g0); border-left:4px solid var(--g3); padding-left:9px; margin:18px 0 8px;
 }
 .ic{
-  background:var(--card); border-left:4px solid var(--g3);
-  border-radius:var(--r1); padding:11px 14px; margin:7px 0;
+  background:var(--card); border-left:4px solid var(--g3); border-radius:var(--r1); padding:11px 14px; margin:7px 0;
   box-shadow:var(--sh); font-size:.82rem; color:var(--tx2);
 }
 
 /* 탭 */
 button[data-baseweb="tab"]{
-  font-size:.72rem!important; font-weight:700!important;
-  padding:10px 8px!important; border-radius:var(--r1) var(--r1) 0 0!important;
-  min-height:44px!important;
+  font-size:.72rem!important; font-weight:700!important; padding:10px 8px!important;
+  border-radius:var(--r1) var(--r1) 0 0!important; min-height:44px!important;
 }
 button[data-baseweb="tab"][aria-selected="true"]{
   background:linear-gradient(135deg,var(--g0),var(--g2))!important; color:#fff!important;
 }
 [data-baseweb="tab-list"]{
-  background:#DDD!important; border-radius:var(--r1) var(--r1) 0 0!important;
-  padding:4px 4px 0!important; gap:2px!important;
+  background:#DDD!important; border-radius:var(--r1) var(--r1) 0 0!important; padding:4px 4px 0!important; gap:2px!important;
 }
 
-/* 데이터프레임 가운데 정렬 */
+/* 데이터프레임 완전 가운데 정렬 */
 div[data-testid="stDataFrame"]{
-  border-radius:var(--r1)!important; overflow:hidden!important;
-  box-shadow:var(--sh)!important; border:1px solid var(--bd)!important;
+  border-radius:var(--r1)!important; overflow:hidden!important; box-shadow:var(--sh)!important; border:1px solid var(--bd)!important;
 }
 div[data-testid="stDataFrame"] table{
-  width:100%!important; font-size:.76rem!important;
-  border-collapse:collapse!important;
+  width:100%!important; font-size:.76rem!important; border-collapse:collapse!important;
 }
 div[data-testid="stDataFrame"] table th,
 div[data-testid="stDataFrame"] table td{
-  text-align:center!important; vertical-align:middle!important;
-  padding:9px 4px!important; white-space:nowrap;
+  text-align:center!important; vertical-align:middle!important; padding:9px 4px!important; white-space:nowrap;
 }
-div[data-testid="stDataFrame"] thead tr th{
-  background:var(--g0)!important; color:#fff!important; font-weight:700!important;
-}
+div[data-testid="stDataFrame"] thead tr th{ background:var(--g0)!important; color:#fff!important; font-weight:700!important; }
 div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)!important; }
 
 /* 경기 카드 */
 .match-card{
-  background:var(--card); border-radius:var(--r3); padding:14px 12px 18px;
-  margin:14px 0; box-shadow:var(--sh2); border:1px solid var(--bd);
+  background:var(--card); border-radius:var(--r3); padding:14px 12px 18px; margin:14px 0;
+  box-shadow:var(--sh2); border:1px solid var(--bd);
 }
 .match-no{
-  display:inline-block; border-radius:20px; padding:4px 16px;
-  font-size:.65rem; font-weight:900; margin-bottom:12px; color:#fff;
+  display:inline-block; border-radius:20px; padding:4px 16px; font-size:.65rem; font-weight:900;
+  margin-bottom:12px; color:#fff;
 }
-.mc0{background:var(--mc0);} .mc1{background:var(--mc1);}
-.mc2{background:var(--mc2);} .mc3{background:var(--mc3);} .mc4{background:var(--mc4);}
+.mc0{background:var(--mc0);} .mc1{background:var(--mc1);} .mc2{background:var(--mc2);}
+.mc3{background:var(--mc3);} .mc4{background:var(--mc4);}
 
 .team-box{
-  border-radius:var(--r2); padding:12px 8px; font-weight:900; font-size:.95rem;
-  text-align:center; min-height:58px; display:flex; align-items:center;
-  justify-content:center; word-break:keep-all; color:#fff; margin-bottom:10px;
-  box-shadow:var(--sh);
+  border-radius:var(--r2); padding:12px 8px; font-weight:900; font-size:.95rem; text-align:center;
+  min-height:58px; display:flex; align-items:center; justify-content:center; word-break:keep-all;
+  color:#fff; margin-bottom:10px; box-shadow:var(--sh);
 }
-.tb0{background:var(--mc0);} .tb1{background:var(--mc1);}
-.tb2{background:var(--mc2);} .tb3{background:var(--mc3);} .tb4{background:var(--mc4);}
+.tb0{background:var(--mc0);} .tb1{background:var(--mc1);} .tb2{background:var(--mc2);}
+.tb3{background:var(--mc3);} .tb4{background:var(--mc4);}
 
-/* 점수 컨트롤: - 숫자 +, 터치 크게 */
-.score-num{
-  display:flex; align-items:center; justify-content:center;
-  font-size:2.4rem; font-weight:900; color:#1B5E20; background:#fff;
-  border:2.5px solid #C8E6C9; border-radius:var(--r1); height:72px; width:100%;
+/* 점수 컨트롤 - 균형 잡힌 비율 (버튼:숫자:버튼 = 1:2:1) */
+.score-row{
+  display:flex; align-items:center; gap:0.5rem; width:100%;
 }
-.score-ctrl .stButton>button{
-  height:72px!important; min-height:72px!important;
+.score-btn{
+  flex:1; min-width:0;
+}
+.score-btn .stButton>button{
+  height:72px!important; min-height:72px!important; width:100%!important;
   font-size:2.2rem!important; font-weight:900!important;
   padding:0!important; border-radius:var(--r1)!important;
   background:#E8F5E9!important; color:#1B5E20!important;
   border:2px solid #C8E6C9!important;
+  display:flex; align-items:center; justify-content:center;
 }
-.score-ctrl .stButton>button:active{ background:#A5D6A7!important; transform:scale(.94)!important; }
+.score-btn .stButton>button:active{ background:#A5D6A7!important; transform:scale(.96)!important; }
+.score-num{
+  flex:2; display:flex; align-items:center; justify-content:center;
+  font-size:2.4rem; font-weight:900; color:#1B5E20; background:#fff;
+  border:2.5px solid #C8E6C9; border-radius:var(--r1); height:72px;
+  text-align:center;
+}
 
 .vs{
   width:46px; height:46px; background:linear-gradient(135deg,#FFB74D,var(--ora));
   border-radius:50%; display:flex; align-items:center; justify-content:center;
-  font-weight:900; font-size:.78rem; color:#fff; margin:0 auto;
-  box-shadow:var(--sh);
+  font-weight:900; font-size:.78rem; color:#fff; margin:0 auto; box-shadow:var(--sh);
 }
 
+/* 일반 버튼 */
 .stButton>button{
-  border-radius:var(--r2)!important; font-weight:700!important;
-  font-size:.85rem!important; min-height:52px!important; padding:10px 14px!important;
+  border-radius:var(--r2)!important; font-weight:700!important; font-size:.85rem!important;
+  min-height:52px!important; padding:10px 14px!important;
 }
 .stButton>button[kind="primary"]{
-  background:linear-gradient(135deg,var(--g0),var(--g2))!important;
-  color:#fff!important; border:none!important;
-  box-shadow:0 4px 14px rgba(46,125,50,.35)!important;
+  background:linear-gradient(135deg,var(--g0),var(--g2))!important; color:#fff!important;
+  border:none!important; box-shadow:0 4px 14px rgba(46,125,50,.35)!important;
 }
 
-/* 입력 필드 터치 높이 */
-.stTextInput>div>div>input,
-.stTextArea>div>div>textarea,
-.stSelectbox>div>div{ min-height:50px!important; border-radius:var(--r1)!important; }
+/* 입력 필드 */
+.stTextInput>div>div>input,.stTextArea>div>div>textarea,.stSelectbox>div>div{
+  min-height:50px!important; border-radius:var(--r1)!important;
+}
 
 /* 매트릭스, KDK 테이블 */
-.mx-wrap, .kdk{ background:var(--card); border-radius:var(--r1); padding:10px;
-  box-shadow:var(--sh); overflow-x:auto; margin:8px 0; border:1px solid var(--bd); }
-.mx, .kdk table{ border-collapse:collapse; white-space:nowrap; font-size:.7rem; }
+.mx-wrap, .kdk{
+  background:var(--card); border-radius:var(--r1); padding:10px;
+  box-shadow:var(--sh); overflow-x:auto; margin:8px 0; border:1px solid var(--bd);
+}
+.mx, .kdk table{ border-collapse:collapse; white-space:nowrap; font-size:.7rem; width:100%;}
 .mx th,.mx td, .kdk th,.kdk td{ padding:7px 8px; border:1px solid var(--bd); text-align:center; }
 .mx thead th, .kdk thead th{ background:var(--g0); color:#fff; font-weight:700; }
 .mx-grey{ background:#D0D0D0!important; color:#D0D0D0!important; }
 .mx-dash{ color:#CCC; }
 .mx-sc{ font-weight:800; color:var(--g0); }
 
-/* 파일 업로더 텍스트 숨김 */
+/* 파일 업로더 */
 [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzoneInstructions"] > div > span,
 [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzoneInstructions"] > div > small{ display:none!important; }
 [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]::after{ content:'📂 파일 선택'; }
@@ -357,7 +333,7 @@ def kdk_html(n, gperson, p2n):
     for i,(a,b,c,d) in enumerate(bp):
         t1 = f"{n2p.get(a,a)}({a}) &amp; {n2p.get(b,b)}({b})"
         t2 = f"{n2p.get(c,c)}({c}) &amp; {n2p.get(d,d)}({d})"
-        rows += f"叉戟<td style='text-align:center'><span style='background:#1B5E20;color:#fff;border-radius:20px;padding:2px 9px;font-size:.62rem;font-weight:700'>{i+1}</span></td><td style='text-align:left;white-space:nowrap'>{t1} vs {t2}</td></tr>"
+        rows += f"<tr><td style='text-align:center'><span style='background:#1B5E20;color:#fff;border-radius:20px;padding:2px 9px;font-size:.62rem;font-weight:700'>{i+1}</span></td><td style='text-align:left;white-space:nowrap'>{t1} vs {t2}</td></tr>"
     return (f'<div class="kdk"><div class="kdk-title">📋 {title}</div>'
             f'<table><thead><tr><th style="width:38px">순서</th><th>대진</th></tr></thead>'
             f'<tbody>{rows}</tbody></table></div>')
@@ -388,7 +364,7 @@ def matrix_html(matches, rank_items, is_fixed, p2n):
     header = "".join(f"<th style='white-space:nowrap'>{k}</th>" for k in keys)
     body = ""
     for rk in keys:
-        body += f"叉戟<th style='white-space:nowrap'>{rk}</th>"
+        body += f"<tr><th style='white-space:nowrap'>{rk}</th>"
         for ck in keys:
             v = mat[rk][ck]
             if v=="■":   body += '<td class="mx-grey">■</td>'
@@ -417,16 +393,10 @@ if "participants" not in ss: ss.participants = []
 # ══════════════════════════════════════════════════════════════
 # 네비게이션
 # ══════════════════════════════════════════════════════════════
-MENUS = [
-    ("ranking", "🏆\n랭킹"),
-    ("schedule", "📅\n대진"),
-    ("result", "📊\n결과"),
-    ("archive", "📂\n기록"),
-    ("admin", "⚙️\n관리"),
-]
+MENUS = [("ranking","🏆\n랭킹"),("schedule","📅\n대진"),("result","📊\n결과"),("archive","📂\n기록"),("admin","⚙️\n관리")]
 st.markdown('<div class="hdr"><div class="hdr-title">🎾 두류 테니스 클럽</div><div class="hdr-sub">Duryu Tennis Club</div></div>', unsafe_allow_html=True)
 nav_cols = st.columns(len(MENUS))
-for col, (key, label) in zip(nav_cols, MENUS):
+for col,(key,label) in zip(nav_cols, MENUS):
     with col:
         t = "primary" if ss.menu==key else "secondary"
         if st.button(label, key=f"nav_{key}", use_container_width=True, type=t):
@@ -435,7 +405,7 @@ st.markdown('<div class="nav-bar"></div>', unsafe_allow_html=True)
 M = ss.menu
 
 # ══════════════════════════════════════════════════════════════
-# 1. 랭킹 (변경 없음, 생략 가능)
+# 1. 랭킹
 # ══════════════════════════════════════════════════════════════
 if M == "ranking":
     st.markdown("<div class='pg-title'>🏆 두류 랭킹</div>", unsafe_allow_html=True)
@@ -466,7 +436,7 @@ if M == "ranking":
         st.download_button("📥 엑셀 다운로드", data=to_excel(df), file_name=f"랭킹_{date.today()}.xlsx", use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════
-# 2. 대진/경기 입력 (점수 +/- 버튼 포함, 모바일 최적화)
+# 2. 대진/경기 입력 (개선된 점수 컨트롤)
 # ══════════════════════════════════════════════════════════════
 elif M == "schedule":
     tours = load_tours()
@@ -506,7 +476,7 @@ elif M == "schedule":
             if rit:
                 ranked = sorted(rit, key=lambda x: (-sv[x]["승"], -sv[x]["득실"]))
                 rows = []
-                for i, item in enumerate(ranked):
+                for i,item in enumerate(ranked):
                     if fx:
                         rows.append({"순위":i+1, "팀":" & ".join(list(item)),
                                      "승":sv[item]["승"], "패":sv[item]["패"],
@@ -520,7 +490,7 @@ elif M == "schedule":
                 st.dataframe(rdf, use_container_width=True, hide_index=True, column_config=rcfg)
             st.divider()
             st.markdown("<div class='sec'>🎾 경기 입력</div>", unsafe_allow_html=True)
-            # 경기 카드 (각 팀 아래 각각 -/+ 버튼)
+            # 경기 카드 (균형 잡힌 점수 컨트롤)
             for mi, m in enumerate(ms):
                 t1s = " & ".join(m["t1"]); t2s = " & ".join(m["t2"])
                 mc = GCLS[mi % len(GCLS)]
@@ -530,21 +500,30 @@ elif M == "schedule":
                 left, mid, right = st.columns([5,2,5])
                 with left:
                     st.markdown(f'<div class="team-box {tbc}">{t1s}</div>', unsafe_allow_html=True)
-                    st.markdown('<div class="score-ctrl">', unsafe_allow_html=True)
-                    ca, cb, cc = st.columns(3)
-                    with ca: st.button("−", key=f"d_{tid}_{g}_{mi}_A", on_click=adj_score, args=(tid,g,mi,"A",-1), use_container_width=True)
-                    with cb: st.markdown(f'<div class="score-num">{s1v}</div>', unsafe_allow_html=True)
-                    with cc: st.button("+", key=f"i_{tid}_{g}_{mi}_A", on_click=adj_score, args=(tid,g,mi,"A",1), use_container_width=True)
+                    # 개선된 점수 행: 버튼-숫자-버튼 (1:2:1 비율)
+                    st.markdown('<div class="score-row">', unsafe_allow_html=True)
+                    with st.container():
+                        ca, cb, cc = st.columns([1,2,1])
+                        with ca:
+                            st.button("−", key=f"d_{tid}_{g}_{mi}_A", on_click=adj_score, args=(tid,g,mi,"A",-1), use_container_width=True)
+                        with cb:
+                            st.markdown(f'<div class="score-num">{s1v}</div>', unsafe_allow_html=True)
+                        with cc:
+                            st.button("+", key=f"i_{tid}_{g}_{mi}_A", on_click=adj_score, args=(tid,g,mi,"A",1), use_container_width=True)
                     st.markdown('</div>', unsafe_allow_html=True)
                 with mid:
                     st.markdown('<div style="height:58px;display:flex;align-items:center;justify-content:center;"><div class="vs">VS</div></div>', unsafe_allow_html=True)
                 with right:
                     st.markdown(f'<div class="team-box {tbc}">{t2s}</div>', unsafe_allow_html=True)
-                    st.markdown('<div class="score-ctrl">', unsafe_allow_html=True)
-                    ca2, cb2, cc2 = st.columns(3)
-                    with ca2: st.button("−", key=f"d_{tid}_{g}_{mi}_B", on_click=adj_score, args=(tid,g,mi,"B",-1), use_container_width=True)
-                    with cb2: st.markdown(f'<div class="score-num">{s2v}</div>', unsafe_allow_html=True)
-                    with cc2: st.button("+", key=f"i_{tid}_{g}_{mi}_B", on_click=adj_score, args=(tid,g,mi,"B",1), use_container_width=True)
+                    st.markdown('<div class="score-row">', unsafe_allow_html=True)
+                    with st.container():
+                        ca2, cb2, cc2 = st.columns([1,2,1])
+                        with ca2:
+                            st.button("−", key=f"d_{tid}_{g}_{mi}_B", on_click=adj_score, args=(tid,g,mi,"B",-1), use_container_width=True)
+                        with cb2:
+                            st.markdown(f'<div class="score-num">{s2v}</div>', unsafe_allow_html=True)
+                        with cc2:
+                            st.button("+", key=f"i_{tid}_{g}_{mi}_B", on_click=adj_score, args=(tid,g,mi,"B",1), use_container_width=True)
                     st.markdown('</div>', unsafe_allow_html=True)
                 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -552,7 +531,6 @@ elif M == "schedule":
 # 3. 경기 결과 (변경 없음)
 # ══════════════════════════════════════════════════════════════
 elif M == "result":
-    # ... (기존 코드와 동일, 공간 절약을 위해 생략 가능하지만 완전성을 위해 포함)
     tours = load_tours()
     active = [k for k,v in tours.items() if v.get("status")=="진행중"]
     if not active:
@@ -631,7 +609,7 @@ elif M == "archive":
         st.dataframe(adf, use_container_width=True, hide_index=True, column_config=acfg)
 
 # ══════════════════════════════════════════════════════════════
-# 5. 관리자 (그룹 구성 저장 + 멀티셀렉트 배정 + 전체선택/해제 + 중복방지 + 인원검증)
+# 5. 관리자 (기능 완전 통합 - 그룹 구성 저장, 멀티셀렉트, 전체선택/해제, 인원검증)
 # ══════════════════════════════════════════════════════════════
 elif M == "admin":
     st.markdown("<div class='pg-title'>⚙️ 관리자</div>", unsafe_allow_html=True)
@@ -645,6 +623,7 @@ elif M == "admin":
 
     # ── 대회 관리 ─────────────────────────────────────────────────
     with adm[0]:
+        # (기존 코드와 동일, 생략 가능하지만 완전성을 위해 포함 - 위에서 이미 정의됨)
         st.markdown('<div class="sec">새 대회 생성</div>', unsafe_allow_html=True)
         with st.form("f_new"):
             tn = st.text_input("대회명")
@@ -677,7 +656,6 @@ elif M == "admin":
             if st.button("✏️ 상세 수정", key=f"de_{tid2}", use_container_width=True):
                 ss.edit_tour_id = tid2; st.rerun()
             st.divider()
-        # 상세 수정
         if eid := ss.get("edit_tour_id"):
             if eid in ts:
                 et = ts[eid]
@@ -697,7 +675,6 @@ elif M == "admin":
                     if st.button("취소", use_container_width=True, key="cce"):
                         ss.edit_tour_id = None; st.rerun()
                 st.divider()
-                # 그룹 설정 수정
                 st.markdown('<div class="sec">🎲 그룹 설정</div>', unsafe_allow_html=True)
                 st.caption("※ 변경 시 기존 대진 초기화")
                 cg = et.get("groups", {})
@@ -765,11 +742,9 @@ elif M == "admin":
         st.divider()
         st.markdown('<div class="sec">👥 2. 참가자 배정 (멀티셀렉트)</div>', unsafe_allow_html=True)
 
-        # 임시 저장된 그룹 구성이 있으면 사용, 없으면 기존 그룹 구성 사용
         if ss.get("temp_group_config") and ss.get("temp_tour_id") == sel_tid:
             gcfg = ss.temp_group_config
         else:
-            # 기존 그룹에서 설정 읽기 (없으면 빈 dict)
             gcfg = {}
             for gn, gi in current_groups.items():
                 gcfg[gn] = (len(gi["players"]), gi["mode"], gi.get("games",4))
@@ -783,7 +758,6 @@ elif M == "admin":
             st.warning("회원 명단이 없습니다. '랭킹 관리'에서 엑셀을 업로드하세요.")
             st.stop()
 
-        # 각 그룹에 현재 배정된 선수들 (기존 대진 정보에서 가져오기)
         assigned = {}
         for gn in gcfg.keys():
             if gn in current_groups:
@@ -791,18 +765,14 @@ elif M == "admin":
             else:
                 assigned[gn] = []
 
-        # 멀티셀렉트로 배정 (중복 방지)
         new_assigned = {}
         for gn, (sz, md, gc) in gcfg.items():
             st.markdown(f"#### {gn} (최대 {sz}명)")
-            # 현재 이 그룹에 이미 배정된 선수들
             current_in_this = assigned.get(gn, [])
-            # 다른 그룹에 배정된 선수들 (현재 그룹 제외)
             other_assigned = set()
             for other_gn, lst in assigned.items():
                 if other_gn != gn:
                     other_assigned.update(lst)
-            # 선택 가능한 목록: 전체 회원 중 이미 다른 그룹에 배정된 선수 제외 + 현재 그룹에 이미 배정된 선수는 포함
             selectable = [m for m in all_members if m not in other_assigned or m in current_in_this]
             selected = st.multiselect(
                 f"{gn} 참가자 선택",
@@ -814,11 +784,9 @@ elif M == "admin":
                 st.warning(f"{gn}의 최대 인원은 {sz}명입니다. 현재 {len(selected)}명 선택됨")
             new_assigned[gn] = selected[:sz]
 
-            # 전체선택, 전체해제 버튼
             col_sel, col_des = st.columns(2)
             with col_sel:
                 if st.button(f"✅ {gn} 전체선택", key=f"sel_all_{gn}", use_container_width=True):
-                    # 전체 가능한 목록 중에서 sz 만큼만 선택 (선택 가능한 전체)
                     full = selectable[:sz]
                     ss[f"temp_sel_{gn}"] = full
                     st.rerun()
@@ -830,7 +798,6 @@ elif M == "admin":
                 new_assigned[gn] = ss[f"temp_sel_{gn}"]
                 del ss[f"temp_sel_{gn}"]
 
-        # 배정 인원 검증
         total_assigned = sum(len(lst) for lst in new_assigned.values())
         total_needed = sum(sz for sz,_,_ in gcfg.values())
         if total_assigned != total_needed:
@@ -838,9 +805,7 @@ elif M == "admin":
         else:
             st.success(f"✅ 배정 완료! 총 {total_assigned}명")
 
-        # 대진 생성 버튼
         if st.button("🎲 3. 대진 생성 (배정 완료 후)", type="primary", use_container_width=True, key="generate_final"):
-            # 중복 검사
             all_selected = []
             for lst in new_assigned.values():
                 all_selected.extend(lst)
@@ -850,7 +815,6 @@ elif M == "admin":
             if total_assigned != total_needed:
                 st.error(f"인원 수가 맞지 않습니다. (필요 {total_needed}, 배정 {total_assigned})")
                 st.stop()
-            # 각 그룹별 대진 생성
             new_groups = {}
             for gn, players in new_assigned.items():
                 sz, md, gc = gcfg[gn]
@@ -866,24 +830,16 @@ elif M == "admin":
                         ms, pwn = make_singles(players)
                 else:
                     ms, pwn = make_singles(players)
-                new_groups[gn] = {
-                    "players": players,
-                    "mode": md,
-                    "games": gc,
-                    "matches": ms,
-                    "player_with_number": pwn
-                }
+                new_groups[gn] = {"players":players, "mode":md, "games":gc, "matches":ms, "player_with_number":pwn}
             tour["groups"] = new_groups
             tour["players"] = all_selected
             save_tours(ts)
-            # 임시 저장 제거
             if "temp_group_config" in ss: del ss.temp_group_config
             if "temp_tour_id" in ss: del ss.temp_tour_id
             st.success("✅ 대진 생성 완료! '대진·경기현황'에서 확인하세요.")
             st.rerun()
 
         st.divider()
-        # 기존 개별 수정 섹션 (추가/삭제/이동) - 대진 유지
         st.markdown('<div class="sec">✏️ 개별 참가자 수정 (대진 유지)</div>', unsafe_allow_html=True)
         if tour.get("groups"):
             groups = list(tour["groups"].keys())
@@ -919,8 +875,7 @@ elif M == "admin":
                             else: nm2, _ = make_singles(tour["groups"][sel_g]["players"])
                             tour["groups"][sel_g]["matches"] = nm2
                             save_tours(ts); st.success(f"'{new_name}' 추가됨"); st.rerun()
-                        else:
-                            st.warning("이미 있는 참가자")
+                        else: st.warning("이미 있는 참가자")
                 st.markdown("---")
                 all_pairs = [(p, g) for g in groups for p in tour["groups"][g]["players"]]
                 if all_pairs:
