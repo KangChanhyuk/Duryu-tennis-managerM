@@ -134,9 +134,7 @@ div[data-testid="stDataFrame"] thead tr th{
 div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)!important; }
 
 /* ══════════════════════════════════════════════════════════════
-   경기 카드 — 핵심 레이아웃
-   팀명 바로 아래 [-][점수][+] 가로 배치
-   VS 기준 좌/우 대칭
+   경기 카드 — 레이아웃 및 완벽 오버레이 투명 버튼화
 ══════════════════════════════════════════════════════════════ */
 .match-card{
   background:var(--card); border-radius:var(--r2); padding:12px 10px 14px;
@@ -147,20 +145,16 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
   display:inline-block; border-radius:20px; padding:3px 14px;
   font-size:.6rem; font-weight:900; margin-bottom:10px; color:#fff;
 }
-/* 카드 색상 배리에이션 */
 .mc0{background:var(--mc0);} .mc1{background:var(--mc1);} .mc2{background:var(--mc2);}
 .mc3{background:var(--mc3);} .mc4{background:var(--mc4);} .mc5{background:var(--mc5);}
 .mc6{background:var(--mc6);} .mc7{background:var(--mc7);}
 
-/* 경기 메인 행: [팀A사이드] [VS] [팀B사이드] */
 .match-row{
   display:flex; align-items:stretch; gap:6px; width:100%; position:relative;
 }
-/* 팀 사이드 (이름 + 점수컨트롤) */
 .team-side{
   flex:1; display:flex; flex-direction:column; gap:6px; position:relative;
 }
-/* 팀 이름 박스 */
 .team-name{
   border-radius:var(--r1); padding:8px 4px; font-weight:900; font-size:.82rem;
   text-align:center; color:#fff; box-shadow:var(--sh); min-height:46px;
@@ -170,7 +164,7 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 .tb3{background:var(--tb3);} .tb4{background:var(--tb4);} .tb5{background:var(--tb5);}
 .tb6{background:var(--tb6);} .tb7{background:var(--tb7);}
 
-/* 점수 컨트롤 행: [-][숫자][+] */
+/* 점수 디자인 뼈대 */
 .score-ctrl{
   display:flex; align-items:stretch; gap:3px; height:48px; position:relative;
 }
@@ -178,14 +172,7 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 .score-ctrl .score-plus{
   flex:1; display:flex; align-items:center; justify-content:center;
   background:#E8F5E9; border:2px solid #C8E6C9; border-radius:var(--r1);
-  font-size:1.3rem; font-weight:900; color:#1B5E20; cursor:pointer;
-  user-select:none; -webkit-user-select:none;
-  transition:background .1s, transform .1s;
-  position:relative; z-index:1;
-}
-.score-ctrl .score-minus:active,
-.score-ctrl .score-plus:active{
-  background:#A5D6A7; transform:scale(.93);
+  font-size:1.3rem; font-weight:900; color:#1B5E20;
 }
 .score-ctrl .score-num{
   flex:1.4; display:flex; align-items:center; justify-content:center;
@@ -193,10 +180,7 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
   font-size:1.5rem; font-weight:900; color:#1B5E20;
 }
 
-/* VS 구분자 */
-.vs-col{
-  width:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
-}
+.vs-col{ width:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .vs-badge{
   width:34px; height:34px; border-radius:50%;
   background:linear-gradient(135deg,#FFB74D,var(--ora));
@@ -204,7 +188,7 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
   font-weight:900; font-size:.65rem; color:#fff; box-shadow:var(--sh);
 }
 
-/* ── streamlit 버튼 공통 ── */
+/* ── 일반 Streamlit 버튼 스타일 ── */
 .stButton>button{
   border-radius:var(--r2)!important; font-weight:700!important; font-size:.82rem!important;
   min-height:50px!important; padding:10px 14px!important;
@@ -214,29 +198,34 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
   border:none!important; box-shadow:0 4px 14px rgba(46,125,50,.35)!important;
 }
 
-/* ★ 수정을 위해 추가된 전용 투명 버튼 CSS 스타일 규칙 ★ */
+/* ★ 초강력 오버레이 투명화 규칙 (순정 버튼 외형 완전 소멸) ★ */
 .stepper-overlay-container {
-    display: flex; width: 100%; gap: 6px; margin-top: -51px; margin-bottom: 12px; position: relative; z-index: 10;
+    display: flex !important; width: 100% !important; gap: 6px !important; 
+    margin-top: -60px !important; margin-bottom: 12px !important; position: relative !important; z-index: 9999 !important;
 }
 .stepper-overlay-side {
-    flex: 1; display: flex; gap: 3px; height: 48px;
+    flex: 1 !important; display: flex !important; gap: 3px !important; height: 48px !important;
 }
 .st-btn-hidden-wrapper {
-    flex: 1; height: 48px;
+    flex: 1 !important; height: 48px !important; background: transparent !important;
 }
-.st-btn-hidden-wrapper > div, .st-btn-hidden-wrapper button {
+/* 대진 탭 내 오버레이 껍데기 박스 및 내부 버튼 강제 투명화 처리 */
+.stepper-overlay-container div[data-testid="stButton"],
+.stepper-overlay-container button {
     height: 48px !important; min-height: 48px !important; margin: 0 !important; padding: 0 !important; width: 100% !important;
+    background: transparent !important; background-color: transparent !important;
+    border: none !important; border-color: transparent !important;
+    color: transparent !important; text-color: transparent !important;
+    box-shadow: none !important; outline: none !important;
 }
-/* 순정 버튼 형태를 투명하게 지워 백그라운드 디자인과 일체화 */
-.st-btn-hidden-wrapper button {
-    background: transparent !important; border: none !important; color: transparent !important; box-shadow: none !important;
+.stepper-overlay-container button p {
+    display: none !important; /* 내부 글자 원천 차단 */
 }
-.st-btn-hidden-wrapper button:active {
-    background: rgba(0, 0, 0, 0.05) !important;
+.stepper-overlay-container button:active, .stepper-overlay-container button:focus {
+    background: rgba(46, 125, 50, 0.15) !important; /* 클릭 피드백만 살짝 제공 */
+    border: none !important; box-shadow: none !important;
 }
-.stepper-overlay-spacer {
-    width: 36px; flex-shrink: 0;
-}
+.stepper-overlay-spacer { width: 36px !important; flex-shrink: 0 !important; }
 
 /* ── 입력 필드 ── */
 .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div{
@@ -280,7 +269,6 @@ TOUR_FILE   = "tournaments.json"
 ADMIN_PW    = "0502"
 COLS_RANK   = ["랭킹","이름","현재포인트","3월 포인트","결과","부과점","그룹","비고"]
 
-# 8가지 색상 순환
 GCLS  = ["mc0","mc1","mc2","mc3","mc4","mc5","mc6","mc7"]
 TBCLS = ["tb0","tb1","tb2","tb3","tb4","tb5","tb6","tb7"]
 GLBL  = ["🟢","🔵","🟠","🟣","🩵","🔴","🟡","⚪"]
@@ -488,7 +476,7 @@ if "menu"        not in ss: ss.menu        = "ranking"
 if "participants" not in ss: ss.participants = []
 
 # ══════════════════════════════════════════════════════════════
-# 네비게이션 (HTML 버튼 → st.button hidden trick)
+# 네비게이션
 # ══════════════════════════════════════════════════════════════
 MENUS = [
     ("ranking", "🏆", "랭킹",  "n0"),
@@ -501,7 +489,6 @@ MENUS = [
 st.markdown('<div class="hdr"><div class="hdr-title">🎾 두류 테니스 클럽</div>'
             '<div class="hdr-sub">DURYU TENNIS CLUB</div></div>', unsafe_allow_html=True)
 
-# 네비게이션 버튼을 streamlit columns로 구현
 nav_cols = st.columns(len(MENUS))
 for col, (key, icon, label, nc) in zip(nav_cols, MENUS):
     with col:
@@ -512,19 +499,16 @@ for col, (key, icon, label, nc) in zip(nav_cols, MENUS):
             ss.menu = key
             st.rerun()
 
-# 메뉴별 색상 구분 하단 바
 menu_colors = {"ranking":"#2E7D32","schedule":"#1565C0","result":"#E65100","archive":"#4A148C","admin":"#00695C"}
 cur_color = menu_colors.get(ss.menu, "#2E7D32")
 st.markdown(f'<div style="height:4px;background:{cur_color};margin:0 -0.7rem 14px;'
             f'box-shadow:0 2px 8px rgba(0,0,0,.2)"></div>', unsafe_allow_html=True)
 
-# 메뉴별 타이틀 색상
 title_cls = {"ranking":"c0","schedule":"c1","result":"c2","archive":"c3","admin":"c4"}
-
 M = ss.menu
 
 # ══════════════════════════════════════════════════════════════
-# 1. 랭킹 (업로드 제거 — 관리자에서만 업로드)
+# 1. 랭킹
 # ══════════════════════════════════════════════════════════════
 if M == "ranking":
     tc = title_cls["ranking"]
@@ -548,7 +532,7 @@ if M == "ranking":
         )
 
 # ══════════════════════════════════════════════════════════════
-# 2. 대진/경기 입력 — 완벽하게 통합된 실시간 점수 컨트롤러
+# 2. 대진 (완벽 통합 실시간 오버레이 스태퍼)
 # ══════════════════════════════════════════════════════════════
 elif M == "schedule":
     tc = title_cls["schedule"]
@@ -584,7 +568,6 @@ elif M == "schedule":
             sv   = stats_fixed(ms) if fx else stats_kdk(ms)
             rit  = list(sv.keys())
 
-            # 전적 매트릭스
             st.markdown("<div class='sec'>📋 전적 매트릭스</div>", unsafe_allow_html=True)
             st.markdown(matrix_html(ms, rit, fx, p2n), unsafe_allow_html=True)
             if not fx and p2n:
@@ -592,7 +575,6 @@ elif M == "schedule":
                 show_kdk(len(p2n), gi.get("games", 3), p2n)
             st.divider()
 
-            # 현재 순위
             st.markdown("<div class='sec'>🏅 현재 순위</div>", unsafe_allow_html=True)
             if rit:
                 ranked = sorted(rit, key=lambda x: (-sv[x]["승"], -sv[x]["득실"]))
@@ -611,7 +593,7 @@ elif M == "schedule":
                 st.dataframe(rdf, use_container_width=True, hide_index=True, column_config=rcfg)
             st.divider()
 
-            # ── 경기 입력 카드 ──────────────────────────────────────
+            # 경기 카드 섹션
             st.markdown("<div class='sec'>🎾 경기 입력</div>", unsafe_allow_html=True)
 
             for mi, m in enumerate(ms):
@@ -622,59 +604,56 @@ elif M == "schedule":
                 s1v  = int(m["s1"])
                 s2v  = int(m["s2"])
 
-                # 카드 디자인 출력
+                # 디자인 레이아웃 렌더링
                 st.markdown(
                     f'<div class="match-card">'
                     f'<span class="match-no {mc}">MATCH {mi+1}</span>'
                     f'<div class="match-row">'
-                    # 팀A 사이드
                     f'<div class="team-side">'
                     f'<div class="team-name {tbc}">{t1s}</div>'
-                    f'<div class="score-ctrl" id="sc_A_{mi}">'
-                    f'<div class="score-minus" id="btn_m_A_{mi}">－</div>'
+                    f'<div class="score-ctrl">'
+                    f'<div class="score-minus">－</div>'
                     f'<div class="score-num">{s1v}</div>'
-                    f'<div class="score-plus" id="btn_p_A_{mi}">＋</div>'
+                    f'<div class="score-plus">＋</div>'
                     f'</div></div>'
-                    # VS
                     f'<div class="vs-col"><div class="vs-badge">VS</div></div>'
-                    # 팀B 사이드
                     f'<div class="team-side">'
                     f'<div class="team-name {tbc}">{t2s}</div>'
-                    f'<div class="score-ctrl" id="sc_B_{mi}">'
-                    f'<div class="score-minus" id="btn_m_B_{mi}">－</div>'
+                    f'<div class="score-ctrl">'
+                    f'<div class="score-minus">－</div>'
                     f'<div class="score-num">{s2v}</div>'
-                    f'<div class="score-plus" id="btn_p_B_{mi}">＋</div>'
+                    f'<div class="score-plus">＋</div>'
                     f'</div></div>'
                     f'</div></div>',
                     unsafe_allow_html=True
                 )
 
-                # ★ 핵심 수정: 하단에 분리 배치되던 버튼을 CSS 절대좌표 마진을 주어 위의 [-], [+] 텍스트 박스 영역에 완전히 일체화 및 포개어 동작시킴
+                # 투명 오버레이 버튼 레이어 (정확한 절대 좌표 및 완전 투명화 스타일 적용)
                 st.markdown('<div class="stepper-overlay-container">', unsafe_allow_html=True)
                 
-                # 팀 A 점수 조작 오버레이 행
+                # 팀 A 스태퍼
                 st.markdown('<div class="stepper-overlay-side">', unsafe_allow_html=True)
                 st.markdown('<div class="st-btn-hidden-wrapper">', unsafe_allow_html=True)
-                st.button("－", key=f"d_{tid}_{g}_{mi}_A", on_click=adj_score, args=(tid,g,mi,"A",-1))
+                st.button(" ", key=f"d_{tid}_{g}_{mi}_A", on_click=adj_score, args=(tid,g,mi,"A",-1))
                 st.markdown('</div><div style="flex:1.4;"></div><div class="st-btn-hidden-wrapper">', unsafe_allow_html=True)
-                st.button("＋", key=f"i_{tid}_{g}_{mi}_A", on_click=adj_score, args=(tid,g,mi,"A",1))
+                st.button(" ", key=f"i_{tid}_{g}_{mi}_A", on_click=adj_score, args=(tid,g,mi,"A",1))
                 st.markdown('</div></div>', unsafe_allow_html=True)
                 
-                # 중앙 VS 공백 정렬용 스페이서
+                # 중앙 스페이서
                 st.markdown('<div class="stepper-overlay-spacer"></div>', unsafe_allow_html=True)
                 
-                # 팀 B 점수 조작 오버레이 행
+                # 팀 B 스태퍼
                 st.markdown('<div class="stepper-overlay-side">', unsafe_allow_html=True)
                 st.markdown('<div class="st-btn-hidden-wrapper">', unsafe_allow_html=True)
-                st.button("－", key=f"d_{tid}_{g}_{mi}_B", on_click=adj_score, args=(tid,g,mi,"B",-1))
+                st.button(" ", key=f"d_{tid}_{g}_{mi}_B", on_click=adj_score, args=(tid,g,mi,"B",-1))
                 st.markdown('</div><div style="flex:1.4;"></div><div class="st-btn-hidden-wrapper">', unsafe_allow_html=True)
-                st.button("＋", key=f"i_{tid}_{g}_{mi}_B", on_click=adj_score, args=(tid,g,mi,"B",1))
+                st.button(" ", key=f"i_{tid}_{g}_{mi}_B", on_click=adj_score, args=(tid,g,mi,"B",1))
                 st.markdown('</div></div>', unsafe_allow_html=True)
                 
                 st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
-# 3. 경기 결과
+# 3. 결과
 # ══════════════════════════════════════════════════════════════
 elif M == "result":
     tc = title_cls["result"]
@@ -727,7 +706,7 @@ elif M == "result":
             st.dataframe(pd.DataFrame(mr), use_container_width=True, hide_index=True)
 
 # ══════════════════════════════════════════════════════════════
-# 4. 지난 대회
+# 4. 기록
 # ══════════════════════════════════════════════════════════════
 elif M == "archive":
     tc = title_cls["archive"]
@@ -797,7 +776,7 @@ elif M == "admin":
 
     adm = st.tabs(["🏆 대회", "👥 참가자·대진", "📋 랭킹", "💾 반영"])
 
-    # ── 탭0: 대회 관리 ──────────────────────────────────────────
+    # ── 탭0: 대회 관리 ──
     with adm[0]:
         st.markdown('<div class="sec">새 대회 생성</div>', unsafe_allow_html=True)
         with st.form("f_new"):
@@ -906,7 +885,7 @@ elif M == "admin":
                     et["groups"] = ng; save_tours(ts)
                     st.success("대진 재생성 완료!"); st.rerun()
 
-    # ── 탭1: 참가자·대진 ─────────────────────────────────────────
+    # ── 탭1: 참가자·대진 ──
     with adm[1]:
         ts   = load_tours()
         act2 = [k for k, v in ts.items() if v.get("status") == "진행중"]
@@ -917,7 +896,6 @@ elif M == "admin":
                                format_func=lambda k: ts[k]['title'], key="a1st")
         tour = ts[sel_tid]
 
-        # 1단계: 그룹 구성 설정
         st.markdown('<div class="sec">🎲 1. 그룹 구성 설정</div>', unsafe_allow_html=True)
         current_groups = tour.get("groups", {})
         default_gcnt   = len(current_groups) if current_groups else 4
@@ -969,7 +947,6 @@ elif M == "admin":
             st.warning("회원 명단이 없습니다. '랭킹 관리'에서 엑셀을 업로드하세요.")
             st.stop()
 
-        # 현재 배정 상태 초기화
         assigned = {}
         for gn in gcfg.keys():
             if gn in current_groups:
@@ -1109,7 +1086,7 @@ elif M == "admin":
         else:
             st.info("아직 그룹이 없습니다. 위에서 대진을 먼저 생성하세요.")
 
-    # ── 탭2: 랭킹 관리 ──────────────────────────────────────────
+    # ── 탭2: 랭킹 관리 ──
     with adm[2]:
         st.markdown('<div class="sec">📁 엑셀/CSV 업로드</div>', unsafe_allow_html=True)
         up = st.file_uploader("파일 선택", type=["xlsx","csv"],
@@ -1146,7 +1123,7 @@ elif M == "admin":
                 save_rank(edited); save_members(edited["이름"].tolist())
                 st.success("저장 완료!"); st.rerun()
 
-    # ── 탭3: 결과 반영 ──────────────────────────────────────────
+    # ── 탭3: 결과 반영 ──
     with adm[3]:
         ts   = load_tours()
         act3 = [k for k, v in ts.items() if v.get("status") == "진행중"]
@@ -1199,5 +1176,3 @@ elif M == "admin":
                     for m in t3["groups"][g]["matches"]:
                         m["s1"] = 0; m["s2"] = 0
                 save_tours(ts); st.success("✅ 점수 초기화 완료!"); st.rerun()
-
-}
