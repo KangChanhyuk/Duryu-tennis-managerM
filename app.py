@@ -160,11 +160,11 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 }
 
 .match-row{
-    display:flex;
-    align-items:flex-start;
-    justify-content:center;
-    gap:10px;
-    width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  width:100%;
 }
 
 .team-side{
@@ -176,19 +176,21 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 }
 
 .team-name{
-    width:100%;
-    min-height:68px;
-    border-radius:18px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    padding:12px 10px;
-    font-size:1rem;
-    font-weight:900;
-    line-height:1.35;
-    color:#fff;
-    box-shadow:0 3px 10px rgba(0,0,0,.12);
+  border-radius:16px;
+  padding:12px 10px;
+  font-weight:900;
+  font-size:.95rem;
+  text-align:center;
+  color:#fff;
+  box-shadow:var(--sh);
+  min-height:68px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  word-break:keep-all;
+  line-height:1.35;
 }
 
 .score-wrap{
@@ -214,17 +216,20 @@ div.score-btn-wrap button{
 }
 
 .score-num-display{
-    width:96px;
-    height:56px;
-    border-radius:18px;
-    background:#fff;
-    border:3px solid #C8E6C9;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:2rem;
-    font-weight:900;
-    color:#1B5E20;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:#fff;
+  border:3px solid #C8E6C9;
+  border-radius:14px;
+
+  font-size:2rem;
+  font-weight:900;
+  color:#1B5E20;
+
+  height:56px;
+  width:100%;
 }
 
 .vs-col{
@@ -271,12 +276,13 @@ div.score-btn-wrap button{
         margin-top:12px;
     }
 
-    div.score-btn-wrap button{
-        width:50px !important;
-        min-width:50px !important;
-        height:50px !important;
-        font-size:1.5rem !important;
-    }
+   .stButton > button{
+  min-height:56px!important;
+  height:56px!important;
+  border-radius:14px!important;
+  font-size:1.5rem!important;
+  font-weight:900!important;
+}
 
     .score-num-display{
         width:84px;
