@@ -138,7 +138,7 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 ══════════════════════════════════════════════════════════════ */
 .match-card{
   background:var(--card); border-radius:var(--r2); padding:12px 10px 14px;
-  margin:12px 0 4px!important; box-shadow:var(--sh2); border:1px solid var(--bd);
+  margin:12px 0 0px!important; box-shadow:var(--sh2); border:1px solid var(--bd);
   position:relative; z-index:1;
 }
 .match-no{
@@ -198,10 +198,11 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
   border:none!important; box-shadow:0 4px 14px rgba(46,125,50,.35)!important;
 }
 
-/* ★ 정밀 오버레이 투명화 마진 튜닝 규칙 (이상한 빈 칸 생성 원천 차단) ★ */
+/* ★ 투명 오버레이 버튼 영역 최종 위치 및 여백 보정 (이상한 하얀 칸 완벽 소멸) ★ */
 .stepper-overlay-container {
     display: flex !important; width: 100% !important; gap: 6px !important; 
-    margin-top: -62px !important; margin-bottom: -4px !important; position: relative !important; z-index: 10 !important;
+    margin-top: -48px !important; margin-bottom: 12px !important; position: relative !important; z-index: 10 !important;
+    height: 48px !important;
 }
 .stepper-overlay-side {
     flex: 1 !important; display: flex !important; gap: 3px !important; height: 48px !important;
@@ -209,7 +210,7 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 .st-btn-hidden-wrapper {
     flex: 1 !important; height: 48px !important; background: transparent !important;
 }
-/* 투명 오버레이 버튼 영역 완전 소멸 스타일 */
+/* 투명 스태퍼 내 내부 요소 및 마진 완전 초기화 */
 .stepper-overlay-container div[data-testid="stButton"],
 .stepper-overlay-container button {
     height: 48px !important; min-height: 48px !important; margin: 0 !important; padding: 0 !important; width: 100% !important;
@@ -222,7 +223,7 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
     display: none !important;
 }
 .stepper-overlay-container button:active, .stepper-overlay-container button:focus {
-    background: rgba(46, 125, 50, 0.12) !important;
+    background: rgba(46, 125, 50, 0.15) !important;
     border: none !important; box-shadow: none !important;
 }
 .stepper-overlay-spacer { width: 36px !important; flex-shrink: 0 !important; }
@@ -232,18 +233,28 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
   min-height:48px!important; border-radius:var(--r1)!important;
 }
 
-/* ── 매트릭스 / KDK 테이블 (가운데 정렬 반영) ── */
+/* ── 매트릭스 / KDK 테이블 (완벽한 상하좌우 정중앙 가운데 정렬) ── */
 .mx-wrap, .kdk{
   background:var(--card); border-radius:var(--r1); padding:10px;
   box-shadow:var(--sh); overflow-x:auto; margin:8px 0; border:1px solid var(--bd);
 }
-.mx, .kdk table{ border-collapse:collapse; white-space:nowrap; font-size:.68rem; width:100%; margin:0 auto; }
-.mx th,.mx td, .kdk th,.kdk td{ padding:6px 7px; border:1px solid var(--bd); text-align:center!important; vertical-align:middle!important; }
-.mx thead th, .kdk thead th{ background:var(--g0); color:#fff; font-weight:700; text-align:center!important; }
-.kdk td:last-child { text-align:center!important; } /* 대진 내용 부분 가독성을 위해 완전히 가운데로 고정 */
-.mx-grey{ background:#D0D0D0!important; color:#D0D0D0!important; }
-.mx-dash{ color:#CCC; }
-.mx-sc{ font-weight:800; color:var(--g0); }
+.mx, .kdk table{ border-collapse:collapse; white-space:nowrap; font-size:.68rem; width:100%; margin:0 auto; table-layout:auto; }
+.mx th, .mx td, .kdk th, .kdk td{ 
+  padding:7px 8px; border:1px solid var(--bd); 
+  text-align:center!important; vertical-align:middle!important;
+}
+.mx thead th, .kdk thead th{ 
+  background:var(--g0); color:#fff; font-weight:700; 
+  text-align:center!important; vertical-align:middle!important;
+}
+.mx tbody th {
+  background:var(--g5); color:var(--g0); font-weight:700;
+  text-align:center!important; vertical-align:middle!important;
+}
+.kdk td { text-align:center!important; vertical-align:middle!important; }
+.mx-grey{ background:#D0D0D0!important; color:#D0D0D0!important; text-align:center!important; }
+.mx-dash{ color:#CCC; text-align:center!important; }
+.mx-sc{ font-weight:800; color:var(--g0); text-align:center!important; }
 
 /* ── 파일 업로더 ── */
 [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzoneInstructions"]>div>span,
@@ -415,13 +426,13 @@ def kdk_html(n, gperson, p2n):
     for i, (a,b,c,d) in enumerate(bp):
         t1 = f"{n2p.get(a,a)}({a}) &amp; {n2p.get(b,b)}({b})"
         t2 = f"{n2p.get(c,c)}({c}) &amp; {n2p.get(d,d)}({d})"
-        rows += (f"<tr><td style='text-align:center'>"
+        rows += (f"<tr><td style='text-align:center; vertical-align:middle;'>"
                  f"<span style='background:#1B5E20;color:#fff;border-radius:20px;"
                  f"padding:2px 9px;font-size:.6rem;font-weight:700'>{i+1}</span>"
-                 f"</td><td style='text-align:center;white-space:nowrap'>{t1} vs {t2}</td></tr>")
+                 f"</td><td style='text-align:center; vertical-align:middle; white-space:nowrap'>{t1} vs {t2}</td></tr>")
     return (f'<div class="kdk"><div style="font-size:.75rem;font-weight:800;'
             f'color:#1B5E20;margin-bottom:6px;text-align:center;">📋 {title}</div>'
-            f'<table><thead><tr><th style="width:38px">순서</th><th>대진 명단</th></tr></thead>'
+            f'<table><thead><tr><th style="width:38px; text-align:center;">순서</th><th style="text-align:center;">대진 명단</th></tr></thead>'
             f'<tbody>{rows}</tbody></table></div>')
 
 def show_kdk(n, gperson, p2n):
@@ -447,18 +458,18 @@ def matrix_html(matches, rank_items, is_fixed, p2n):
                         mat[lab[x]][lab[y]] = f"{a}:{b}"
                         mat[lab[y]][lab[x]] = f"{b}:{a}"
     keys = list(lab.values())
-    header = "".join(f"<th style='white-space:nowrap'>{k}</th>" for k in keys)
+    header = "".join(f"<th style='white-space:nowrap; text-align:center;'>{k}</th>" for k in keys)
     body = ""
     for rk in keys:
-        body += f"<tr><th style='white-space:nowrap'>{rk}</th>"
+        body += f"<tr><th style='white-space:nowrap; text-align:center; background:var(--g5); color:var(--g0);'>{rk}</th>"
         for ck in keys:
             v = mat[rk][ck]
-            if v == "■":   body += '<td class="mx-grey">■</td>'
-            elif v == "—": body += '<td class="mx-dash">—</td>'
-            else:          body += f'<td class="mx-sc">{v}</td>'
+            if v == "■":   body += '<td class="mx-grey" style="text-align:center;">■</td>'
+            elif v == "—": body += '<td class="mx-dash" style="text-align:center;">—</td>'
+            else:          body += f'<td class="mx-sc" style="text-align:center;">{v}</td>'
         body += "</tr>"
     return (f'<div class="mx-wrap"><table class="mx">'
-            f'<thead><tr><th></th>{header}</tr></thead>'
+            f'<thead><tr><th style="text-align:center;"></th>{header}</tr></thead>'
             f'<tbody>{body}</tbody></table></div>')
 
 def adj_score(tid, grp, mi, side, delta):
@@ -629,7 +640,7 @@ elif M == "schedule":
                     unsafe_allow_html=True
                 )
 
-                # 투명 오버레이 버튼 레이어 (정밀 보정 마진 적용으로 하단 하얀 여백 박스 완벽 소멸)
+                # 투명 오버레이 버튼 레이어 (정밀 48px 음수 마진 적용으로 완벽 매칭 및 빈 하얀 박스 파쇄)
                 st.markdown('<div class="stepper-overlay-container">', unsafe_allow_html=True)
                 
                 # 팀 A 스태퍼
@@ -640,7 +651,7 @@ elif M == "schedule":
                 st.button(" ", key=f"i_{tid}_{g}_{mi}_A", on_click=adj_score, args=(tid,g,mi,"A",1))
                 st.markdown('</div></div>', unsafe_allow_html=True)
                 
-                # 중앙 스페이서
+                # 중앙 스페이서 (VS 배지 가로 폭 맞춤)
                 st.markdown('<div class="stepper-overlay-spacer"></div>', unsafe_allow_html=True)
                 
                 # 팀 B 스태퍼
