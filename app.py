@@ -832,7 +832,7 @@ elif M == "schedule":
                 
                 with m_col1:
                     st.markdown(f'<div class="team-side"><div class="team-name {tbc}">{t1s}</div></div>', unsafe_allow_html=True)
-st.markdown('<div class="score-wrap"><div class="score-btn-wrap">', unsafe_allow_html=True)                    ctrl_cols = st.columns([1.05, 1.5, 1.05], gap="small")
+ctrl_cols = st.columns([1.05, 1.5, 1.05], gap="small")
                     if ctrl_cols[0].button("－", key=f"btn_m_A_{g}_{mi}"):
                         adj_score(tid, g, mi, "A", -1)
                         st.rerun()
@@ -840,14 +840,13 @@ st.markdown('<div class="score-wrap"><div class="score-btn-wrap">', unsafe_allow
                     if ctrl_cols[2].button("＋", key=f"btn_p_A_{g}_{mi}"):
                         adj_score(tid, g, mi, "A", 1)
                         st.rerun()
-st.markdown('</div></div>', unsafe_allow_html=True)
                 with m_vs:
                     st.markdown('<div style="height:25px;"></div>', unsafe_allow_html=True) # 이름 박스 높이만큼 공백 맞춤
                     st.markdown('<div class="vs-col" style="width:100%;"><div class="vs-badge">VS</div></div>', unsafe_allow_html=True)
 
                 with m_col2:
                     st.markdown(f'<div class="team-side"><div class="team-name {tbc}">{t2s}</div></div>', unsafe_allow_html=True)
-st.markdown('<div class="score-wrap"><div class="score-btn-wrap">', unsafe_allow_html=True)                    ctrl_cols = st.columns([1, 1.2, 1])
+                   ctrl_cols = st.columns([1, 1.2, 1])
                     if ctrl_cols[0].button("－", key=f"btn_m_B_{g}_{mi}"):
                         adj_score(tid, g, mi, "B", -1)
                         st.rerun()
@@ -855,7 +854,6 @@ st.markdown('<div class="score-wrap"><div class="score-btn-wrap">', unsafe_allow
                     if ctrl_cols[2].button("＋", key=f"btn_p_B_{g}_{mi}"):
                         adj_score(tid, g, mi, "B", 1)
                         st.rerun()
-st.markdown('</div></div>', unsafe_allow_html=True)                
             st.markdown('</div></div>', unsafe_allow_html=True) # match-card 닫기
 
 # ══════════════════════════════════════════════════════════════
