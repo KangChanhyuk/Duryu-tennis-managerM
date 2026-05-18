@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ══════════════════════════════════════════════════════════════
-# CSS (모바일 최적화 + 1:1:1 정사각 점수 버튼 완벽 강제)
+# CSS (모바일 최적화 + 다양한 색상 + 정사각 점수 버튼)
 # ══════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
@@ -114,7 +114,7 @@ button[data-baseweb="tab"][aria-selected="true"]{
   padding:4px 4px 0!important; gap:2px!important;
 }
 
-/* ── 데이터프레임 강제 가운데 정렬 ── */
+/* ── 데이터프레임 강제 가운데 정렬 (글로벌 셀/헤더 제어) ── */
 div[data-testid="stDataFrame"] iframe {
   width: 100%;
 }
@@ -135,7 +135,7 @@ div[data-testid="stDataFrame"] table td {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   경기 카드 및 모바일 가로 강제 한 줄 고정 및 1:1:1 정사각 (핵심수정)
+   경기 카드 및 모바일 가로 강제 한 줄 고정 (정밀 수정)
 ══════════════════════════════════════════════════════════════ */
 .match-card{
   background:var(--card); border-radius:var(--r2); padding:12px 10px 14px;
@@ -150,65 +150,67 @@ div[data-testid="stDataFrame"] table td {
 .mc3{background:var(--mc3);} .mc4{background:var(--mc4);} .mc5{background:var(--mc5);}
 .mc6{background:var(--mc6);} .mc7{background:var(--mc7);}
 
+/* 경기 메인 행: [팀A] [VS] [팀B] */
+.match-row{
+  display:flex; align-items:stretch; gap:6px; width:100%;
+}
+/* 팀 사이드 (이름 + 점수컨트롤) */
+.team-side{
+  flex:1; display:flex; flex-direction:column; gap:6px;
+}
 /* 팀 이름 박스 */
 .team-name{
   border-radius:var(--r1); padding:8px 4px; font-weight:900; font-size:.82rem;
   text-align:center; color:#fff; box-shadow:var(--sh); min-height:46px;
   display:flex; align-items:center; justify-content:center; word-break:keep-all; line-height:1.2;
-  margin-bottom: 6px;
 }
 .tb0{background:var(--tb0);} .tb1{background:var(--tb1);} .tb2{background:var(--tb2);}
 .tb3{background:var(--tb3);} .tb4{background:var(--tb4);} .tb5{background:var(--tb5);}
 .tb6{background:var(--tb6);} .tb7{background:var(--tb7);}
 
-/* 🔥 PC/모바일 전 기기 공통: st.columns 레이아웃 풀림을 완전히 깨부수고 무조건 가로 정렬 강제 */
-div.score-btn-wrap [data-testid="stHorizontalBlock"] {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  width: 100% !important;
-  gap: 4px !important;
-  align-items: center !important;
+/* 🔥 모바일 해상도(640px 이하)에서도 [-] [숫자] [+] 의 세로 줄바꿈을 완벽히 방지 */
+@media (max-width: 640px) {
+  .score-btn-wrap div[data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    gap: 4px !important;
+  }
+  .score-btn-wrap div[data-testid="stHorizontalBlock"] > div {
+    flex: 1 !important;
+    min-width: 0 !important;
+    width: auto !important;
+  }
+  /* 가운데 숫자 패널의 비율을 버튼보다 살짝 여유롭게 고정 */
+  .score-btn-wrap div[data-testid="stHorizontalBlock"] > div:nth-child(2) {
+    flex: 1.2 !important;
+  }
 }
 
-/* 3개의 자식 요소([-], [숫자], [+])의 가로 너비를 무조건 정확히 1:1:1 배분 */
-div.score-btn-wrap [data-testid="stHorizontalBlock"] > div {
-  flex: 1 !important;
-  min-width: 0 !important;
-  max-width: 33.333% !important;
-  width: 33.333% !important;
-}
-
-/* 버튼과 패널을 정확한 정사각형(1:1 비율)으로 구현하고 폰트 크기 동기화 */
-div.score-btn-wrap button, .score-num-display {
-  width: 100% !important;
-  aspect-ratio: 1 / 1 !important; /* 가로세로 1:1 강제 */
-  height: auto !important;         /* 높이는 너비에 따라 자동으로 맞춰짐 */
-  font-size: 1.3rem !important;    /* PC/모바일 균일한 크기 */
-  font-weight: 900 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-/* 개별 컴포넌트 색상 및 보더 정밀 튜닝 */
+/* 점수 증감 버튼 커스텀 스타일 */
 div.score-btn-wrap button {
+  min-height: 40px !important;
+  height: 40px !important;
+  font-size: 1.1rem !important;
+  font-weight: 900 !important;
   background: #E8F5E9 !important;
   border: 2px solid #C8E6C9 !important;
   color: #1B5E20 !important;
-  border-radius: 12px !important;
+  border-radius: 10px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 div.score-btn-wrap button:active {
   background: #A5D6A7 !important;
 }
 
 .score-num-display {
-  background: #fff; 
-  border: 2.5px solid #C8E6C9; 
-  border-radius: 12px;
-  color: #1B5E20;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff; border: 2.5px solid #C8E6C9; border-radius: 10px;
+  font-size: 1.3rem; font-weight: 900; color: #1B5E20; height: 40px;
 }
 
 /* VS 구분자 */
@@ -612,7 +614,7 @@ elif M == "schedule":
                 with m_col1:
                     st.markdown(f'<div class="team-side"><div class="team-name {tbc}">{t1s}</div></div>', unsafe_allow_html=True)
                     st.markdown('<div class="score-btn-wrap">', unsafe_allow_html=True)
-                    ctrl_cols = st.columns(3)
+                    ctrl_cols = st.columns([1, 1.2, 1])
                     if ctrl_cols[0].button("－", key=f"btn_m_A_{g}_{mi}"):
                         adj_score(tid, g, mi, "A", -1)
                         st.rerun()
@@ -629,7 +631,7 @@ elif M == "schedule":
                 with m_col2:
                     st.markdown(f'<div class="team-side"><div class="team-name {tbc}">{t2s}</div></div>', unsafe_allow_html=True)
                     st.markdown('<div class="score-btn-wrap">', unsafe_allow_html=True)
-                    ctrl_cols = st.columns(3)
+                    ctrl_cols = st.columns([1, 1.2, 1])
                     if ctrl_cols[0].button("－", key=f"btn_m_B_{g}_{mi}"):
                         adj_score(tid, g, mi, "B", -1)
                         st.rerun()
