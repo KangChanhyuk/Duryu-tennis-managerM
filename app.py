@@ -114,14 +114,19 @@ button[data-baseweb="tab"][aria-selected="true"]{
   padding:4px 4px 0!important; gap:2px!important;
 }
 
-/* ── 데이터프레임 가운데 정렬 ── */
+/* ── 데이터프레임 무조건 가운데 정렬 (랭킹/순위 전용) ── */
 div[data-testid="stDataFrame"]{
   border-radius:var(--r1)!important; overflow:hidden!important;
   box-shadow:var(--sh)!important; border:1px solid var(--bd)!important;
   width:100%!important;
 }
-div[data-testid="stDataFrame"] table{
-  width:100%!important; font-size:.74rem!important; border-collapse:collapse!important;
+div[data-testid="stDataFrame"] .data-table, 
+div[data-testid="stDataFrame"] table,
+div[data-testid="stDataFrame"] div[role="grid"] div[role="row"] div[role="gridcell"],
+div[data-testid="stDataFrame"] div[role="columnheader"] span {
+  text-align: center !important;
+  justify-content: center !important;
+  align-items: center !important;
 }
 div[data-testid="stDataFrame"] table th,
 div[data-testid="stDataFrame"] table td{
@@ -134,9 +139,7 @@ div[data-testid="stDataFrame"] thead tr th{
 div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)!important; }
 
 /* ══════════════════════════════════════════════════════════════
-   경기 카드 — 핵심 레이아웃
-   팀명 바로 아래 [-][점수][+] 가로 배치
-   VS 기준 좌/우 대칭
+   경기 카드 — 핵심 레이아웃 및 모바일 가로 유지 설정
 ══════════════════════════════════════════════════════════════ */
 .match-card{
   background:var(--card); border-radius:var(--r2); padding:12px 10px 14px;
@@ -151,7 +154,7 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 .mc3{background:var(--mc3);} .mc4{background:var(--mc4);} .mc5{background:var(--mc5);}
 .mc6{background:var(--mc6);} .mc7{background:var(--mc7);}
 
-/* 경기 메인 행: [팀A사이드] [VS] [팀B사이드] */
+/* 경기 메인 행: [팀A] [VS] [팀B] */
 .match-row{
   display:flex; align-items:stretch; gap:6px; width:100%;
 }
@@ -169,17 +172,39 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 .tb3{background:var(--tb3);} .tb4{background:var(--tb4);} .tb5{background:var(--tb5);}
 .tb6{background:var(--tb6);} .tb7{background:var(--tb7);}
 
-/* 커스텀 점수 버튼을 위한 스타일 지정 */
+/* 📱 모바일에서 점수입력 [-][점수][+] 컬럼 가로 한 줄 강제 고정 */
+.score-btn-wrap div[data-testid="stHorizontalBlock"] {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 4px !important;
+}
+.score-btn-wrap div[data-testid="stHorizontalBlock"] > div {
+  width: auto !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+/* 숫자 표시칸은 조금 더 여유있게 비율 조정 */
+.score-btn-wrap div[data-testid="stHorizontalBlock"] > div:nth-child(2) {
+  flex: 1.2 !important;
+}
+
+/* 점수 증감 버튼 커스텀 스타일 */
 div.score-btn-wrap button {
-  min-height: 44px !important;
-  height: 44px !important;
-  font-size: 1.2rem !important;
+  min-height: 40px !important;
+  height: 40px !important;
+  font-size: 1.1rem !important;
   font-weight: 900 !important;
   background: #E8F5E9 !important;
   border: 2px solid #C8E6C9 !important;
   color: #1B5E20 !important;
   border-radius: 10px !important;
   padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 div.score-btn-wrap button:active {
   background: #A5D6A7 !important;
@@ -188,7 +213,7 @@ div.score-btn-wrap button:active {
 .score-num-display {
   display: flex; align-items: center; justify-content: center;
   background: #fff; border: 2.5px solid #C8E6C9; border-radius: 10px;
-  font-size: 1.4rem; font-weight: 900; color: #1B5E20; height: 44px;
+  font-size: 1.3rem; font-weight: 900; color: #1B5E20; height: 40px;
 }
 
 /* VS 구분자 */
@@ -508,6 +533,8 @@ if M == "ranking":
         medal = ["🥇","🥈","🥉"]
         d = df.copy()
         d.insert(0, "순위", [medal[i] if i < 3 else str(i+1) for i in range(len(d))])
+        
+        # 전원 가운데 정렬을 위한 설정 적용
         cfg = {c: st.column_config.TextColumn(c, width="small") for c in d.columns}
         st.dataframe(d, use_container_width=True, hide_index=True, column_config=cfg)
         st.download_button(
@@ -518,7 +545,7 @@ if M == "ranking":
         )
 
 # ══════════════════════════════════════════════════════════════
-# 2. 대진/경기 입력 (핵심 수정 영역)
+# 2. 대진/경기 입력
 # ══════════════════════════════════════════════════════════════
 elif M == "schedule":
     tc = title_cls["schedule"]
@@ -583,10 +610,8 @@ elif M == "schedule":
                 s1v = int(m["s1"])
                 s2v = int(m["s2"])
 
-                # 상단 프레임 및 레이아웃을 그대로 감싸는 match-card 디자인 유지
                 st.markdown(f'<div class="match-card"><span class="match-no {mc}">MATCH {mi+1}</span>', unsafe_allow_html=True)
                 
-                # 좌우 정렬을 유지하기 위해 st.columns 사용
                 m_col1, m_vs, m_col2 = st.columns([10, 3, 10])
                 
                 with m_col1:
@@ -603,7 +628,7 @@ elif M == "schedule":
                     st.markdown('</div>', unsafe_allow_html=True)
 
                 with m_vs:
-                    st.markdown('<div style="height:25px;"></div>', unsafe_allow_html=True) # 이름 박스 높이만큼 공백 맞춤
+                    st.markdown('<div style="height:25px;"></div>', unsafe_allow_html=True)
                     st.markdown('<div class="vs-col" style="width:100%;"><div class="vs-badge">VS</div></div>', unsafe_allow_html=True)
 
                 with m_col2:
@@ -619,7 +644,7 @@ elif M == "schedule":
                         st.rerun()
                     st.markdown('</div>', unsafe_allow_html=True)
                 
-                st.markdown('</div>', unsafe_allow_html=True) # match-card 닫기
+                st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
 # 3. 결과 마감
@@ -758,7 +783,7 @@ elif M == "admin":
                     if st.checkbox(name, key=f"p_{name}"):
                         sel_m.append(name)
 
-            st.blue(f"선택된 참가자: {len(sel_m)}명")
+            st.write(f"선택된 참가자: {len(sel_m)}명")
 
             st.divider()
             st.markdown("<div class='sec'>🌿 그룹 및 대진 방식 설정</div>", unsafe_allow_html=True)
