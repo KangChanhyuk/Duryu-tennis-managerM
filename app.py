@@ -141,6 +141,7 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 .match-card{
   background:var(--card); border-radius:var(--r2); padding:12px 10px 14px;
   margin:12px 0; box-shadow:var(--sh2); border:1px solid var(--bd);
+  position:relative;
 }
 .match-no{
   display:inline-block; border-radius:20px; padding:3px 14px;
@@ -153,11 +154,11 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 
 /* 경기 메인 행: [팀A사이드] [VS] [팀B사이드] */
 .match-row{
-  display:flex; align-items:stretch; gap:6px; width:100%;
+  display:flex; align-items:stretch; gap:6px; width:100%; position:relative;
 }
 /* 팀 사이드 (이름 + 점수컨트롤) */
 .team-side{
-  flex:1; display:flex; flex-direction:column; gap:6px;
+  flex:1; display:flex; flex-direction:column; gap:6px; position:relative;
 }
 /* 팀 이름 박스 */
 .team-name{
@@ -171,7 +172,7 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 
 /* 점수 컨트롤 행: [-][숫자][+] */
 .score-ctrl{
-  display:flex; align-items:stretch; gap:3px; height:48px;
+  display:flex; align-items:stretch; gap:3px; height:48px; position:relative;
 }
 .score-ctrl .score-minus,
 .score-ctrl .score-plus{
@@ -180,6 +181,7 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
   font-size:1.3rem; font-weight:900; color:#1B5E20; cursor:pointer;
   user-select:none; -webkit-user-select:none;
   transition:background .1s, transform .1s;
+  position:relative; z-index:1;
 }
 .score-ctrl .score-minus:active,
 .score-ctrl .score-plus:active{
@@ -210,6 +212,30 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 .stButton>button[kind="primary"]{
   background:linear-gradient(135deg,var(--g0),var(--g2))!important; color:#fff!important;
   border:none!important; box-shadow:0 4px 14px rgba(46,125,50,.35)!important;
+}
+
+/* ★ 수정을 위해 추가된 전용 투명 버튼 CSS 스타일 규칙 ★ */
+.stepper-overlay-container {
+    display: flex; width: 100%; gap: 6px; margin-top: -51px; margin-bottom: 12px; position: relative; z-index: 10;
+}
+.stepper-overlay-side {
+    flex: 1; display: flex; gap: 3px; height: 48px;
+}
+.st-btn-hidden-wrapper {
+    flex: 1; height: 48px;
+}
+.st-btn-hidden-wrapper > div, .st-btn-hidden-wrapper button {
+    height: 48px !important; min-height: 48px !important; margin: 0 !important; padding: 0 !important; width: 100% !important;
+}
+/* 순정 버튼 형태를 투명하게 지워 백그라운드 디자인과 일체화 */
+.st-btn-hidden-wrapper button {
+    background: transparent !important; border: none !important; color: transparent !important; box-shadow: none !important;
+}
+.st-btn-hidden-wrapper button:active {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+.stepper-overlay-spacer {
+    width: 36px; flex-shrink: 0;
 }
 
 /* ── 입력 필드 ── */
@@ -522,7 +548,7 @@ if M == "ranking":
         )
 
 # ══════════════════════════════════════════════════════════════
-# 2. 대진/경기 입력 — 팀명 아래 바로 [-][점수][+]
+# 2. 대진/경기 입력 — 완벽하게 통합된 실시간 점수 컨트롤러
 # ══════════════════════════════════════════════════════════════
 elif M == "schedule":
     tc = title_cls["schedule"]
@@ -596,7 +622,7 @@ elif M == "schedule":
                 s1v  = int(m["s1"])
                 s2v  = int(m["s2"])
 
-                # 카드 헤더
+                # 카드 디자인 출력
                 st.markdown(
                     f'<div class="match-card">'
                     f'<span class="match-no {mc}">MATCH {mi+1}</span>'
@@ -623,26 +649,29 @@ elif M == "schedule":
                     unsafe_allow_html=True
                 )
 
-                # 실제 +/- 버튼 (hidden HTML 위 레이어로 동작)
-                c1, c2, c3, c4, c5 = st.columns([1,1,1,1,1])
-                with c1:
-                    st.button("－", key=f"d_{tid}_{g}_{mi}_A",
-                              on_click=adj_score, args=(tid,g,mi,"A",-1),
-                              use_container_width=True)
-                with c2:
-                    st.button("＋", key=f"i_{tid}_{g}_{mi}_A",
-                              on_click=adj_score, args=(tid,g,mi,"A",1),
-                              use_container_width=True)
-                with c3:
-                    st.write("")  # VS spacer
-                with c4:
-                    st.button("－", key=f"d_{tid}_{g}_{mi}_B",
-                              on_click=adj_score, args=(tid,g,mi,"B",-1),
-                              use_container_width=True)
-                with c5:
-                    st.button("＋", key=f"i_{tid}_{g}_{mi}_B",
-                              on_click=adj_score, args=(tid,g,mi,"B",1),
-                              use_container_width=True)
+                # ★ 핵심 수정: 하단에 분리 배치되던 버튼을 CSS 절대좌표 마진을 주어 위의 [-], [+] 텍스트 박스 영역에 완전히 일체화 및 포개어 동작시킴
+                st.markdown('<div class="stepper-overlay-container">', unsafe_allow_html=True)
+                
+                # 팀 A 점수 조작 오버레이 행
+                st.markdown('<div class="stepper-overlay-side">', unsafe_allow_html=True)
+                st.markdown('<div class="st-btn-hidden-wrapper">', unsafe_allow_html=True)
+                st.button("－", key=f"d_{tid}_{g}_{mi}_A", on_click=adj_score, args=(tid,g,mi,"A",-1))
+                st.markdown('</div><div style="flex:1.4;"></div><div class="st-btn-hidden-wrapper">', unsafe_allow_html=True)
+                st.button("＋", key=f"i_{tid}_{g}_{mi}_A", on_click=adj_score, args=(tid,g,mi,"A",1))
+                st.markdown('</div></div>', unsafe_allow_html=True)
+                
+                # 중앙 VS 공백 정렬용 스페이서
+                st.markdown('<div class="stepper-overlay-spacer"></div>', unsafe_allow_html=True)
+                
+                # 팀 B 점수 조작 오버레이 행
+                st.markdown('<div class="stepper-overlay-side">', unsafe_allow_html=True)
+                st.markdown('<div class="st-btn-hidden-wrapper">', unsafe_allow_html=True)
+                st.button("－", key=f"d_{tid}_{g}_{mi}_B", on_click=adj_score, args=(tid,g,mi,"B",-1))
+                st.markdown('</div><div style="flex:1.4;"></div><div class="st-btn-hidden-wrapper">', unsafe_allow_html=True)
+                st.button("＋", key=f"i_{tid}_{g}_{mi}_B", on_click=adj_score, args=(tid,g,mi,"B",1))
+                st.markdown('</div></div>', unsafe_allow_html=True)
+                
+                st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
 # 3. 경기 결과
@@ -1170,3 +1199,5 @@ elif M == "admin":
                     for m in t3["groups"][g]["matches"]:
                         m["s1"] = 0; m["s2"] = 0
                 save_tours(ts); st.success("✅ 점수 초기화 완료!"); st.rerun()
+
+}
