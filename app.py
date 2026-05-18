@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ══════════════════════════════════════════════════════════════
-# CSS (모바일 최적화 + 다양한 색상 + 정사각 점수 버튼)
+# CSS (모바일 최적화 + 메뉴별 색상 통일 + 가로형 점수 버튼 컴팩트화)
 # ══════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
@@ -24,18 +24,14 @@ st.markdown("""
 :root {
   /* 그린 계열 */
   --g0:#1B5E20; --g1:#2E7D32; --g2:#388E3C; --g3:#66BB6A; --g4:#C8E6C9; --g5:#E8F5E9;
+  
   /* 메뉴 색상 (5개 메뉴) */
   --nav0:#2E7D32;  /* 랭킹 - 딥그린 */
   --nav1:#1565C0;  /* 대진 - 딥블루 */
   --nav2:#E65100;  /* 결과 - 딥오렌지 */
   --nav3:#4A148C;  /* 기록 - 딥퍼플 */
   --nav4:#00695C;  /* 관리 - 딥틸 */
-  /* 매치 카드 색상 */
-  --mc0:#1B5E20; --mc1:#0D47A1; --mc2:#BF360C; --mc3:#4A148C; --mc4:#006064;
-  --mc5:#1A237E; --mc6:#880E4F; --mc7:#33691E;
-  /* 팀박스 색상 */
-  --tb0:#2E7D32; --tb1:#1565C0; --tb2:#D84315; --tb3:#6A1B9A; --tb4:#00695C;
-  --tb5:#283593; --tb6:#AD1457; --tb7:#558B2F;
+  
   /* 기본 */
   --yel:#FFD600; --ora:#FB8C00;
   --bg:#F4F6F9; --card:#fff; --bd:#E0E4EA;
@@ -46,38 +42,17 @@ st.markdown("""
 }
 
 *{ font-family:'Noto Sans KR',sans-serif!important; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-.block-container{ padding:0 0.7rem 5rem!important; max-width:520px!important; margin:0 auto!important; background:var(--bg)!important; }
+.block-container{ padding:0 0.5rem 5rem!important; max-width:520px!important; margin:0 auto!important; background:var(--bg)!important; }
 .stApp{ background:var(--bg)!important; }
 
 /* ── 헤더 ── */
 .hdr{
   background:linear-gradient(135deg,#1B5E20 0%,#2E7D32 60%,#388E3C 100%);
-  margin:0 -0.7rem 0; padding:14px 18px 0; position:relative; overflow:hidden; box-shadow:var(--sh2);
+  margin:0 -0.5rem 0; padding:14px 18px 0; position:relative; overflow:hidden; box-shadow:var(--sh2);
 }
 .hdr::after{ content:'🎾'; position:absolute; right:14px; top:8px; font-size:2.6rem; opacity:.12; }
 .hdr-title{ color:#fff; font-size:1.05rem; font-weight:900; margin:0 0 2px; }
 .hdr-sub{ color:rgba(255,255,255,.5); font-size:.58rem; letter-spacing:2px; margin-bottom:0; }
-
-/* ── 네비게이션 탭바 ── */
-.nav-wrapper{
-  display:flex; margin:0 -0.7rem 14px; overflow:hidden;
-  box-shadow:0 3px 12px rgba(0,0,0,.18);
-}
-.nav-btn{
-  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:9px 2px 10px; cursor:pointer; border:none; outline:none;
-  font-size:.62rem; font-weight:700; line-height:1.35;
-  color:rgba(255,255,255,.72); transition:all .15s; min-height:56px;
-  border-bottom:3px solid transparent; gap:1px;
-}
-.nav-btn .nav-icon{ font-size:1.1rem; line-height:1; }
-.nav-btn.n0{ background:var(--nav0); }
-.nav-btn.n1{ background:var(--nav1); }
-.nav-btn.n2{ background:var(--nav2); }
-.nav-btn.n3{ background:var(--nav3); }
-.nav-btn.n4{ background:var(--nav4); }
-.nav-btn.active{ color:#fff; border-bottom:3px solid var(--yel); filter:brightness(1.15); }
-.nav-btn:not(.active){ filter:brightness(0.75); }
 
 /* ── 페이지 타이틀 ── */
 .pg-title{
@@ -134,72 +109,74 @@ div[data-testid="stDataFrame"] thead tr th{
 div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)!important; }
 
 /* ══════════════════════════════════════════════════════════════
-   경기 카드 — 핵심 레이아웃
-   팀명 바로 아래 [-][점수][+] 가로 배치
-   VS 기준 좌/우 대칭
+   경기 카드 모바일 최적화 및 톤앤매너 일치 수정
 ══════════════════════════════════════════════════════════════ */
 .match-card{
-  background:var(--card); border-radius:var(--r2); padding:12px 10px 14px;
+  background:var(--card); border-radius:var(--r2); padding:12px 10px;
   margin:12px 0; box-shadow:var(--sh2); border:1px solid var(--bd);
 }
 .match-no{
   display:inline-block; border-radius:20px; padding:3px 14px;
-  font-size:.6rem; font-weight:900; margin-bottom:10px; color:#fff;
+  font-size:.65rem; font-weight:900; margin-bottom:12px; color:#fff;
+  background: var(--nav1); /* 대진 메뉴의 딥블루와 일치 */
 }
-/* 카드 색상 배리에이션 */
-.mc0{background:var(--mc0);} .mc1{background:var(--mc1);} .mc2{background:var(--mc2);}
-.mc3{background:var(--mc3);} .mc4{background:var(--mc4);} .mc5{background:var(--mc5);}
-.mc6{background:var(--mc6);} .mc7{background:var(--mc7);}
 
-/* 경기 메인 행: [팀A사이드] [VS] [팀B사이드] */
-.match-row{
-  display:flex; align-items:stretch; gap:6px; width:100%;
-}
-/* 팀 사이드 (이름 + 점수컨트롤) */
+/* 팀 사이드 레이아웃 */
 .team-side{
-  flex:1; display:flex; flex-direction:column; gap:6px;
+  display:flex; flex-direction:column; gap:6px; width:100%;
 }
-/* 팀 이름 박스 */
+/* 팀 이름 박스 (대진 메뉴 색상인 딥블루로 변경) */
 .team-name{
   border-radius:var(--r1); padding:8px 4px; font-weight:900; font-size:.82rem;
-  text-align:center; color:#fff; box-shadow:var(--sh); min-height:46px;
+  text-align:center; color:#fff; box-shadow:var(--sh); min-height:42px;
   display:flex; align-items:center; justify-content:center; word-break:keep-all; line-height:1.2;
+  background: var(--nav1); /* 대진 메뉴의 딥블루와 일치 */
 }
-.tb0{background:var(--tb0);} .tb1{background:var(--tb1);} .tb2{background:var(--tb2);}
-.tb3{background:var(--tb3);} .tb4{background:var(--tb4);} .tb5{background:var(--tb5);}
-.tb6{background:var(--tb6);} .tb7{background:var(--tb7);}
 
-/* 커스텀 점수 버튼을 위한 스타일 지정 */
-div.score-btn-wrap button {
-  min-height: 44px !important;
-  height: 44px !important;
-  font-size: 1.2rem !important;
+/* 점수 컨트롤러 가로 강제 정렬 */
+.score-btn-wrap {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 4px !important;
+  width: 100% !important;
+}
+
+/* 점수 증감 버튼 스타일 (대진 메뉴 테마 컬러 적용) */
+div.score-btn-wrap div[data-testid="stBlock"] button {
+  min-height: 38px !important;
+  height: 38px !important;
+  font-size: 1.1rem !important;
   font-weight: 900 !important;
-  background: #E8F5E9 !important;
-  border: 2px solid #C8E6C9 !important;
-  color: #1B5E20 !important;
-  border-radius: 10px !important;
+  background: #EBF3FA !important; /* 연한 블루계열 바탕 */
+  border: 1.5px solid #BBDEFB !important;
+  color: var(--nav1) !important; /* 딥블루 글자 */
+  border-radius: 8px !important;
   padding: 0 !important;
+  width: 100% !important;
 }
-div.score-btn-wrap button:active {
-  background: #A5D6A7 !important;
+div.score-btn-wrap div[data-testid="stBlock"] button:active {
+  background: #90CAF9 !important;
 }
 
+/* 중앙 점수 노출 디스플레이 */
 .score-num-display {
   display: flex; align-items: center; justify-content: center;
-  background: #fff; border: 2.5px solid #C8E6C9; border-radius: 10px;
-  font-size: 1.4rem; font-weight: 900; color: #1B5E20; height: 44px;
+  background: #fff; border: 2px solid #BBDEFB; border-radius: 8px;
+  font-size: 1.25rem; font-weight: 900; color: var(--nav1); height: 38px;
+  width: 100%;
 }
 
-/* VS 구분자 */
-.vs-col{
-  width:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+/* VS 구분 배지 */
+.vs-container {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;
 }
 .vs-badge{
-  width:34px; height:34px; border-radius:50%;
+  width:32px; height:32px; border-radius:50%;
   background:linear-gradient(135deg,#FFB74D,var(--ora));
   display:flex; align-items:center; justify-content:center;
   font-weight:900; font-size:.65rem; color:#fff; box-shadow:var(--sh);
+  margin-top: 5px;
 }
 
 /* ── streamlit 버튼 공통 ── */
@@ -254,8 +231,6 @@ TOUR_FILE   = "tournaments.json"
 ADMIN_PW    = "0502"
 COLS_RANK   = ["랭킹","이름","현재포인트","3월 포인트","결과","부과점","그룹","비고"]
 
-GCLS  = ["mc0","mc1","mc2","mc3","mc4","mc5","mc6","mc7"]
-TBCLS = ["tb0","tb1","tb2","tb3","tb4","tb5","tb6","tb7"]
 GLBL  = ["🟢","🔵","🟠","🟣","🩵","🔴","🟡","⚪"]
 
 KDK_3G = {
@@ -464,18 +439,18 @@ if "participants" not in ss: ss.participants = []
 # 네비게이션
 # ══════════════════════════════════════════════════════════════
 MENUS = [
-    ("ranking", "🏆", "랭킹",  "n0"),
-    ("schedule","📅", "대진",  "n1"),
-    ("result",  "📊", "결과",  "n2"),
-    ("archive", "📂", "기록",  "n3"),
-    ("admin",   "⚙️", "관리",  "n4"),
+    ("ranking", "🏆", "랭킹"),
+    ("schedule","📅", "대진"),
+    ("result",  "📊", "결과"),
+    ("archive", "📂", "기록"),
+    ("admin",   "⚙️", "관리"),
 ]
 
 st.markdown('<div class="hdr"><div class="hdr-title">🎾 두류 테니스 클럽</div>'
             '<div class="hdr-sub">DURYU TENNIS CLUB</div></div>', unsafe_allow_html=True)
 
 nav_cols = st.columns(len(MENUS))
-for col, (key, icon, label, nc) in zip(nav_cols, MENUS):
+for col, (key, icon, label) in zip(nav_cols, MENUS):
     with col:
         is_active = (ss.menu == key)
         btn_type = "primary" if is_active else "secondary"
@@ -486,7 +461,7 @@ for col, (key, icon, label, nc) in zip(nav_cols, MENUS):
 
 menu_colors = {"ranking":"#2E7D32","schedule":"#1565C0","result":"#E65100","archive":"#4A148C","admin":"#00695C"}
 cur_color = menu_colors.get(ss.menu, "#2E7D32")
-st.markdown(f'<div style="height:4px;background:{cur_color};margin:0 -0.7rem 14px;'
+st.markdown(f'<div style="height:4px;background:{cur_color};margin:0 -0.5rem 14px;'
             f'box-shadow:0 2px 8px rgba(0,0,0,.2)"></div>', unsafe_allow_html=True)
 
 title_cls = {"ranking":"c0","schedule":"c1","result":"c2","archive":"c3","admin":"c4"}
@@ -518,7 +493,7 @@ if M == "ranking":
         )
 
 # ══════════════════════════════════════════════════════════════
-# 2. 대진/경기 입력 (핵심 수정 영역)
+# 2. 대진/경기 입력 (가로 스코어 패널 및 디자인 통일)
 # ══════════════════════════════════════════════════════════════
 elif M == "schedule":
     tc = title_cls["schedule"]
@@ -578,46 +553,53 @@ elif M == "schedule":
             for mi, m in enumerate(ms):
                 t1s = " & ".join(m["t1"])
                 t2s = " & ".join(m["t2"])
-                mc = GCLS[mi % len(GCLS)]
-                tbc = TBCLS[mi % len(TBCLS)]
                 s1v = int(m["s1"])
                 s2v = int(m["s2"])
 
-                # 상단 프레임 및 레이아웃을 그대로 감싸는 match-card 디자인 유지
-                st.markdown(f'<div class="match-card"><span class="match-no {mc}">MATCH {mi+1}</span>', unsafe_allow_html=True)
+                # 전체 감싸는 매치 카드 프레임 시작
+                st.markdown(f'<div class="match-card"><span class="match-no">MATCH {mi+1}</span>', unsafe_allow_html=True)
                 
-                # 좌우 정렬을 유지하기 위해 st.columns 사용
+                # 모바일 화면 비율 10:3:10 레이아웃 배치
                 m_col1, m_vs, m_col2 = st.columns([10, 3, 10])
                 
                 with m_col1:
-                    st.markdown(f'<div class="team-side"><div class="team-name {tbc}">{t1s}</div></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="team-side"><div class="team-name">{t1s}</div>', unsafe_allow_html=True)
                     st.markdown('<div class="score-btn-wrap">', unsafe_allow_html=True)
-                    ctrl_cols = st.columns([1, 1.2, 1])
-                    if ctrl_cols[0].button("－", key=f"btn_m_A_{g}_{mi}"):
-                        adj_score(tid, g, mi, "A", -1)
-                        st.rerun()
-                    ctrl_cols[1].markdown(f'<div class="score-num-display">{s1v}</div>', unsafe_allow_html=True)
-                    if ctrl_cols[2].button("＋", key=f"btn_p_A_{g}_{mi}"):
-                        adj_score(tid, g, mi, "A", 1)
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    # 내부 점수 조작부 가로배치 구조
+                    ctrl_l, ctrl_m, ctrl_r = st.columns([1, 1.3, 1])
+                    with ctrl_l:
+                        if st.button("－", key=f"btn_m_A_{g}_{mi}", use_container_width=True):
+                            adj_score(tid, g, mi, "A", -1)
+                            st.rerun()
+                    with ctrl_m:
+                        st.markdown(f'<div class="score-num-display">{s1v}</div>', unsafe_allow_html=True)
+                    with ctrl_r:
+                        if st.button("＋", key=f"btn_p_A_{g}_{mi}", use_container_width=True):
+                            adj_score(tid, g, mi, "A", 1)
+                            st.rerun()
+                    st.markdown('</div></div>', unsafe_allow_html=True)
 
                 with m_vs:
-                    st.markdown('<div style="height:25px;"></div>', unsafe_allow_html=True) # 이름 박스 높이만큼 공백 맞춤
-                    st.markdown('<div class="vs-col" style="width:100%;"><div class="vs-badge">VS</div></div>', unsafe_allow_html=True)
+                    st.markdown('<div class="vs-container"><div class="vs-badge">VS</div></div>', unsafe_allow_html=True)
 
                 with m_col2:
-                    st.markdown(f'<div class="team-side"><div class="team-name {tbc}">{t2s}</div></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="team-side"><div class="team-name">{t2s}</div>', unsafe_allow_html=True)
                     st.markdown('<div class="score-btn-wrap">', unsafe_allow_html=True)
-                    ctrl_cols = st.columns([1, 1.2, 1])
-                    if ctrl_cols[0].button("－", key=f"btn_m_B_{g}_{mi}"):
-                        adj_score(tid, g, mi, "B", -1)
-                        st.rerun()
-                    ctrl_cols[1].markdown(f'<div class="score-num-display">{s2v}</div>', unsafe_allow_html=True)
-                    if ctrl_cols[2].button("＋", key=f"btn_p_B_{g}_{mi}"):
-                        adj_score(tid, g, mi, "B", 1)
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    # 내부 점수 조작부 가로배치 구조
+                    ctrl_l, ctrl_m, ctrl_r = st.columns([1, 1.3, 1])
+                    with ctrl_l:
+                        if st.button("－", key=f"btn_m_B_{g}_{mi}", use_container_width=True):
+                            adj_score(tid, g, mi, "B", -1)
+                            st.rerun()
+                    with ctrl_m:
+                        st.markdown(f'<div class="score-num-display">{s2v}</div>', unsafe_allow_html=True)
+                    with ctrl_r:
+                        if st.button("＋", key=f"btn_p_B_{g}_{mi}", use_container_width=True):
+                            adj_score(tid, g, mi, "B", 1)
+                            st.rerun()
+                    st.markdown('</div></div>', unsafe_allow_html=True)
                 
                 st.markdown('</div>', unsafe_allow_html=True) # match-card 닫기
 
@@ -758,7 +740,7 @@ elif M == "admin":
                     if st.checkbox(name, key=f"p_{name}"):
                         sel_m.append(name)
 
-            st.blue(f"선택된 참가자: {len(sel_m)}명")
+            st.info(f"선택된 참가자: {len(sel_m)}명") # st.blue 오타 수정완료
 
             st.divider()
             st.markdown("<div class='sec'>🌿 그룹 및 대진 방식 설정</div>", unsafe_allow_html=True)
