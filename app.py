@@ -114,32 +114,28 @@ button[data-baseweb="tab"][aria-selected="true"]{
   padding:4px 4px 0!important; gap:2px!important;
 }
 
-/* ── 데이터프레임 무조건 가운데 정렬 (랭킹/순위 전용) ── */
-div[data-testid="stDataFrame"]{
-  border-radius:var(--r1)!important; overflow:hidden!important;
-  box-shadow:var(--sh)!important; border:1px solid var(--bd)!important;
-  width:100%!important;
+/* ── 데이터프레임 강제 가운데 정렬 (글로벌 셀/헤더 제어) ── */
+div[data-testid="stDataFrame"] iframe {
+  width: 100%;
 }
-div[data-testid="stDataFrame"] .data-table, 
-div[data-testid="stDataFrame"] table,
-div[data-testid="stDataFrame"] div[role="grid"] div[role="row"] div[role="gridcell"],
-div[data-testid="stDataFrame"] div[role="columnheader"] span {
+div[data-testid="stDataFrame"] *, 
+div[data-testid="stDataFrame"] [role="gridcell"], 
+div[data-testid="stDataFrame"] [role="columnheader"] {
   text-align: center !important;
   justify-content: center !important;
   align-items: center !important;
 }
+div[data-testid="stDataFrame"] table {
+  margin: 0 auto !important;
+}
 div[data-testid="stDataFrame"] table th,
-div[data-testid="stDataFrame"] table td{
-  text-align:center!important; vertical-align:middle!important;
-  padding:8px 4px!important; white-space:nowrap;
+div[data-testid="stDataFrame"] table td {
+  text-align: center !important;
+  vertical-align: middle !important;
 }
-div[data-testid="stDataFrame"] thead tr th{
-  background:var(--g0)!important; color:#fff!important; font-weight:700!important;
-}
-div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)!important; }
 
 /* ══════════════════════════════════════════════════════════════
-   경기 카드 — 핵심 레이아웃 및 모바일 가로 유지 설정
+   경기 카드 및 모바일 가로 강제 한 줄 고정 (정밀 수정)
 ══════════════════════════════════════════════════════════════ */
 .match-card{
   background:var(--card); border-radius:var(--r2); padding:12px 10px 14px;
@@ -172,23 +168,24 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)
 .tb3{background:var(--tb3);} .tb4{background:var(--tb4);} .tb5{background:var(--tb5);}
 .tb6{background:var(--tb6);} .tb7{background:var(--tb7);}
 
-/* 📱 모바일에서 점수입력 [-][점수][+] 컬럼 가로 한 줄 강제 고정 */
-.score-btn-wrap div[data-testid="stHorizontalBlock"] {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 4px !important;
-}
-.score-btn-wrap div[data-testid="stHorizontalBlock"] > div {
-  width: auto !important;
-  min-width: 0 !important;
-  flex: 1 !important;
-}
-/* 숫자 표시칸은 조금 더 여유있게 비율 조정 */
-.score-btn-wrap div[data-testid="stHorizontalBlock"] > div:nth-child(2) {
-  flex: 1.2 !important;
+/* 🔥 모바일 해상도(640px 이하)에서도 [-] [숫자] [+] 의 세로 줄바꿈을 완벽히 방지 */
+@media (max-width: 640px) {
+  .score-btn-wrap div[data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    gap: 4px !important;
+  }
+  .score-btn-wrap div[data-testid="stHorizontalBlock"] > div {
+    flex: 1 !important;
+    min-width: 0 !important;
+    width: auto !important;
+  }
+  /* 가운데 숫자 패널의 비율을 버튼보다 살짝 여유롭게 고정 */
+  .score-btn-wrap div[data-testid="stHorizontalBlock"] > div:nth-child(2) {
+    flex: 1.2 !important;
+  }
 }
 
 /* 점수 증감 버튼 커스텀 스타일 */
@@ -534,7 +531,6 @@ if M == "ranking":
         d = df.copy()
         d.insert(0, "순위", [medal[i] if i < 3 else str(i+1) for i in range(len(d))])
         
-        # 전원 가운데 정렬을 위한 설정 적용
         cfg = {c: st.column_config.TextColumn(c, width="small") for c in d.columns}
         st.dataframe(d, use_container_width=True, hide_index=True, column_config=cfg)
         st.download_button(
@@ -548,16 +544,17 @@ if M == "ranking":
 # 2. 대진/경기 입력
 # ══════════════════════════════════════════════════════════════
 elif M == "schedule":
-    tc = title_cls["schedule"]
     tours = load_tours()
     active = [k for k, v in tours.items() if v.get("status") == "진행중"]
     if not active:
+        tc = title_cls["schedule"]
         st.markdown(f"<div class='pg-title {tc}'>📅 대진표</div>", unsafe_allow_html=True)
         st.markdown("<div class='ic'>⚠️ 진행 중인 대회가 없습니다.</div>", unsafe_allow_html=True)
         st.stop()
 
     tid  = active[-1]
     tour = tours[tid]
+    tc = title_cls["schedule"]
     st.markdown(f"<div class='pg-title {tc}'>📅 {tour['title']}</div>", unsafe_allow_html=True)
     st.markdown(
         f"<div class='ic'>📍 {tour.get('date','')} &nbsp;|&nbsp; "
