@@ -15,28 +15,24 @@ st.set_page_config(
 )
 
 # ══════════════════════════════════════════════════════════════
-# CSS (모바일 최적화 + 다양한 색상 + 정사각 점수 버튼)
+# CSS (모바일 최적화 + 메뉴별 테마 색상 동적 연동 + 점수판 가로 고정)
 # ══════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
 
 :root {
-  /* 그린 계열 */
+  /* 그린 계열 (기본 및 관리 테마) */
   --g0:#1B5E20; --g1:#2E7D32; --g2:#388E3C; --g3:#66BB6A; --g4:#C8E6C9; --g5:#E8F5E9;
-  /* 메뉴 색상 (5개 메뉴) */
+  
+  /* 메뉴별 테마 색상 고정 지정 */
   --nav0:#2E7D32;  /* 랭킹 - 딥그린 */
   --nav1:#1565C0;  /* 대진 - 딥블루 */
   --nav2:#E65100;  /* 결과 - 딥오렌지 */
   --nav3:#4A148C;  /* 기록 - 딥퍼플 */
   --nav4:#00695C;  /* 관리 - 딥틸 */
-  /* 매치 카드 색상 */
-  --mc0:#1B5E20; --mc1:#0D47A1; --mc2:#BF360C; --mc3:#4A148C; --mc4:#006064;
-  --mc5:#1A237E; --mc6:#880E4F; --mc7:#33691E;
-  /* 팀박스 색상 */
-  --tb0:#2E7D32; --tb1:#1565C0; --tb2:#D84315; --tb3:#6A1B9A; --tb4:#00695C;
-  --tb5:#283593; --tb6:#AD1457; --tb7:#558B2F;
-  /* 기본 */
+  
+  /* 시스템 공통 */
   --yel:#FFD600; --ora:#FB8C00;
   --bg:#F4F6F9; --card:#fff; --bd:#E0E4EA;
   --r1:10px; --r2:16px; --r3:24px;
@@ -46,38 +42,17 @@ st.markdown("""
 }
 
 *{ font-family:'Noto Sans KR',sans-serif!important; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-.block-container{ padding:0 0.7rem 5rem!important; max-width:520px!important; margin:0 auto!important; background:var(--bg)!important; }
+.block-container{ padding:0 0.5rem 5rem!important; max-width:520px!important; margin:0 auto!important; background:var(--bg)!important; }
 .stApp{ background:var(--bg)!important; }
 
 /* ── 헤더 ── */
 .hdr{
   background:linear-gradient(135deg,#1B5E20 0%,#2E7D32 60%,#388E3C 100%);
-  margin:0 -0.7rem 0; padding:14px 18px 0; position:relative; overflow:hidden; box-shadow:var(--sh2);
+  margin:0 -0.5rem 0; padding:14px 18px 0; position:relative; overflow:hidden; box-shadow:var(--sh2);
 }
 .hdr::after{ content:'🎾'; position:absolute; right:14px; top:8px; font-size:2.6rem; opacity:.12; }
 .hdr-title{ color:#fff; font-size:1.05rem; font-weight:900; margin:0 0 2px; }
 .hdr-sub{ color:rgba(255,255,255,.5); font-size:.58rem; letter-spacing:2px; margin-bottom:0; }
-
-/* ── 네비게이션 탭바 ── */
-.nav-wrapper{
-  display:flex; margin:0 -0.7rem 14px; overflow:hidden;
-  box-shadow:0 3px 12px rgba(0,0,0,.18);
-}
-.nav-btn{
-  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:9px 2px 10px; cursor:pointer; border:none; outline:none;
-  font-size:.62rem; font-weight:700; line-height:1.35;
-  color:rgba(255,255,255,.72); transition:all .15s; min-height:56px;
-  border-bottom:3px solid transparent; gap:1px;
-}
-.nav-btn .nav-icon{ font-size:1.1rem; line-height:1; }
-.nav-btn.n0{ background:var(--nav0); }
-.nav-btn.n1{ background:var(--nav1); }
-.nav-btn.n2{ background:var(--nav2); }
-.nav-btn.n3{ background:var(--nav3); }
-.nav-btn.n4{ background:var(--nav4); }
-.nav-btn.active{ color:#fff; border-bottom:3px solid var(--yel); filter:brightness(1.15); }
-.nav-btn:not(.active){ filter:brightness(0.75); }
 
 /* ── 페이지 타이틀 ── */
 .pg-title{
@@ -90,163 +65,147 @@ st.markdown("""
 .pg-title.c3{ background:linear-gradient(135deg,var(--nav3),#7B1FA2); }
 .pg-title.c4{ background:linear-gradient(135deg,var(--nav4),#00897B); }
 
-/* ── 섹션 헤더 ── */
-.sec{
-  font-size:.85rem; font-weight:800; color:var(--g0); border-left:4px solid var(--g3);
-  padding-left:9px; margin:16px 0 8px;
-}
-/* ── 인포 카드 ── */
+/* ── 섹션 헤더 및 인포 ── */
+.sec{ font-size:.85rem; font-weight:800; padding-left:9px; margin:16px 0 8px; }
+.sec.c0 { color:var(--nav0); border-left:4px solid var(--nav0); }
+.sec.c1 { color:var(--nav1); border-left:4px solid var(--nav1); }
+.sec.c2 { color:var(--nav2); border-left:4px solid var(--nav2); }
+.sec.c3 { color:var(--nav3); border-left:4px solid var(--nav3); }
+.sec.c4 { color:var(--nav4); border-left:4px solid var(--nav4); }
+
 .ic{
-  background:var(--card); border-left:4px solid var(--g3); border-radius:var(--r1);
+  background:var(--card); border-radius:var(--r1);
   padding:10px 14px; margin:7px 0; box-shadow:var(--sh); font-size:.8rem; color:var(--tx2);
 }
+.ic.c0 { border-left:4px solid var(--nav0); }
+.ic.c1 { border-left:4px solid var(--nav1); }
+.ic.c2 { border-left:4px solid var(--nav2); }
+.ic.c3 { border-left:4px solid var(--nav3); }
+.ic.c4 { border-left:4px solid var(--nav4); }
 
-/* ── 탭 ── */
+/* ── 탭 스타일 통일 ── */
 button[data-baseweb="tab"]{
   font-size:.7rem!important; font-weight:700!important; padding:9px 6px!important;
   border-radius:var(--r1) var(--r1) 0 0!important; min-height:42px!important;
-}
-button[data-baseweb="tab"][aria-selected="true"]{
-  background:linear-gradient(135deg,var(--g0),var(--g2))!important; color:#fff!important;
 }
 [data-baseweb="tab-list"]{
   background:#DDD!important; border-radius:var(--r1) var(--r1) 0 0!important;
   padding:4px 4px 0!important; gap:2px!important;
 }
 
-/* ── 데이터프레임 가운데 정렬 ── */
+/* ── 데이터프레임 스타일 공통 ── */
 div[data-testid="stDataFrame"]{
   border-radius:var(--r1)!important; overflow:hidden!important;
-  box-shadow:var(--sh)!important; border:1px solid var(--bd)!important;
-  width:100%!important;
+  box-shadow:var(--sh)!important; border:1px solid var(--bd)!important; width:100%!important;
 }
-div[data-testid="stDataFrame"] table{
-  width:100%!important; font-size:.74rem!important; border-collapse:collapse!important;
-}
+div[data-testid="stDataFrame"] table{ width:100%!important; font-size:.74rem!important; border-collapse:collapse!important; }
 div[data-testid="stDataFrame"] table th,
-div[data-testid="stDataFrame"] table td{
-  text-align:center!important; vertical-align:middle!important;
-  padding:8px 4px!important; white-space:nowrap;
-}
-div[data-testid="stDataFrame"] thead tr th{
-  background:var(--g0)!important; color:#fff!important; font-weight:700!important;
-}
-div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{ background:var(--g5)!important; }
+div[data-testid="stDataFrame"] table td{ text-align:center!important; vertical-align:middle!important; padding:8px 4px!important; white-space:nowrap; }
+
+/* 랭킹 탭 전용 테이블 헤더 */
+.theme-rank div[data-testid="stDataFrame"] thead tr th { background: var(--nav0)!important; color:#fff!important; }
+.theme-rank div[data-testid="stDataFrame"] tbody tr:nth-child(even) td { background: var(--g5)!important; }
+
+/* 대진 탭 전용 테이블 헤더 */
+.theme-schedule div[data-testid="stDataFrame"] thead tr th { background: var(--nav1)!important; color:#fff!important; }
+.theme-schedule div[data-testid="stDataFrame"] tbody tr:nth-child(even) td { background: #EBF3FA!important; }
+
+/* 결과 탭 전용 테이블 헤더 */
+.theme-result div[data-testid="stDataFrame"] thead tr th { background: var(--nav2)!important; color:#fff!important; }
+.theme-result div[data-testid="stDataFrame"] tbody tr:nth-child(even) td { background: #FFF3E0!important; }
 
 /* ══════════════════════════════════════════════════════════════
-   경기 카드 — 핵심 레이아웃
-   팀명 바로 아래 [-][점수][+] 가로 배치
-   VS 기준 좌/우 대칭
+   ★ 모바일 가로 고정 점수 입력 카드 관련 핵심 CSS ★
 ══════════════════════════════════════════════════════════════ */
 .match-card{
-  background:var(--card); border-radius:var(--r2); padding:12px 10px 14px;
-  margin:12px 0; box-shadow:var(--sh2); border:1px solid var(--bd);
+  background:var(--card); border-radius:var(--r2); padding:12px 10px; margin:12px 0; box-shadow:var(--sh2); border:1px solid var(--bd);
 }
 .match-no{
-  display:inline-block; border-radius:20px; padding:3px 14px;
-  font-size:.6rem; font-weight:900; margin-bottom:10px; color:#fff;
+  display:inline-block; border-radius:20px; padding:3px 14px; font-size:.65rem; font-weight:900; margin-bottom:12px; color:#fff; background: var(--nav1);
 }
-/* 카드 색상 배리에이션 */
-.mc0{background:var(--mc0);} .mc1{background:var(--mc1);} .mc2{background:var(--mc2);}
-.mc3{background:var(--mc3);} .mc4{background:var(--mc4);} .mc5{background:var(--mc5);}
-.mc6{background:var(--mc6);} .mc7{background:var(--mc7);}
-
-/* 경기 메인 행: [팀A사이드] [VS] [팀B사이드] */
-.match-row{
-  display:flex; align-items:stretch; gap:6px; width:100%;
-}
-/* 팀 사이드 (이름 + 점수컨트롤) */
-.team-side{
-  flex:1; display:flex; flex-direction:column; gap:6px;
-}
-/* 팀 이름 박스 */
+.team-side{ display:flex; flex-direction:column; gap:6px; width:100%; }
 .team-name{
-  border-radius:var(--r1); padding:8px 4px; font-weight:900; font-size:.82rem;
-  text-align:center; color:#fff; box-shadow:var(--sh); min-height:46px;
-  display:flex; align-items:center; justify-content:center; word-break:keep-all; line-height:1.2;
-}
-.tb0{background:var(--tb0);} .tb1{background:var(--tb1);} .tb2{background:var(--tb2);}
-.tb3{background:var(--tb3);} .tb4{background:var(--tb4);} .tb5{background:var(--tb5);}
-.tb6{background:var(--tb6);} .tb7{background:var(--tb7);}
-
-/* 커스텀 점수 버튼을 위한 스타일 지정 */
-div.score-btn-wrap button {
-  min-height: 44px !important;
-  height: 44px !important;
-  font-size: 1.2rem !important;
-  font-weight: 900 !important;
-  background: #E8F5E9 !important;
-  border: 2px solid #C8E6C9 !important;
-  color: #1B5E20 !important;
-  border-radius: 10px !important;
-  padding: 0 !important;
-}
-div.score-btn-wrap button:active {
-  background: #A5D6A7 !important;
+  border-radius:var(--r1); padding:6px 4px; font-weight:900; font-size:.82rem; text-align:center; color:#fff; box-shadow:var(--sh); min-height:40px;
+  display:flex; align-items:center; justify-content:center; word-break:keep-all; line-height:1.2; background: var(--nav1);
 }
 
+/* st.columns 내부 요소 가로 정렬 강제 (Flexbox 개조) */
+div[data-testid="stHorizontalBlock"].score-flex-container {
+  display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: space-between !important; gap: 4px !important; width: 100% !important;
+}
+/* 자식 컬럼 요소들의 고정 너비 설정 및 여백 파괴 */
+div[data-testid="stHorizontalBlock"].score-flex-container > div[data-testid="stBlock"] {
+  min-width: 0 !important; flex-shrink: 0 !important; flex-grow: 1 !important; margin: 0 !important; padding: 0 !important;
+}
+/* 마이너스, 플러스 버튼 영역 */
+div[data-testid="stHorizontalBlock"].score-flex-container > div[data-testid="stBlock"]:nth-child(1),
+div[data-testid="stHorizontalBlock"].score-flex-container > div[data-testid="stBlock"]:nth-child(3) {
+  width: calc(30% - 4px) !important; flex-basis: calc(30% - 4px) !important;
+}
+/* 가운데 점수 노출 영역 */
+div[data-testid="stHorizontalBlock"].score-flex-container > div[data-testid="stBlock"]:nth-child(2) {
+  width: calc(40% - 4px) !important; flex-basis: calc(40% - 4px) !important;
+}
+
+/* 내부 버튼 UI 커스텀 (대진 메뉴 테마 연동) */
+div[data-testid="stHorizontalBlock"].score-flex-container button {
+  min-height: 38px !important; height: 38px !important; font-size: 1.1rem !important; font-weight: 900 !important;
+  background: #EBF3FA !important; border: 1.5px solid #BBDEFB !important; color: var(--nav1) !important; border-radius: 8px !important; padding: 0 !important; width: 100% !important;
+}
+div[data-testid="stHorizontalBlock"].score-flex-container button:active { background: #90CAF9 !important; }
+
+/* 중앙 숫자용 스타일 알맹이 */
 .score-num-display {
-  display: flex; align-items: center; justify-content: center;
-  background: #fff; border: 2.5px solid #C8E6C9; border-radius: 10px;
-  font-size: 1.4rem; font-weight: 900; color: #1B5E20; height: 44px;
+  display: flex; align-items: center; justify-content: center; background: #fff; border: 2px solid #BBDEFB; border-radius: 8px;
+  font-size: 1.25rem; font-weight: 900; color: var(--nav1); height: 38px; width: 100%; text-align: center;
 }
 
-/* VS 구분자 */
-.vs-col{
-  width:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
-}
+/* VS 구분 배지 가로형 배치 조정 */
+.vs-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 80px; }
 .vs-badge{
-  width:34px; height:34px; border-radius:50%;
-  background:linear-gradient(135deg,#FFB74D,var(--ora));
-  display:flex; align-items:center; justify-content:center;
-  font-weight:900; font-size:.65rem; color:#fff; box-shadow:var(--sh);
+  width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#FFB74D,var(--ora));
+  display:flex; align-items:center; justify-content:center; font-weight:900; font-size:.65rem; color:#fff; box-shadow:var(--sh);
 }
 
-/* ── streamlit 버튼 공통 ── */
-.stButton>button{
-  border-radius:var(--r2)!important; font-weight:700!important; font-size:.82rem!important;
-  min-height:50px!important; padding:10px 14px!important;
-}
-.stButton>button[kind="primary"]{
-  background:linear-gradient(135deg,var(--g0),var(--g2))!important; color:#fff!important;
-  border:none!important; box-shadow:0 4px 14px rgba(46,125,50,.35)!important;
-}
+/* ── 공통 버튼 디자인 설정 ── */
+.stButton>button{ border-radius:var(--r2)!important; font-weight:700!important; font-size:.82rem!important; min-height:46px!important; padding:10px 14px!important; }
 
-/* ── 입력 필드 ── */
-.stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div{
-  min-height:48px!important; border-radius:var(--r1)!important;
-}
+/* 네비게이션용 테마별 동적 컬러 클래스 적용 */
+.btn-rank button[kind="primary"] { background:linear-gradient(135deg,var(--nav0),#43A047)!important; color:#fff!important; border:none!important; box-shadow:0 4px 12px rgba(46,125,50,.3)!important; }
+.btn-schedule button[kind="primary"] { background:linear-gradient(135deg,var(--nav1),#1976D2)!important; color:#fff!important; border:none!important; box-shadow:0 4px 12px rgba(21,101,192,.3)!important; }
+.btn-result button[kind="primary"] { background:linear-gradient(135deg,var(--nav2),#F4511E)!important; color:#fff!important; border:none!important; box-shadow:0 4px 12px rgba(230,81,0,.3)!important; }
+.btn-archive button[kind="primary"] { background:linear-gradient(135deg,var(--nav3),#7B1FA2)!important; color:#fff!important; border:none!important; box-shadow:0 4px 12px rgba(74,20,140,.3)!important; }
+.btn-admin button[kind="primary"] { background:linear-gradient(135deg,var(--nav4),#00897B)!important; color:#fff!important; border:none!important; box-shadow:0 4px 12px rgba(0,105,92,.3)!important; }
 
-/* ── 매트릭스 / KDK 테이블 ── */
-.mx-wrap, .kdk{
-  background:var(--card); border-radius:var(--r1); padding:10px;
-  box-shadow:var(--sh); overflow-x:auto; margin:8px 0; border:1px solid var(--bd);
-}
+/* ── 입력 필드 및 기본 요소 ── */
+.stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div{ min-height:46px!important; border-radius:var(--r1)!important; }
+
+/* ── 매트릭스 / KDK 대진 레이아웃 테마화 ── */
+.mx-wrap, .kdk{ background:var(--card); border-radius:var(--r1); padding:10px; box-shadow:var(--sh); overflow-x:auto; margin:8px 0; border:1px solid var(--bd); }
 .mx, .kdk table{ border-collapse:collapse; white-space:nowrap; font-size:.68rem; width:100%; }
 .mx th,.mx td, .kdk th,.kdk td{ padding:6px 7px; border:1px solid var(--bd); text-align:center; }
-.mx thead th, .kdk thead th{ background:var(--g0); color:#fff; font-weight:700; }
+
+.theme-schedule .mx thead th, .theme-schedule .kdk thead th { background:var(--nav1); color:#fff; font-weight:700; }
+.theme-archive .mx thead th, .theme-archive .kdk thead th { background:var(--nav3); color:#fff; font-weight:700; }
+
 .mx-grey{ background:#D0D0D0!important; color:#D0D0D0!important; }
 .mx-dash{ color:#CCC; }
-.mx-sc{ font-weight:800; color:var(--g0); }
+.mx-sc{ font-weight:800; color:var(--tx); }
 
-/* ── 파일 업로더 ── */
+/* ── 파일 업로더 커스텀 ── */
 [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzoneInstructions"]>div>span,
 [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzoneInstructions"]>div>small{ display:none!important; }
 [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]::after{ content:'📂 파일 선택'; }
 [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] span{ display:none!important; }
-[data-testid="stFileUploaderDropzone"]{ border:2px dashed var(--g3)!important; background:var(--g5)!important; }
+[data-testid="stFileUploaderDropzone"]{ border:2px dashed var(--nav4)!important; background:var(--g5)!important; }
 
-/* ── 랭킹 뱃지 ── */
-.rank-badge{
-  display:inline-flex; align-items:center; justify-content:center;
-  background:var(--g0); color:#fff; border-radius:8px;
-  font-size:.7rem; font-weight:700; padding:4px 10px; margin-bottom:6px;
-}
+/* ── 순위용 기본 뱃지 ── */
+.rank-badge{ display:inline-flex; align-items:center; justify-content:center; background:var(--g0); color:#fff; border-radius:8px; font-size:.7rem; font-weight:700; padding:4px 10px; margin-bottom:6px; }
 </style>
 """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
-# 상수 및 헬퍼
+# 상수 및 데이터 헬퍼 로직 (무축소)
 # ══════════════════════════════════════════════════════════════
 RANK_FILE   = "ranking_master.csv"
 MEMBER_FILE = "member_roster.json"
@@ -254,8 +213,6 @@ TOUR_FILE   = "tournaments.json"
 ADMIN_PW    = "0502"
 COLS_RANK   = ["랭킹","이름","현재포인트","3월 포인트","결과","부과점","그룹","비고"]
 
-GCLS  = ["mc0","mc1","mc2","mc3","mc4","mc5","mc6","mc7"]
-TBCLS = ["tb0","tb1","tb2","tb3","tb4","tb5","tb6","tb7"]
 GLBL  = ["🟢","🔵","🟠","🟣","🩵","🔴","🟡","⚪"]
 
 KDK_3G = {
@@ -390,7 +347,7 @@ def make_singles(players):
     random.shuffle(ms)
     return ms, {}
 
-def kdk_html(n, gperson, p2n):
+def kdk_html(n, gperson, p2n, theme_color="#1565C0"):
     bp = KDK_3G.get(n) if gperson == 3 else KDK_4G.get(n)
     if not bp: return ""
     n2p = {v: k for k, v in p2n.items()}
@@ -400,16 +357,13 @@ def kdk_html(n, gperson, p2n):
         t1 = f"{n2p.get(a,a)}({a}) &amp; {n2p.get(b,b)}({b})"
         t2 = f"{n2p.get(c,c)}({c}) &amp; {n2p.get(d,d)}({d})"
         rows += (f"<tr><td style='text-align:center'>"
-                 f"<span style='background:#1B5E20;color:#fff;border-radius:20px;"
+                 f"<span style='background:{theme_color};color:#fff;border-radius:20px;"
                  f"padding:2px 9px;font-size:.6rem;font-weight:700'>{i+1}</span>"
                  f"</td><td style='text-align:left;white-space:nowrap'>{t1} vs {t2}</td></tr>")
     return (f'<div class="kdk"><div style="font-size:.75rem;font-weight:800;'
-            f'color:#1B5E20;margin-bottom:6px">📋 {title}</div>'
+            f'color:{theme_color};margin-bottom:6px">📋 {title}</div>'
             f'<table><thead><tr><th style="width:38px">순서</th><th>대진</th></tr></thead>'
             f'<tbody>{rows}</tbody></table></div>')
-
-def show_kdk(n, gperson, p2n):
-    st.markdown(kdk_html(n, gperson, p2n), unsafe_allow_html=True)
 
 def matrix_html(matches, rank_items, is_fixed, p2n):
     if not matches or not rank_items: return ""
@@ -453,48 +407,49 @@ def adj_score(tid, grp, mi, side, delta):
     save_tours(tours)
 
 # ══════════════════════════════════════════════════════════════
-# 세션 초기화
+# 세션 관리 및 상단 네비게이션
 # ══════════════════════════════════════════════════════════════
 ss = st.session_state
 if "is_admin"    not in ss: ss.is_admin    = False
 if "menu"        not in ss: ss.menu        = "ranking"
 if "participants" not in ss: ss.participants = []
 
-# ══════════════════════════════════════════════════════════════
-# 네비게이션
-# ══════════════════════════════════════════════════════════════
 MENUS = [
-    ("ranking", "🏆", "랭킹",  "n0"),
-    ("schedule","📅", "대진",  "n1"),
-    ("result",  "📊", "결과",  "n2"),
-    ("archive", "📂", "기록",  "n3"),
-    ("admin",   "⚙️", "관리",  "n4"),
+    ("ranking", "🏆", "랭킹", "btn-rank"),
+    ("schedule","📅", "대진", "btn-schedule"),
+    ("result",  "📊", "결과", "btn-result"),
+    ("archive", "📂", "기록", "btn-archive"),
+    ("admin",   "⚙️", "관리", "btn-admin"),
 ]
 
 st.markdown('<div class="hdr"><div class="hdr-title">🎾 두류 테니스 클럽</div>'
             '<div class="hdr-sub">DURYU TENNIS CLUB</div></div>', unsafe_allow_html=True)
 
 nav_cols = st.columns(len(MENUS))
-for col, (key, icon, label, nc) in zip(nav_cols, MENUS):
+for col, (key, icon, label, btn_cls) in zip(nav_cols, MENUS):
     with col:
         is_active = (ss.menu == key)
         btn_type = "primary" if is_active else "secondary"
         btn_label = f"{icon}\n{label}"
+        
+        # 각 탭 버튼 전용 고유 컨테이너 색상 래핑
+        st.markdown(f'<div class="{btn_cls}">', unsafe_allow_html=True)
         if st.button(btn_label, key=f"nav_{key}", use_container_width=True, type=btn_type):
             ss.menu = key
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
+# 상단 구분선 바 테마 컬러 매칭
 menu_colors = {"ranking":"#2E7D32","schedule":"#1565C0","result":"#E65100","archive":"#4A148C","admin":"#00695C"}
 cur_color = menu_colors.get(ss.menu, "#2E7D32")
-st.markdown(f'<div style="height:4px;background:{cur_color};margin:0 -0.7rem 14px;'
+st.markdown(f'<div style="height:4px;background:{cur_color};margin:0 -0.5rem 14px;'
             f'box-shadow:0 2px 8px rgba(0,0,0,.2)"></div>', unsafe_allow_html=True)
 
 title_cls = {"ranking":"c0","schedule":"c1","result":"c2","archive":"c3","admin":"c4"}
-
 M = ss.menu
 
 # ══════════════════════════════════════════════════════════════
-# 1. 랭킹
+# 1. 랭킹 페이지
 # ══════════════════════════════════════════════════════════════
 if M == "ranking":
     tc = title_cls["ranking"]
@@ -502,23 +457,30 @@ if M == "ranking":
 
     df = load_rank()
     if df.empty:
-        st.markdown("<div class='ic'>📭 등록된 랭킹이 없습니다.<br>"
-                    "관리자 메뉴에서 엑셀을 업로드해 주세요.</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='ic {tc}'>📭 등록된 랭킹이 없습니다.<br>관리자 메뉴에서 엑셀을 업로드해 주세요.</div>", unsafe_allow_html=True)
     else:
         medal = ["🥇","🥈","🥉"]
         d = df.copy()
         d.insert(0, "순위", [medal[i] if i < 3 else str(i+1) for i in range(len(d))])
         cfg = {c: st.column_config.TextColumn(c, width="small") for c in d.columns}
+        
+        # 초록색 테마 테이블 스타일 부여
+        st.markdown('<div class="theme-rank">', unsafe_allow_html=True)
         st.dataframe(d, use_container_width=True, hide_index=True, column_config=cfg)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown(f'<div class="btn-rank">', unsafe_allow_html=True)
         st.download_button(
             "📥 엑셀 다운로드",
             data=to_excel(df),
             file_name=f"랭킹_{date.today()}.xlsx",
-            use_container_width=True
+            use_container_width=True,
+            type="primary"
         )
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
-# 2. 대진/경기 입력 (핵심 수정 영역)
+# 2. 대진 페이지 (파란색 테마 매칭 + 점수판 모바일 가로 고정 완벽 대응)
 # ══════════════════════════════════════════════════════════════
 elif M == "schedule":
     tc = title_cls["schedule"]
@@ -526,21 +488,31 @@ elif M == "schedule":
     active = [k for k, v in tours.items() if v.get("status") == "진행중"]
     if not active:
         st.markdown(f"<div class='pg-title {tc}'>📅 대진표</div>", unsafe_allow_html=True)
-        st.markdown("<div class='ic'>⚠️ 진행 중인 대회가 없습니다.</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='ic {tc}'>⚠️ 진행 중인 대회가 없습니다.</div>", unsafe_allow_html=True)
         st.stop()
 
     tid  = active[-1]
     tour = tours[tid]
     st.markdown(f"<div class='pg-title {tc}'>📅 {tour['title']}</div>", unsafe_allow_html=True)
     st.markdown(
-        f"<div class='ic'>📍 {tour.get('date','')} &nbsp;|&nbsp; "
+        f"<div class='ic {tc}'>📍 {tour.get('date','')} &nbsp;|&nbsp; "
         f"{tour.get('place','')} &nbsp;|&nbsp; 코트 {tour.get('courts',2)}면</div>",
         unsafe_allow_html=True
     )
     gnames = list(tour["groups"].keys())
     if not gnames:
-        st.markdown("<div class='ic'>ℹ️ 대진이 없습니다.</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='ic {tc}'>ℹ️ 대진이 없습니다.</div>", unsafe_allow_html=True)
         st.stop()
+
+    # 파란색 테마 스코프 감싸기
+    st.markdown('<div class="theme-schedule">', unsafe_allow_html=True)
+    
+    # 상단 탭 선택시 액티브 배경 연동 처리 추가 CSS
+    st.markdown("""
+    <style>
+    button[data-baseweb="tab"][aria-selected="true"]{ background:linear-gradient(135deg,var(--nav1),#1976D2)!important; }
+    </style>
+    """, unsafe_allow_html=True)
 
     tabs = st.tabs([f"{GLBL[i%len(GLBL)]} {g}" for i, g in enumerate(gnames)])
     for ti, g in enumerate(gnames):
@@ -553,14 +525,14 @@ elif M == "schedule":
             sv = stats_fixed(ms) if fx else stats_kdk(ms)
             rit = list(sv.keys())
 
-            st.markdown("<div class='sec'>📋 전적 매트릭스</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='sec {tc}'>📋 전적 매트릭스</div>", unsafe_allow_html=True)
             st.markdown(matrix_html(ms, rit, fx, p2n), unsafe_allow_html=True)
             if not fx and p2n:
                 st.divider()
-                show_kdk(len(p2n), gi.get("games", 3), p2n)
+                st.markdown(kdk_html(len(p2n), gi.get("games", 3), p2n, theme_color="var(--nav1)"), unsafe_allow_html=True)
             st.divider()
 
-            st.markdown("<div class='sec'>🏅 현재 순위</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='sec {tc}'>🏅 현재 순위</div>", unsafe_allow_html=True)
             if rit:
                 ranked = sorted(rit, key=lambda x: (-sv[x]["승"], -sv[x]["득실"]))
                 rows = []
@@ -574,55 +546,62 @@ elif M == "schedule":
                 st.dataframe(rdf, use_container_width=True, hide_index=True, column_config=rcfg)
             st.divider()
 
-            st.markdown("<div class='sec'>🎾 경기 입력</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='sec {tc}'>🎾 경기 입력</div>", unsafe_allow_html=True)
             for mi, m in enumerate(ms):
                 t1s = " & ".join(m["t1"])
                 t2s = " & ".join(m["t2"])
-                mc = GCLS[mi % len(GCLS)]
-                tbc = TBCLS[mi % len(TBCLS)]
                 s1v = int(m["s1"])
                 s2v = int(m["s2"])
 
-                # 상단 프레임 및 레이아웃을 그대로 감싸는 match-card 디자인 유지
-                st.markdown(f'<div class="match-card"><span class="match-no {mc}">MATCH {mi+1}</span>', unsafe_allow_html=True)
+                st.markdown(f'<div class="match-card"><span class="match-no">MATCH {mi+1}</span>', unsafe_allow_html=True)
                 
-                # 좌우 정렬을 유지하기 위해 st.columns 사용
+                # 좌/우 패널 레이아웃 나눔
                 m_col1, m_vs, m_col2 = st.columns([10, 3, 10])
                 
                 with m_col1:
-                    st.markdown(f'<div class="team-side"><div class="team-name {tbc}">{t1s}</div></div>', unsafe_allow_html=True)
-                    st.markdown('<div class="score-btn-wrap">', unsafe_allow_html=True)
-                    ctrl_cols = st.columns([1, 1.2, 1])
-                    if ctrl_cols[0].button("－", key=f"btn_m_A_{g}_{mi}"):
-                        adj_score(tid, g, mi, "A", -1)
-                        st.rerun()
-                    ctrl_cols[1].markdown(f'<div class="score-num-display">{s1v}</div>', unsafe_allow_html=True)
-                    if ctrl_cols[2].button("＋", key=f"btn_p_A_{g}_{mi}"):
-                        adj_score(tid, g, mi, "A", 1)
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="team-side"><div class="team-name">{t1s}</div>', unsafe_allow_html=True)
+                    
+                    # 마이너스 / 점수표시 / 플러스 가로 강제배치 컨테이너 클래스 지정
+                    st.markdown('<div class="score-flex-container">', unsafe_allow_html=True)
+                    ctrl_l, ctrl_m, ctrl_r = st.columns([1, 1, 1])
+                    with ctrl_l:
+                        if st.button("－", key=f"btn_m_A_{g}_{mi}", use_container_width=True):
+                            adj_score(tid, g, mi, "A", -1)
+                            st.rerun()
+                    with ctrl_m:
+                        st.markdown(f'<div class="score-num-display">{s1v}</div>', unsafe_allow_html=True)
+                    with ctrl_r:
+                        if st.button("＋", key=f"btn_p_A_{g}_{mi}", use_container_width=True):
+                            adj_score(tid, g, mi, "A", 1)
+                            st.rerun()
+                    st.markdown('</div></div>', unsafe_allow_html=True)
 
                 with m_vs:
-                    st.markdown('<div style="height:25px;"></div>', unsafe_allow_html=True) # 이름 박스 높이만큼 공백 맞춤
-                    st.markdown('<div class="vs-col" style="width:100%;"><div class="vs-badge">VS</div></div>', unsafe_allow_html=True)
+                    st.markdown('<div class="vs-container"><div class="vs-badge">VS</div></div>', unsafe_allow_html=True)
 
                 with m_col2:
-                    st.markdown(f'<div class="team-side"><div class="team-name {tbc}">{t2s}</div></div>', unsafe_allow_html=True)
-                    st.markdown('<div class="score-btn-wrap">', unsafe_allow_html=True)
-                    ctrl_cols = st.columns([1, 1.2, 1])
-                    if ctrl_cols[0].button("－", key=f"btn_m_B_{g}_{mi}"):
-                        adj_score(tid, g, mi, "B", -1)
-                        st.rerun()
-                    ctrl_cols[1].markdown(f'<div class="score-num-display">{s2v}</div>', unsafe_allow_html=True)
-                    if ctrl_cols[2].button("＋", key=f"btn_p_B_{g}_{mi}"):
-                        adj_score(tid, g, mi, "B", 1)
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="team-side"><div class="team-name">{t2s}</div>', unsafe_allow_html=True)
+                    
+                    # 마이너스 / 점수표시 / 플러스 가로 강제배치 컨테이너 클래스 지정
+                    st.markdown('<div class="score-flex-container">', unsafe_allow_html=True)
+                    ctrl_l, ctrl_m, ctrl_r = st.columns([1, 1, 1])
+                    with ctrl_l:
+                        if st.button("－", key=f"btn_m_B_{g}_{mi}", use_container_width=True):
+                            adj_score(tid, g, mi, "B", -1)
+                            st.rerun()
+                    with ctrl_m:
+                        st.markdown(f'<div class="score-num-display">{s2v}</div>', unsafe_allow_html=True)
+                    with ctrl_r:
+                        if st.button("＋", key=f"btn_p_B_{g}_{mi}", use_container_width=True):
+                            adj_score(tid, g, mi, "B", 1)
+                            st.rerun()
+                    st.markdown('</div></div>', unsafe_allow_html=True)
                 
-                st.markdown('</div>', unsafe_allow_html=True) # match-card 닫기
+                st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
-# 3. 결과 마감
+# 3. 결과 마감 페이지 (주황색 테마 매칭)
 # ══════════════════════════════════════════════════════════════
 elif M == "result":
     tc = title_cls["result"]
@@ -630,7 +609,7 @@ elif M == "result":
     active = [k for k, v in tours.items() if v.get("status") == "진행중"]
     if not active:
         st.markdown(f"<div class='pg-title {tc}'>📊 대회 마감</div>", unsafe_allow_html=True)
-        st.markdown("<div class='ic'>⚠️ 진행 중인 대회가 없습니다.</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='ic {tc}'>⚠️ 진행 중인 대회가 없습니다.</div>", unsafe_allow_html=True)
         st.stop()
 
     stid2 = active[-1]
@@ -647,7 +626,7 @@ elif M == "result":
         if not rit: continue
 
         ranked = sorted(rit, key=lambda x: (-sv[x]["승"], -sv[x]["득실"]))
-        st.markdown(f"<div class='sec'> Grp. {gn} 최종 획득 포인트</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='sec {tc}'>🍊 그룹 {gn} 최종 획득 포인트</div>", unsafe_allow_html=True)
 
         for i, item in enumerate(ranked):
             pt = rank_pts(i+1, md)
@@ -659,28 +638,31 @@ elif M == "result":
     if earn:
         ef  = pd.DataFrame(earn.items(), columns=["선수","획득포인트"])
         ec  = {c: st.column_config.TextColumn(c, width="small") for c in ef.columns}
+        
+        st.markdown('<div class="theme-result">', unsafe_allow_html=True)
         st.dataframe(ef, use_container_width=True, column_config=ec)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    c1, c2 = st.columns(2)
-    with c1:
-        if st.button("🏆 랭킹 반영", type="primary", use_container_width=True, key="a3ap"):
-            dr = load_rank()
-            if dr.empty: dr = pd.DataFrame(columns=COLS_RANK)
-            for p, pt in earn.items():
-                if p in dr["이름"].values:
-                    cur = dr.loc[dr["이름"]==p, "현재포인트"].values[0]
-                    dr.loc[dr["이름"]==p, "현재포인트"] = cur + pt
-                else:
-                    nr = {c:"" for c in COLS_RANK}; nr["이름"]=p; nr["현재포인트"]=pt
-                    dr = pd.concat([dr, pd.DataFrame([nr])], ignore_index=True)
-            save_rank(dr)
-            tours[stid2]["status"] = "완료"
-            save_tours(tours)
-            st.success("✅ 랭킹 반영 완료!")
-            st.rerun()
+    st.markdown(f'<div class="btn-result">', unsafe_allow_html=True)
+    if st.button("🏆 최종 결과 랭킹 반영 및 마감", type="primary", use_container_width=True, key="a3ap"):
+        dr = load_rank()
+        if dr.empty: dr = pd.DataFrame(columns=COLS_RANK)
+        for p, pt in earn.items():
+            if p in dr["이름"].values:
+                cur = dr.loc[dr["이름"]==p, "현재포인트"].values[0]
+                dr.loc[dr["이름"]==p, "현재포인트"] = cur + pt
+            else:
+                nr = {c:"" for c in COLS_RANK}; nr["이름"]=p; nr["현재포인트"]=pt
+                dr = pd.concat([dr, pd.DataFrame([nr])], ignore_index=True)
+        save_rank(dr)
+        tours[stid2]["status"] = "완료"
+        save_tours(tours)
+        st.success("✅ 최종 점수가 랭킹에 성공적으로 합산 반영되었습니다!")
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
-# 4. 기록 아카이브
+# 4. 기록 아카이브 페이지 (보라색 테마 매칭)
 # ══════════════════════════════════════════════════════════════
 elif M == "archive":
     tc = title_cls["archive"]
@@ -688,68 +670,81 @@ elif M == "archive":
     ts = load_tours()
     done = {k: v for k, v in ts.items() if v.get("status") == "완료"}
     if not done:
-        st.markdown("<div class='ic'>📭 완료된 대회 기록이 없습니다.</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='ic {tc}'>📭 완료된 대회 기록이 없습니다.</div>", unsafe_allow_html=True)
     else:
-        sel = st.selectbox("🏆 대회 선택", list(done.keys()), format_func=lambda x: done[x]["title"])
+        sel = st.selectbox("🔮 완료된 대회 선택", list(done.keys()), format_func=lambda x: done[x]["title"])
         if sel:
             t = done[sel]
-            st.markdown(f"<div class='ic'>📅 일시: {t.get('date','')} | 장소: {t.get('place','')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ic {tc}'>📅 일시: {t.get('date','')} | 장소: {t.get('place','')}</div>", unsafe_allow_html=True)
+            
+            st.markdown('<div class="theme-archive">', unsafe_allow_html=True)
             for gn, gi in t["groups"].items():
-                st.markdown(f"<div class='sec'>🔷 그룹: {gn} ({gi['mode']})</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='sec {tc}'>🍇 그룹 {gn} ({gi['mode']}) 결과</div>", unsafe_allow_html=True)
                 ms = gi["matches"]
                 fx = (gi["mode"] == "고정페어")
                 p2n = gi.get("player_with_number", {})
                 sv = stats_fixed(ms) if fx else stats_kdk(ms)
                 rit = list(sv.keys())
                 st.markdown(matrix_html(ms, rit, fx, p2n), unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
-# 5. 관리자 페이지
+# 5. 관리자 페이지 (초록색 테마 매칭)
 # ══════════════════════════════════════════════════════════════
 elif M == "admin":
     tc = title_cls["admin"]
     st.markdown(f"<div class='pg-title {tc}'>⚙️ 관리자 설정</div>", unsafe_allow_html=True)
 
-    pw = st.text_input("🔑 관리자 비밀번호", type="password")
+    pw = st.text_input("🔑 관리자 비밀번호 입력", type="password")
     if pw != ADMIN_PW:
-        if pw: st.error("❌ 비밀번호가 올바르지 않습니다.")
+        if pw: st.error("❌ 비밀번호가 일바르지 않습니다.")
         st.stop()
 
-    st.success("🔓 관리자 인증 성공")
+    st.success("🔓 관리자 권한 인증 성공")
+    
+    st.markdown("""
+    <style>
+    button[data-baseweb="tab"][aria-selected="true"]{ background:linear-gradient(135deg,var(--nav4),#00897B)!important; }
+    </style>
+    """, unsafe_allow_html=True)
+
     t1, t2, t3 = st.tabs(["🏆 랭킹/회원 관리", "📅 새 대회 생성", "💥 데이터 초기화"])
 
     with t1:
-        st.markdown("<div class='sec'>📥 랭킹 마스터 업로드 (.csv)</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='sec {tc}'>📥 랭킹 마스터 업로드 (.csv)</div>", unsafe_allow_html=True)
         f = st.file_uploader("파일 선택", type=["csv"], key="csv_up")
         if f:
             try:
                 tdf = pd.read_csv(f)
                 save_rank(tdf)
-                st.success("✅ 랭킹 마스터가 성공적으로 업데이트되었습니다!")
+                st.success("✅ 랭킹 마스터 데이터가 성공적으로 동기화되었습니다!")
             except Exception as e:
                 st.error(f"오류 발생: {e}")
 
         st.divider()
-        st.markdown("<div class='sec'>👥 회원 명단 직접 편집</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='sec {tc}'>👥 회원 명단 직접 편집</div>", unsafe_allow_html=True)
         m_list = load_members()
         txt = st.text_area("회원 이름들을 쉼표(,)로 구분하여 입력", value=",".join(m_list), height=150)
+        
+        st.markdown(f'<div class="btn-admin">', unsafe_allow_html=True)
         if st.button("👥 명단 저장", type="primary", use_container_width=True):
             nl = [x.strip() for x in txt.split(",") if x.strip()]
             save_members(nl)
             st.success(f"✅ 총 {len(nl)}명의 명단이 저장되었습니다.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with t2:
-        st.markdown("<div class='sec'>📅 새로운 대회 개최</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='sec {tc}'>📅 새로운 대회 개최 정보 등록</div>", unsafe_allow_html=True)
         title = st.text_input("대회명", f"{date.today().month}월 두류 테니스 대회")
         dt    = st.date_input("대회 일자", date.today())
         loc   = st.text_input("장소", "두류 테니스장")
         ct    = st.number_input("사용 코트 수", 1, 10, 2)
 
         st.divider()
-        st.markdown("<div class='sec'>👥 참가자 선택</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='sec {tc}'>👥 당일 대회 참가자 선택</div>", unsafe_allow_html=True)
         all_m = load_members()
         if not all_m:
-            st.warning("⚠️ 등록된 회원이 없습니다. 명단을 먼저 작성해주세요.")
+            st.warning("⚠️ 등록된 회원이 없습니다. 회원 관리 탭에서 명단을 먼저 작성해주세요.")
         else:
             sel_m = []
             cols = st.columns(3)
@@ -758,24 +753,25 @@ elif M == "admin":
                     if st.checkbox(name, key=f"p_{name}"):
                         sel_m.append(name)
 
-            st.blue(f"선택된 참가자: {len(sel_m)}명")
+            st.info(f"💡 현재 선택된 총 참가자: {len(sel_m)}명")
 
             st.divider()
-            st.markdown("<div class='sec'>🌿 그룹 및 대진 방식 설정</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='sec {tc}'>🌿 그룹 구성 및 대진 방식 설정</div>", unsafe_allow_html=True)
             g_cnt = st.number_input("분할할 그룹 수", 1, 4, 1)
 
             groups_config = {}
             for gi in range(int(g_cnt)):
                 gn = chr(65 + gi)
-                st.markdown(f"**🟢 그룹 {gn} 설정**")
-                g_p = st.multiselect(f"그룹 {gn} 참가자 선택", sel_m, key=f"g_p_{gn}")
-                g_m = st.selectbox(f"그룹 {gn} 방식", ["KDK (1인 3게임)", "KDK (1인 4게임)", "고정페어", "단식 풀리그"], key=f"g_m_{gn}")
+                st.markdown(f"**🟢 그룹 {gn} 상세 설정**")
+                g_p = st.multiselect(f"그룹 {gn} 참가 명단 선택", sel_m, key=f"g_p_{gn}")
+                g_m = st.selectbox(f"그룹 {gn} 매칭 방식", ["KDK (1인 3게임)", "KDK (1인 4게임)", "고정페어", "단식 풀리그"], key=f"g_m_{gn}")
 
                 groups_config[gn] = {"players": g_p, "mode": g_m}
 
-            if st.button("🚀 대회 시작 & 대진표 생성", type="primary", use_container_width=True):
+            st.markdown(f'<div class="btn-admin">', unsafe_allow_html=True)
+            if st.button("🚀 자동 대진표 빌드 및 대회 개시", type="primary", use_container_width=True):
                 if not groups_config:
-                    st.error("그룹 설정이 잘못되었습니다.")
+                    st.error("그룹 설정 형식이 올바르지 않습니다.")
                 else:
                     tours = load_tours()
                     tid = f"tour_{int(random.random()*100000)}"
@@ -790,7 +786,7 @@ elif M == "admin":
                             gp = 3 if "3게임" in m else 4
                             ms, p2n = make_kdk(pl, gp)
                             if ms is None:
-                                st.error(f"❌ 그룹 {gn}: 인원수({len(pl)}명)에 맞는 KDK 대진을 지원하지 않습니다.")
+                                st.error(f"❌ 그룹 {gn}: 입력 인원({len(pl)}명)은 정해진 규칙의 KDK 조편성을 지원하지 않습니다.")
                                 st.stop()
                             g_data[gn] = {"matches": ms, "mode": "KDK", "games": gp, "player_with_number": p2n}
                         elif m == "고정페어":
@@ -809,14 +805,15 @@ elif M == "admin":
                         "groups": g_data
                     }
                     save_tours(tours)
-                    st.success("🎉 대회가 성공적으로 개설되었습니다! '대진' 메뉴로 이동하세요.")
+                    st.success("🎉 대진 생성이 완료되었습니다! '📅 대진' 메뉴로 이동해 스코어를 기록하세요.")
                     st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
 
     with t3:
-        st.markdown("<div class='sec'>💥 데이터 초기화</div>", unsafe_allow_html=True)
-        st.warning("⚠️ 초기화된 데이터는 복구할 수 없습니다.")
-        if st.button("🚨 모든 대회 및 파일 초기화", use_container_width=True):
+        st.markdown(f"<div class='sec {tc}'>🚨 시스템 초기화</div>", unsafe_allow_html=True)
+        st.warning("⚠️ 이곳에서 데이터 파일 제거 시 기존 랭킹, 참가 정보, 아카이브가 영구 삭제됩니다.")
+        if st.button("💣 로컬 데이터베이스 전체 초기화", use_container_width=True):
             for f in [RANK_FILE, MEMBER_FILE, TOUR_FILE]:
                 if os.path.exists(f): os.remove(f)
-            st.success("💥 시스템 초기화가 완료되었습니다.")
+            st.success("💥 로컬 csv 및 json 저장소가 초기 상태로 리셋되었습니다.")
             st.rerun()
