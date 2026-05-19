@@ -7,7 +7,7 @@ from io import BytesIO
 st.set_page_config(page_title="두류 테니스", page_icon="🎾",
                    layout="centered", initial_sidebar_state="collapsed")
 
-# CSS에서 * 선택자의 font-family 강제 지정을 해제하여 Streamlit 기본 아이콘(Material Icons) 깨짐 현상을 해결했습니다.
+# CSS에서 * 선택자의 간섭을 막고 Streamlit 아이콘 폰트(Material Icons)를 강제 보호하여 arrow_right 등이 안 보이도록 수정했습니다.
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700;900&display=swap');
@@ -25,7 +25,17 @@ st.markdown("""
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html, body, [data-testid="stAppViewContainer"] * {font-family:'Noto Sans KR',sans-serif;}
-[data-testid="stExpander"] span, .st-emotion-cache-1f3w060, [class*="st-"] button, i {font-family:inherit !important;}
+
+/* [오류 수정] st.expander 및 Streamlit 자체 아이콘 클래스에 내장 폰트(Material Icons)를 강제로 유지시켜 텍스트 깨짐을 원천 차단합니다. */
+[data-testid="stExpander"] svg, 
+[data-testid="stExpander"] span, 
+[class*="st-emotion-cache"] svg,
+.st-emotion-cache-1f3w060, 
+[class*="st-"] button, 
+i {font-family: inherit !important;}
+[data-testid="stIconVisibility"] + *, 
+[data-testid="stWidgetLabel"] + * { font-family: inherit !important; }
+
 .block-container{padding:0 0.6rem 5rem!important;max-width:520px!important;margin:0 auto!important;background:var(--bg)!important;}
 .stApp{background:var(--bg)!important;}
 
@@ -534,7 +544,7 @@ elif M=="archive":
 
 # ══════════════════════════════════════════════════════
 # 5. 관리자
-# ══════════════════════════════════════════════════════
+# ═══════════════════════════════════════
 elif M=="admin":
     st.markdown("<div class='pg-title c4'>⚙️ 관리자 설정</div>",unsafe_allow_html=True)
     pw=st.text_input("🔒 관리자 비밀번호",type="password",placeholder="비밀번호 입력")
