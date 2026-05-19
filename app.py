@@ -87,11 +87,13 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .mx-dash{color:#CCC;}
 .mx-sc{font-weight:800;color:var(--g0);}
 
-/* KDK 표 */
+/* KDK 표 - 정렬 강화 */
 .kdk{background:var(--card);border-radius:var(--r1);padding:8px;box-shadow:var(--sh);overflow-x:auto;margin:7px 0;border:1px solid var(--bd);}
 .kdk table{border-collapse:collapse;white-space:nowrap;font-size:.64rem;width:100%;}
-.kdk th,.kdk td{padding:5px 5px;border:1px solid var(--bd);text-align:center;}
+.kdk th,.kdk td{padding:5px 5px;border:1px solid var(--bd);text-align:center;vertical-align:middle;}
 .kdk thead th{background:var(--g0);color:#fff;font-weight:700;}
+.kdk td:first-child{width:50px;text-align:center;}
+.kdk td:last-child{text-align:left;}
 
 /* Streamlit 데이터프레임 */
 div[data-testid="stDataFrame"]{border-radius:var(--r1)!important;overflow:hidden!important;box-shadow:var(--sh)!important;border:1px solid var(--bd)!important;}
@@ -217,7 +219,7 @@ def df_to_html(df, medal_col=None):
         for j,val in enumerate(row):
             if isinstance(val,float) and not pd.isna(val) and val==int(val): val=int(val)
             cells+=f"<td>{val}</td>"
-        body+=f"<tr>{cells}<tr>"
+        body+=f"<tr>{cells}</td>"
     return (f'<div class="mx-wrap"><table class="mx">'
             f'<thead><tr>{h}</tr></thead>'
             f'<tbody>{body}</tbody></table></div>')
@@ -298,13 +300,10 @@ def kdk_html(n,gperson,p2n):
     for i,(a,b,c,d) in enumerate(bp):
         t1=f"{n2p.get(a,a)}({a}) &amp; {n2p.get(b,b)}({b})"
         t2=f"{n2p.get(c,c)}({c}) &amp; {n2p.get(d,d)}({d})"
-        rows+=(f"<td><td style='text-align:center'>"
-               f"<span style='background:#1B5E20;color:#fff;border-radius:20px;"
-               f"padding:2px 8px;font-size:.58rem;font-weight:700'>{i+1}</span>"
-               f"</td><td style='text-align:left;white-space:nowrap'>{t1} vs {t2}</td></tr>")
+        rows+=f"<tr><td style='text-align:center'><span style='background:#1B5E20;color:#fff;border-radius:20px;padding:2px 8px;font-size:.58rem;font-weight:700'>{i+1}</span></td><td style='text-align:left'>{t1} vs {t2}</td></tr>"
     return (f'<div class="kdk"><div style="font-size:.72rem;font-weight:800;color:#1B5E20;margin-bottom:5px">'
             f'📋 KDK 1인 {gperson}게임 — {n}명</div>'
-            f'<table><thead><tr><th style="width:34px">순서</th><th>대진</th></tr></thead>'
+            f'</table><thead><tr><th>순서</th><th>대진</th></tr></thead>'
             f'<tbody>{rows}</tbody></table></div>')
 
 def show_kdk(n,gperson,p2n): st.markdown(kdk_html(n,gperson,p2n),unsafe_allow_html=True)
@@ -334,7 +333,7 @@ def matrix_html(matches,rank_items,is_fixed,p2n):
             if v=="■":   body+='<td class="mx-grey">■</td>'
             elif v=="—": body+='<td class="mx-dash">—</td>'
             else:        body+=f'<td class="mx-sc">{v}</td>'
-        body+="</tr>"
+        body+="</table>"
     return (f'<div class="mx-wrap"><table class="mx">'
             f'<thead><tr><th></th>{header}</tr></thead>'
             f'<tbody>{body}</tbody></table></div>')
@@ -350,6 +349,7 @@ def adj_score(tid,grp,mi,side,delta):
 ss=st.session_state
 if "is_admin" not in ss: ss.is_admin=False
 if "menu"     not in ss: ss.menu="ranking"
+if "group_selections" not in ss: ss.group_selections = {}
 
 # ══════════════════════════════════════
 # 헤더 + 네비게이션
@@ -358,7 +358,6 @@ MENUS=[("ranking","🏆","랭킹"),("schedule","📅","대진"),
        ("result","📊","결과"),("archive","📂","기록"),("admin","⚙️","관리")]
 MENU_COLOR={"ranking":"#2E7D32","schedule":"#1565C0","result":"#E65100",
             "archive":"#4A148C","admin":"#00695C"}
-TITLE_CLS={"ranking":"c0","schedule":"c1","result":"c2","archive":"c3","admin":"c4"}
 
 st.markdown('<div class="hdr"><div class="hdr-title">🎾 두류 테니스 클럽</div>'
             '<div class="hdr-sub">DURYU TENNIS CLUB</div></div>',unsafe_allow_html=True)
@@ -583,7 +582,7 @@ elif M=="admin":
         else:
             st.info("랭킹 데이터가 없습니다. 위에서 파일을 업로드하세요.")
 
-    # ── 탭 1: 대회 관리 ──
+    # ── 탭 1: 대회 관리 (그룹 인원 size 저장 추가) ──
     with adm[1]:
         st.markdown('<div class="sec sec-t">📅 새 대회 생성</div>',unsafe_allow_html=True)
         with st.form("f_new_tour"):
@@ -601,7 +600,7 @@ elif M=="admin":
                         ng={}
                         for i in range(int(gcnt_new)):
                             gn=f"{chr(65+i)}그룹"
-                            ng[gn]={"players":[],"mode":"KDK","games":4,"matches":[],"player_with_number":{}}
+                            ng[gn]={"players":[],"mode":"KDK","games":4,"matches":[],"player_with_number":{},"size":8}  # 기본 인원 8명
                         ts[tid2]={"title":tn.strip(),"date":str(td),"place":tp,
                                   "courts":co,"status":"진행중","groups":ng,"players":[]}
                         save_tours(ts); st.success(f"✅ '{tn.strip()}' 생성됨!"); st.rerun()
@@ -653,7 +652,7 @@ elif M=="admin":
                 st.markdown(f"**{gn}**")
                 g1,g2,g3,g4=st.columns(4)
                 with g1:
-                    default_sz=len(ex.get("players",[])) or 8
+                    default_sz=ex.get("size",8) if ex.get("size") else 8
                     sz=st.number_input("인원",2,30,value=default_sz,key=f"ei_sz_{sel_t}_{i}")
                 with g2:
                     mdo=["KDK","고정페어","단식"]
@@ -682,7 +681,8 @@ elif M=="admin":
                         ng[gn]={"players":old.get("players",[]),
                                 "mode":md,"games":gc,
                                 "matches":old.get("matches",[]),
-                                "player_with_number":old.get("player_with_number",{})}
+                                "player_with_number":old.get("player_with_number",{}),
+                                "size":sz}   # size 저장
                     et["groups"]=ng; save_tours(ts); st.success("그룹 구성 저장됨!"); st.rerun()
             with c_r:
                 if st.button("🎲 대진 재생성",type="primary",use_container_width=True,key="ei_regen"):
@@ -691,7 +691,7 @@ elif M=="admin":
                         gp=apl[ptr:ptr+sz]; ptr+=sz
                         if len(gp)<2: gp=gp+(apl[:max(0,sz-len(gp))])
                         ms2,pwn=build_matches(gp,md,gc)
-                        ng[gn]={"players":gp,"mode":md,"games":gc,"matches":ms2,"player_with_number":pwn}
+                        ng[gn]={"players":gp,"mode":md,"games":gc,"matches":ms2,"player_with_number":pwn,"size":sz}
                     et["groups"]=ng; save_tours(ts)
                     st.success("✅ 대진 재생성 완료!"); st.rerun()
         with inner[2]:
@@ -706,7 +706,7 @@ elif M=="admin":
                     st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
                 else: st.caption("대진이 아직 없습니다.")
 
-    # ── 탭 2: 참가자·대진 배정 (텍스트 일괄 입력 및 전체선택/해제 강화) ──
+    # ── 탭 2: 참가자·대진 배정 (전체 랭킹순 배정 + 그룹별 수정) ──
     with adm[2]:
         ts=load_tours(); act2=[k for k,v in ts.items() if v.get("status")=="진행중"]
         completed=[k for k,v in ts.items() if v.get("status")!="진행중"]
@@ -725,30 +725,120 @@ elif M=="admin":
         if not all_members:
             st.warning("회원 명단이 없습니다. '랭킹·회원' 탭에서 업로드하세요."); st.stop()
 
-        assigned={gn:cg[gn].get("players",[]).copy() for gn in cg}
-        new_assigned={}
+        # ── 새로운 기능: 전체 참가자 랭킹순 자동 배정 ──
+        with st.expander("🏆 전체 참가자 랭킹순 자동 배정 (상위 랭커부터 A그룹 순)", expanded=False):
+            st.markdown("아래에 쉼표로 구분된 전체 참가자 목록을 입력하면 **현재 랭킹 순서**로 각 그룹의 정해진 인원수만큼 자동 배정합니다.")
+            default_text = ", ".join(all_members) if all_members else ""
+            full_text = st.text_area("참가자 이름 (쉼표 구분)", value=default_text, height=100, key="full_assign_text")
+            if st.button("📊 랭킹순으로 그룹 자동 배정", use_container_width=True):
+                # 입력 파싱
+                names = [n.strip() for n in full_text.split(",") if n.strip()]
+                if not names:
+                    st.warning("참가자 목록을 입력하세요.")
+                else:
+                    # 중복 제거 (순서 유지)
+                    seen = set()
+                    unique_names = []
+                    for n in names:
+                        if n not in seen:
+                            seen.add(n)
+                            unique_names.append(n)
+                    # 랭킹 데이터 로드
+                    rank_df = load_rank()
+                    # 랭킹 맵 (이름 -> 랭킹 인덱스, 없으면 큰 수)
+                    rank_map = {row["이름"]: idx for idx, row in rank_df.iterrows()}
+                    # 정렬: 랭킹이 있는 사람 먼저, 그 다음 랭킹 없는 사람은 알파벳 순
+                    def sort_key(name):
+                        if name in rank_map:
+                            return (0, rank_map[name])  # 랭킹 있는 그룹
+                        else:
+                            return (1, name)           # 랭킹 없는 그룹, 이름순
+                    sorted_names = sorted(unique_names, key=sort_key)
+                    # 그룹별 사이즈 가져오기 (size 필드, 없으면 기본 8)
+                    group_sizes = []
+                    group_names = list(cg.keys())
+                    for gn in group_names:
+                        size = cg[gn].get("size", 8)
+                        group_sizes.append(size)
+                    total_needed = sum(group_sizes)
+                    if len(sorted_names) < total_needed:
+                        st.warning(f"참가자 수({len(sorted_names)})가 필요한 총 인원({total_needed})보다 적습니다. 부족한 인원은 기존 멤버에서 채우지 않습니다.")
+                    # 배정
+                    idx = 0
+                    new_group_players = {}
+                    for i, gn in enumerate(group_names):
+                        needed = group_sizes[i]
+                        assigned = sorted_names[idx:idx+needed]
+                        new_group_players[gn] = assigned
+                        idx += needed
+                    # 각 그룹의 players 업데이트 및 대진 재생성
+                    for gn, players in new_group_players.items():
+                        if players:
+                            tour["groups"][gn]["players"] = players
+                            mode = tour["groups"][gn]["mode"]
+                            games = tour["groups"][gn].get("games", 4)
+                            new_matches, pwn = build_matches(players, mode, games)
+                            tour["groups"][gn]["matches"] = new_matches
+                            tour["groups"][gn]["player_with_number"] = pwn
+                    # 전체 참가자 목록 갱신
+                    all_players = []
+                    for gn in tour["groups"]:
+                        all_players.extend(tour["groups"][gn]["players"])
+                    tour["players"] = all_players
+                    save_tours(ts)
+                    st.success("✅ 랭킹순 자동 배정 완료! 아래에서 그룹별로 세부 조정할 수 있습니다.")
+                    st.rerun()
+        st.divider()
 
-        st.markdown('<div class="sec sec-t">👥 그룹별 참가자 배정</div>',unsafe_allow_html=True)
-        for gn,gi in cg.items():
-            sz=len(gi.get("players",[])) or 8
-            st.markdown(f"#### {gn} — {gi['mode']} ({gi.get('games',4)}게임)")
-            cur_in=assigned.get(gn,[])
-            other=set(p for og,lst in assigned.items() if og!=gn for p in lst)
-            selectable=[m for m in all_members if m not in other or m in cur_in]
-            selected=st.multiselect(f"{gn} 참가자",options=selectable,
-                                    default=cur_in,key=f"a2_ms_{sel_tid}_{gn}")
-            new_assigned[gn]=selected
-            csa,cda=st.columns(2)
-            with csa:
-                if st.button(f"✅ {gn} 전체선택",key=f"a2_sa_{gn}",use_container_width=True):
-                    ss[f"a2_tmp_{gn}"]=selectable; st.rerun()
-            with cda:
-                if st.button(f"❌ {gn} 전체해제",key=f"a2_da_{gn}",use_container_width=True):
-                    ss[f"a2_tmp_{gn}"]=[]; st.rerun()
-            if f"a2_tmp_{gn}" in ss:
-                new_assigned[gn]=ss[f"a2_tmp_{gn}"];del ss[f"a2_tmp_{gn}"]
+        # 기존 그룹별 배정 UI (session_state 기반, 불필요한 텍스트 제거)
+        st.markdown('<div class="sec sec-t">👥 그룹별 참가자 배정 (수동 조정)</div>', unsafe_allow_html=True)
 
-            # --- 추가: 텍스트로 일괄 입력 기능 ---
+        # session_state 초기화: 각 그룹의 현재 선택된 선수 목록을 tour 데이터와 동기화
+        for gn in cg.keys():
+            key = f"sel_{sel_tid}_{gn}"
+            if key not in ss:
+                ss[key] = tour["groups"][gn].get("players", []).copy()
+
+        new_assigned = {}
+        for gn, gi in cg.items():
+            cur_in = tour["groups"][gn].get("players", [])
+            # 다른 그룹에 이미 배정된 선수는 선택 불가능하게 (단, 현재 그룹에 이미 있는 선수는 허용)
+            other_players = set()
+            for og in cg.keys():
+                if og != gn:
+                    other_players.update(tour["groups"][og].get("players", []))
+            selectable = [m for m in all_members if m not in other_players or m in cur_in]
+
+            # session state 값 사용
+            key = f"sel_{sel_tid}_{gn}"
+            if key not in ss:
+                ss[key] = cur_in
+            # multiselect
+            selected = st.multiselect(
+                f"{gn} 참가자",
+                options=selectable,
+                default=ss[key],
+                key=f"ms_{sel_tid}_{gn}"
+            )
+            # 선택이 변경되면 session state 업데이트
+            if selected != ss[key]:
+                ss[key] = selected
+                st.rerun()
+
+            new_assigned[gn] = selected
+
+            # 전체선택 / 전체해제 버튼
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button(f"✅ {gn} 전체선택", key=f"select_all_{sel_tid}_{gn}", use_container_width=True):
+                    ss[key] = selectable.copy()
+                    st.rerun()
+            with col2:
+                if st.button(f"❌ {gn} 전체해제", key=f"clear_all_{sel_tid}_{gn}", use_container_width=True):
+                    ss[key] = []
+                    st.rerun()
+
+            # 텍스트 일괄 입력 (그룹별)
             with st.expander(f"📝 {gn} 참가자 텍스트로 일괄 설정 (쉼표 구분)"):
                 text_input = st.text_area("참가자 이름 (쉼표로 구분)", key=f"batch_text_{sel_tid}_{gn}")
                 if st.button(f"✅ {gn} 텍스트로 설정", key=f"batch_set_{sel_tid}_{gn}"):
@@ -783,78 +873,101 @@ elif M=="admin":
                             st.success(f"{gn} 참가자 설정 및 대진 재생성 완료!")
                             st.rerun()
 
-        total=sum(len(v) for v in new_assigned.values())
-        st.markdown(f"<div class='ic ic-t'>총 배정: {total}명</div>",unsafe_allow_html=True)
+        total = sum(len(v) for v in new_assigned.values())
+        st.markdown(f"<div class='ic ic-t'>총 배정: {total}명</div>", unsafe_allow_html=True)
 
-        c_save,c_gen=st.columns(2)
-        with c_save:
-            if st.button("💾 배정만 저장",use_container_width=True,key="a2_save"):
-                for gn,players in new_assigned.items():
-                    tour["groups"][gn]["players"]=players
-                all_sel=[p for lst in new_assigned.values() for p in lst]
-                tour["players"]=all_sel; save_tours(ts)
-                st.success("✅ 참가자 배정 저장됨!"); st.rerun()
-        with c_gen:
-            if st.button("🎲 배정+대진 생성",type="primary",use_container_width=True,key="a2_gen"):
-                all_sel=[p for lst in new_assigned.values() for p in lst]
-                if len(set(all_sel))!=len(all_sel):
-                    st.error("중복 선수 있음!"); st.stop()
-                ng={}
-                for gn,players in new_assigned.items():
-                    gi=cg[gn]; md=gi["mode"]; gc=gi.get("games",4)
-                    if len(players)<2: st.warning(f"{gn}: 인원 부족 ({len(players)}명)"); continue
-                    ms2,pwn=build_matches(players,md,gc)
-                    ng[gn]={"players":players,"mode":md,"games":gc,"matches":ms2,"player_with_number":pwn}
-                tour["groups"]=ng; tour["players"]=all_sel; save_tours(ts)
-                st.success("✅ 대진 생성 완료! '대진' 메뉴에서 확인하세요."); st.rerun()
+        col_save, col_gen = st.columns(2)
+        with col_save:
+            if st.button("💾 배정만 저장", use_container_width=True, key="a2_save"):
+                for gn, players in new_assigned.items():
+                    tour["groups"][gn]["players"] = players
+                all_sel = [p for lst in new_assigned.values() for p in lst]
+                tour["players"] = all_sel
+                save_tours(ts)
+                st.success("✅ 참가자 배정 저장됨!")
+                st.rerun()
+        with col_gen:
+            if st.button("🎲 배정+대진 생성", type="primary", use_container_width=True, key="a2_gen"):
+                all_sel = [p for lst in new_assigned.values() for p in lst]
+                if len(set(all_sel)) != len(all_sel):
+                    st.error("중복 선수 있음!")
+                    st.stop()
+                ng = {}
+                for gn, players in new_assigned.items():
+                    gi = cg[gn]
+                    md = gi["mode"]
+                    gc = gi.get("games", 4)
+                    if len(players) < 2:
+                        st.warning(f"{gn}: 인원 부족 ({len(players)}명)")
+                        continue
+                    ms2, pwn = build_matches(players, md, gc)
+                    ng[gn] = {"players": players, "mode": md, "games": gc, "matches": ms2, "player_with_number": pwn, "size": gi.get("size", 8)}
+                tour["groups"] = ng
+                tour["players"] = all_sel
+                save_tours(ts)
+                st.success("✅ 대진 생성 완료! '대진' 메뉴에서 확인하세요.")
+                st.rerun()
 
         st.divider()
-        st.markdown('<div class="sec sec-t">✏️ 개별 참가자 수정 (대진 유지)</div>',unsafe_allow_html=True)
-        groups=list(cg.keys())
+        st.markdown('<div class="sec sec-t">✏️ 개별 참가자 수정 (대진 유지)</div>', unsafe_allow_html=True)
+        groups = list(cg.keys())
         if groups:
-            sel_g=st.selectbox("그룹 선택",groups,key="a2_eg")
-            cur_players=tour["groups"][sel_g]["players"].copy()
+            sel_g = st.selectbox("그룹 선택", groups, key="a2_eg")
+            cur_players = tour["groups"][sel_g]["players"].copy()
             st.markdown(f"**현재 {sel_g}:** {', '.join(cur_players) if cur_players else '없음'}")
             if cur_players:
-                sel_p=st.selectbox("삭제할 참가자",cur_players,key="a2_dp")
-                if st.button("🗑 삭제",use_container_width=True,key="a2_db"):
+                sel_p = st.selectbox("삭제할 참가자", cur_players, key="a2_dp")
+                if st.button("🗑 삭제", use_container_width=True, key="a2_db"):
                     tour["groups"][sel_g]["players"].remove(sel_p)
-                    tour["groups"][sel_g]["matches"]=[m for m in tour["groups"][sel_g]["matches"]
-                                                     if sel_p not in m["t1"] and sel_p not in m["t2"]]
+                    tour["groups"][sel_g]["matches"] = [m for m in tour["groups"][sel_g]["matches"]
+                                                         if sel_p not in m["t1"] and sel_p not in m["t2"]]
                     if sel_p not in [p for g in groups for p in tour["groups"][g]["players"]]:
-                        if sel_p in tour.get("players",[]): tour["players"].remove(sel_p)
-                    save_tours(ts); st.success(f"'{sel_p}' 삭제됨"); st.rerun()
+                        if sel_p in tour.get("players", []):
+                            tour["players"].remove(sel_p)
+                    save_tours(ts)
+                    st.success(f"'{sel_p}' 삭제됨")
+                    st.rerun()
             st.markdown("---")
-            nn=st.text_input("새 참가자",placeholder="예: 홍길동",key="a2_an")
-            if st.button("➕ 추가",use_container_width=True,key="a2_ab"):
+            nn = st.text_input("새 참가자", placeholder="예: 홍길동", key="a2_an")
+            if st.button("➕ 추가", use_container_width=True, key="a2_ab"):
                 if nn and nn.strip():
-                    n2=nn.strip()
+                    n2 = nn.strip()
                     if n2 not in tour["groups"][sel_g]["players"]:
                         tour["groups"][sel_g]["players"].append(n2)
-                        if n2 not in tour.get("players",[]): tour.setdefault("players",[]).append(n2)
-                        md2=tour["groups"][sel_g]["mode"]; gc2=tour["groups"][sel_g].get("games",4)
-                        ms2,pwn2=build_matches(tour["groups"][sel_g]["players"],md2,gc2)
-                        tour["groups"][sel_g]["matches"]=ms2
-                        if pwn2: tour["groups"][sel_g]["player_with_number"]=pwn2
-                        save_tours(ts); st.success(f"'{n2}' 추가됨"); st.rerun()
-                    else: st.warning("이미 있는 참가자입니다.")
+                        if n2 not in tour.get("players", []):
+                            tour.setdefault("players", []).append(n2)
+                        md2 = tour["groups"][sel_g]["mode"]
+                        gc2 = tour["groups"][sel_g].get("games", 4)
+                        ms2, pwn2 = build_matches(tour["groups"][sel_g]["players"], md2, gc2)
+                        tour["groups"][sel_g]["matches"] = ms2
+                        if pwn2:
+                            tour["groups"][sel_g]["player_with_number"] = pwn2
+                        save_tours(ts)
+                        st.success(f"'{n2}' 추가됨")
+                        st.rerun()
+                    else:
+                        st.warning("이미 있는 참가자입니다.")
             st.markdown("---")
-            all_pairs=[(p,g) for g in groups for p in tour["groups"][g]["players"]]
+            all_pairs = [(p, g) for g in groups for p in tour["groups"][g]["players"]]
             if all_pairs:
-                move_p=st.selectbox("이동할 참가자",[p for p,_ in all_pairs],key="a2_mp")
-                cur_g2=next((g for p,g in all_pairs if p==move_p),groups[0])
-                other_g=[g for g in groups if g!=cur_g2]
+                move_p = st.selectbox("이동할 참가자", [p for p, _ in all_pairs], key="a2_mp")
+                cur_g2 = next((g for p, g in all_pairs if p == move_p), groups[0])
+                other_g = [g for g in groups if g != cur_g2]
                 if other_g:
-                    tgt=st.selectbox("이동할 그룹",other_g,key="a2_tg")
-                    if st.button("🔄 이동",use_container_width=True,key="a2_mb"):
+                    tgt = st.selectbox("이동할 그룹", other_g, key="a2_tg")
+                    if st.button("🔄 이동", use_container_width=True, key="a2_mb"):
                         tour["groups"][cur_g2]["players"].remove(move_p)
                         tour["groups"][tgt]["players"].append(move_p)
-                        for grp in [cur_g2,tgt]:
-                            md3=tour["groups"][grp]["mode"]; gc3=tour["groups"][grp].get("games",4)
-                            ms3,pwn3=build_matches(tour["groups"][grp]["players"],md3,gc3)
-                            tour["groups"][grp]["matches"]=ms3
-                            if pwn3: tour["groups"][grp]["player_with_number"]=pwn3
-                        save_tours(ts); st.success(f"'{move_p}' → {tgt} 이동됨"); st.rerun()
+                        for grp in [cur_g2, tgt]:
+                            md3 = tour["groups"][grp]["mode"]
+                            gc3 = tour["groups"][grp].get("games", 4)
+                            ms3, pwn3 = build_matches(tour["groups"][grp]["players"], md3, gc3)
+                            tour["groups"][grp]["matches"] = ms3
+                            if pwn3:
+                                tour["groups"][grp]["player_with_number"] = pwn3
+                        save_tours(ts)
+                        st.success(f"'{move_p}' → {tgt} 이동됨")
+                        st.rerun()
 
     # ── 탭 3: 결과 반영 ──
     with adm[3]:
