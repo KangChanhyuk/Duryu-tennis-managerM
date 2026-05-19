@@ -26,8 +26,23 @@ st.markdown("""
 .block-container{padding:0 0.6rem 5rem!important;max-width:520px!important;margin:0 auto!important;background:var(--bg)!important;}
 .stApp{background:var(--bg)!important;}
 
-/* 모바일 컬럼 wrapping 방지 */
-[data-testid="stHorizontalBlock"]{flex-wrap:nowrap!important;gap:4px!important;align-items:stretch!important;}
+/* 모바일에서 메뉴 여러 줄로 배치 (가로 스크롤 방지) */
+@media (max-width: 640px) {
+  [data-testid="stHorizontalBlock"] {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  [data-testid="stHorizontalBlock"] .stButton {
+    flex: 1 0 auto !important;
+    min-width: 70px !important;
+  }
+  .stButton button {
+    font-size: 0.65rem !important;
+    padding: 6px 4px !important;
+    white-space: normal !important;
+    word-break: keep-all !important;
+  }
+}
 
 /* 헤더 */
 .hdr{background:linear-gradient(135deg,#1B5E20 0%,#2E7D32 60%,#388E3C 100%);margin:0 -0.6rem 0;padding:13px 16px 0;position:relative;overflow:hidden;box-shadow:var(--sh2);}
@@ -35,22 +50,22 @@ st.markdown("""
 .hdr-title{color:#fff;font-size:1rem;font-weight:900;margin:0 0 2px;}
 .hdr-sub{color:rgba(255,255,255,.5);font-size:.55rem;letter-spacing:2px;}
 
-/* 페이지 타이틀 - 메뉴 색과 동일 */
+/* 페이지 타이틀 */
 .pg-title{color:#fff;padding:11px 14px;border-radius:var(--r2);margin:0 0 12px;font-size:.95rem;font-weight:900;text-align:center;box-shadow:var(--sh2);}
-.c0{background:linear-gradient(135deg,var(--nav0),#43A047);}   /* 랭킹 - 그린 */
-.c1{background:linear-gradient(135deg,var(--nav1),#1976D2);}   /* 대진 - 블루 */
-.c2{background:linear-gradient(135deg,var(--nav2),#F4511E);}   /* 결과 - 오렌지 */
-.c3{background:linear-gradient(135deg,var(--nav3),#7B1FA2);}   /* 기록 - 퍼플 */
-.c4{background:linear-gradient(135deg,var(--nav4),#00897B);}   /* 관리 - 틸 */
+.c0{background:linear-gradient(135deg,var(--nav0),#43A047);}
+.c1{background:linear-gradient(135deg,var(--nav1),#1976D2);}
+.c2{background:linear-gradient(135deg,var(--nav2),#F4511E);}
+.c3{background:linear-gradient(135deg,var(--nav3),#7B1FA2);}
+.c4{background:linear-gradient(135deg,var(--nav4),#00897B);}
 
-/* 섹션 헤더 - 메뉴별 색상 */
+/* 섹션 헤더 */
 .sec{font-size:.82rem;font-weight:800;color:var(--g0);border-left:4px solid var(--g3);padding-left:8px;margin:14px 0 7px;}
-.sec-b{color:var(--nav1);border-left-color:var(--nav1);}   /* 대진 블루 */
-.sec-o{color:var(--nav2);border-left-color:var(--nav2);}   /* 결과 오렌지 */
-.sec-p{color:var(--nav3);border-left-color:var(--nav3);}   /* 기록 퍼플 */
-.sec-t{color:var(--nav4);border-left-color:var(--nav4);}   /* 관리 틸 */
+.sec-b{color:var(--nav1);border-left-color:var(--nav1);}
+.sec-o{color:var(--nav2);border-left-color:var(--nav2);}
+.sec-p{color:var(--nav3);border-left-color:var(--nav3);}
+.sec-t{color:var(--nav4);border-left-color:var(--nav4);}
 
-/* 인포 카드 - 메뉴별 색상 */
+/* 인포 카드 */
 .ic{background:var(--card);border-left:4px solid var(--g3);border-radius:var(--r1);padding:9px 12px;margin:6px 0;box-shadow:var(--sh);font-size:.78rem;color:#3a3a5c;}
 .ic-b{border-left-color:var(--nav1);}
 .ic-o{border-left-color:var(--nav2);}
@@ -62,7 +77,7 @@ button[data-baseweb="tab"]{font-size:.65rem!important;font-weight:700!important;
 button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;}
 [data-baseweb="tab-list"]{background:#DDD!important;border-radius:var(--r1) var(--r1) 0 0!important;padding:3px 3px 0!important;gap:2px!important;flex-wrap:nowrap!important;overflow-x:auto!important;}
 
-/* ── HTML 표 (mx) - 완전 가운데 정렬 ── */
+/* HTML 표 */
 .mx-wrap{background:var(--card);border-radius:var(--r1);padding:8px;box-shadow:var(--sh);overflow-x:auto;margin:7px 0;border:1px solid var(--bd);}
 .mx{border-collapse:collapse;white-space:nowrap;font-size:.7rem;width:100%;}
 .mx th,.mx td{padding:7px 6px;border:1px solid var(--bd);text-align:center!important;vertical-align:middle!important;}
@@ -78,7 +93,7 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .kdk th,.kdk td{padding:5px 5px;border:1px solid var(--bd);text-align:center;}
 .kdk thead th{background:var(--g0);color:#fff;font-weight:700;}
 
-/* Streamlit 데이터프레임 - 가운데 정렬 보조 */
+/* Streamlit 데이터프레임 */
 div[data-testid="stDataFrame"]{border-radius:var(--r1)!important;overflow:hidden!important;box-shadow:var(--sh)!important;border:1px solid var(--bd)!important;}
 div[data-testid="stDataFrame"] table{width:100%!important;font-size:.7rem!important;border-collapse:collapse!important;}
 div[data-testid="stDataFrame"] table th,
@@ -86,7 +101,7 @@ div[data-testid="stDataFrame"] table td{text-align:center!important;vertical-ali
 div[data-testid="stDataFrame"] thead tr th{background:var(--g0)!important;color:#fff!important;font-weight:700!important;}
 div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{background:var(--g5)!important;}
 
-/* ── 경기 카드 ── */
+/* 경기 카드 */
 .match-card{background:var(--card);border-radius:var(--r2);padding:10px 8px 12px;margin:10px 0;box-shadow:var(--sh2);border:1px solid var(--bd);}
 .match-no{display:inline-block;border-radius:20px;padding:3px 12px;font-size:.58rem;font-weight:900;margin-bottom:8px;color:#fff;}
 .mc0{background:var(--mc0);}.mc1{background:var(--mc1);}.mc2{background:var(--mc2);}
@@ -105,14 +120,11 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{background:var(--g5)!
 .ctrl-row .stButton>button:hover{background:#C8E6C9!important;}
 .ctrl-row .stButton>button:active{background:#81C784!important;transform:scale(.93)!important;}
 
-/* 일반 버튼 */
 .stButton>button{border-radius:var(--r2)!important;font-weight:700!important;font-size:.8rem!important;min-height:48px!important;padding:9px 12px!important;}
 .stButton>button[kind="primary"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;border:none!important;box-shadow:0 4px 14px rgba(46,125,50,.35)!important;}
 
-/* 입력 필드 */
 .stTextInput>div>div>input,.stTextArea>div>div>textarea,.stSelectbox>div>div{min-height:46px!important;border-radius:var(--r1)!important;}
 
-/* 파일 업로더 */
 [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzoneInstructions"]>div>span,
 [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzoneInstructions"]>div>small{display:none!important;}
 [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]::after{content:'📂 파일 선택 (xlsx/csv)';}
@@ -190,14 +202,12 @@ def save_tours(d):
 def to_excel(df):
     buf=BytesIO(); df.to_excel(buf,index=False); return buf.getvalue()
 
-# xlsx / xls / csv 업로드 통합 읽기
 def read_file(up):
     name=up.name.lower()
     if name.endswith(("xlsx","xls")):
         return pd.read_excel(up)
     return pd.read_csv(up,encoding_errors="replace")
 
-# df → HTML 테이블 (가운데 정렬 보장)
 def df_to_html(df, medal_col=None):
     cols=df.columns.tolist()
     h="".join(f"<th>{c}</th>" for c in cols)
@@ -207,7 +217,7 @@ def df_to_html(df, medal_col=None):
         for j,val in enumerate(row):
             if isinstance(val,float) and not pd.isna(val) and val==int(val): val=int(val)
             cells+=f"<td>{val}</td>"
-        body+=f"<tr>{cells}</tr>"
+        body+=f"<tr>{cells}<tr>"
     return (f'<div class="mx-wrap"><table class="mx">'
             f'<thead><tr>{h}</tr></thead>'
             f'<tbody>{body}</tbody></table></div>')
@@ -288,7 +298,7 @@ def kdk_html(n,gperson,p2n):
     for i,(a,b,c,d) in enumerate(bp):
         t1=f"{n2p.get(a,a)}({a}) &amp; {n2p.get(b,b)}({b})"
         t2=f"{n2p.get(c,c)}({c}) &amp; {n2p.get(d,d)}({d})"
-        rows+=(f"<tr><td style='text-align:center'>"
+        rows+=(f"<td><td style='text-align:center'>"
                f"<span style='background:#1B5E20;color:#fff;border-radius:20px;"
                f"padding:2px 8px;font-size:.58rem;font-weight:700'>{i+1}</span>"
                f"</td><td style='text-align:left;white-space:nowrap'>{t1} vs {t2}</td></tr>")
@@ -364,7 +374,7 @@ st.markdown(f'<div style="height:4px;background:{cc};margin:0 -0.6rem 12px;'
 M=ss.menu
 
 # ══════════════════════════════════════════════════════
-# 1. 랭킹 — HTML 테이블로 가운데 정렬 보장
+# 1. 랭킹
 # ══════════════════════════════════════════════════════
 if M=="ranking":
     st.markdown(f"<div class='pg-title c0'>🏆 두류 랭킹</div>",unsafe_allow_html=True)
@@ -380,7 +390,7 @@ if M=="ranking":
                            file_name=f"랭킹_{date.today()}.xlsx",use_container_width=True)
 
 # ══════════════════════════════════════════════════════
-# 2. 대진 — 블루 계열 섹션
+# 2. 대진
 # ══════════════════════════════════════════════════════
 elif M=="schedule":
     tours=load_tours(); active=[k for k,v in tours.items() if v.get("status")=="진행중"]
@@ -456,7 +466,7 @@ elif M=="schedule":
                 st.markdown('</div>',unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════
-# 3. 결과 — 오렌지 계열 섹션
+# 3. 결과
 # ══════════════════════════════════════════════════════
 elif M=="result":
     tours=load_tours(); active=[k for k,v in tours.items() if v.get("status")=="진행중"]
@@ -488,7 +498,7 @@ elif M=="result":
             st.markdown(df_to_html(pd.DataFrame(mr)),unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════
-# 4. 기록 — 퍼플 계열 섹션
+# 4. 기록
 # ══════════════════════════════════════════════════════
 elif M=="archive":
     st.markdown("<div class='pg-title c3'>📂 대회 기록실</div>",unsafe_allow_html=True)
@@ -521,7 +531,7 @@ elif M=="archive":
         st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════
-# 5. 관리자 — 틸 계열 + 전체 기능 복원
+# 5. 관리자
 # ══════════════════════════════════════════════════════
 elif M=="admin":
     st.markdown("<div class='pg-title c4'>⚙️ 관리자 설정</div>",unsafe_allow_html=True)
@@ -534,13 +544,10 @@ elif M=="admin":
 
     adm=st.tabs(["📋 랭킹·회원","🏆 대회 관리","👥 참가자·대진","💾 결과 반영"])
 
-    # ════════════════════════════════
-    # 탭 0: 랭킹·회원 관리
-    # ════════════════════════════════
+    # ── 탭 0: 랭킹·회원 ──
     with adm[0]:
         st.markdown('<div class="sec sec-t">📁 랭킹 마스터 업로드 (.xlsx / .xls / .csv)</div>',
                     unsafe_allow_html=True)
-        # xlsx, xls, csv 모두 허용 + 모바일 파일 포함
         up=st.file_uploader("파일 선택",type=["xlsx","xls","csv"],
                              key="adm_rank_up",label_visibility="collapsed")
         if up:
@@ -576,11 +583,8 @@ elif M=="admin":
         else:
             st.info("랭킹 데이터가 없습니다. 위에서 파일을 업로드하세요.")
 
-    # ════════════════════════════════
-    # 탭 1: 대회 관리 (생성 + 그룹 설정 + 상세 편집)
-    # ════════════════════════════════
+    # ── 탭 1: 대회 관리 ──
     with adm[1]:
-        # ── 새 대회 생성 ──
         st.markdown('<div class="sec sec-t">📅 새 대회 생성</div>',unsafe_allow_html=True)
         with st.form("f_new_tour"):
             tn=st.text_input("대회명",placeholder="예: 두류 6월 월례대회")
@@ -594,7 +598,6 @@ elif M=="admin":
                 if tn.strip():
                     ts=load_tours(); tid2=f"{td}_{tn.strip()}"
                     if tid2 not in ts:
-                        # 기본 그룹 구성 자동 생성
                         ng={}
                         for i in range(int(gcnt_new)):
                             gn=f"{chr(65+i)}그룹"
@@ -606,7 +609,6 @@ elif M=="admin":
                 else: st.warning("대회명을 입력하세요.")
 
         st.divider()
-        # ── 대회 선택 + 상세 설정 ──
         ts=load_tours()
         if not ts:
             st.info("생성된 대회가 없습니다."); st.stop()
@@ -619,8 +621,6 @@ elif M=="admin":
         et=ts[sel_t]
 
         inner=st.tabs(["ℹ️ 기본정보","🎲 그룹·방식","📋 대진 미리보기"])
-
-        # ── 기본정보 ──
         with inner[0]:
             nt=st.text_input("대회명",value=et["title"],key="ei_t")
             c1,c2=st.columns(2)
@@ -642,8 +642,6 @@ elif M=="admin":
             with c6:
                 if st.button("🗑 대회 삭제",use_container_width=True,key="ei_del"):
                     del ts[sel_t]; save_tours(ts); st.warning("삭제됨!"); st.rerun()
-
-        # ── 그룹·방식 설정 ──
         with inner[1]:
             cg=et.get("groups",{})
             st.caption("그룹 수를 변경하면 기존 대진이 초기화됩니다.")
@@ -671,12 +669,10 @@ elif M=="admin":
                     st.markdown(f"<div style='padding-top:28px;font-size:.75rem;color:#888'>"
                                 f"{len(ex.get('players',[]))}명 배정됨</div>",unsafe_allow_html=True)
                 gcfg[gn]=(sz,md,gc)
-
             tot=sum(v[0] for v in gcfg.values()); apl=et.get("players",[])
             if apl:
                 if tot==len(apl): st.success(f"✅ 참가자 {len(apl)}명 ↔ 배정 {tot}명 일치")
                 else:             st.warning(f"⚠️ 참가자 {len(apl)}명 / 필요 {tot}명 (차이 {len(apl)-tot:+d}명)")
-
             c_s,c_r=st.columns(2)
             with c_s:
                 if st.button("💾 그룹 구성 저장",use_container_width=True,key="ei_gs"):
@@ -698,8 +694,6 @@ elif M=="admin":
                         ng[gn]={"players":gp,"mode":md,"games":gc,"matches":ms2,"player_with_number":pwn}
                     et["groups"]=ng; save_tours(ts)
                     st.success("✅ 대진 재생성 완료!"); st.rerun()
-
-        # ── 대진 미리보기 ──
         with inner[2]:
             for g,gi in et.get("groups",{}).items():
                 st.markdown(f"**{g}** ({gi['mode']}) — {len(gi['players'])}명")
@@ -712,9 +706,7 @@ elif M=="admin":
                     st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
                 else: st.caption("대진이 아직 없습니다.")
 
-    # ════════════════════════════════
-    # 탭 2: 참가자·대진 배정
-    # ════════════════════════════════
+    # ── 탭 2: 참가자·대진 배정 (텍스트 일괄 입력 및 전체선택/해제 강화) ──
     with adm[2]:
         ts=load_tours(); act2=[k for k,v in ts.items() if v.get("status")=="진행중"]
         completed=[k for k,v in ts.items() if v.get("status")!="진행중"]
@@ -733,14 +725,12 @@ elif M=="admin":
         if not all_members:
             st.warning("회원 명단이 없습니다. '랭킹·회원' 탭에서 업로드하세요."); st.stop()
 
-        # 현재 배정 상태 로드
         assigned={gn:cg[gn].get("players",[]).copy() for gn in cg}
         new_assigned={}
 
         st.markdown('<div class="sec sec-t">👥 그룹별 참가자 배정</div>',unsafe_allow_html=True)
         for gn,gi in cg.items():
             sz=len(gi.get("players",[])) or 8
-            # group_size from config if stored
             st.markdown(f"#### {gn} — {gi['mode']} ({gi.get('games',4)}게임)")
             cur_in=assigned.get(gn,[])
             other=set(p for og,lst in assigned.items() if og!=gn for p in lst)
@@ -753,10 +743,45 @@ elif M=="admin":
                 if st.button(f"✅ {gn} 전체선택",key=f"a2_sa_{gn}",use_container_width=True):
                     ss[f"a2_tmp_{gn}"]=selectable; st.rerun()
             with cda:
-                if st.button(f"❌ {gn} 해제",key=f"a2_da_{gn}",use_container_width=True):
+                if st.button(f"❌ {gn} 전체해제",key=f"a2_da_{gn}",use_container_width=True):
                     ss[f"a2_tmp_{gn}"]=[]; st.rerun()
             if f"a2_tmp_{gn}" in ss:
                 new_assigned[gn]=ss[f"a2_tmp_{gn}"];del ss[f"a2_tmp_{gn}"]
+
+            # --- 추가: 텍스트로 일괄 입력 기능 ---
+            with st.expander(f"📝 {gn} 참가자 텍스트로 일괄 설정 (쉼표 구분)"):
+                text_input = st.text_area("참가자 이름 (쉼표로 구분)", key=f"batch_text_{sel_tid}_{gn}")
+                if st.button(f"✅ {gn} 텍스트로 설정", key=f"batch_set_{sel_tid}_{gn}"):
+                    names = [n.strip() for n in text_input.split(",") if n.strip()]
+                    if not names:
+                        st.warning("이름을 입력하세요.")
+                    elif len(names) != len(set(names)):
+                        st.error("같은 그룹 내 중복된 이름이 있습니다.")
+                    else:
+                        # 다른 그룹과 중복 체크
+                        other_players = []
+                        for other_gn, other_gi in tour["groups"].items():
+                            if other_gn != gn:
+                                other_players.extend(other_gi.get("players", []))
+                        duplicates = [n for n in names if n in other_players]
+                        if duplicates:
+                            st.warning(f"다른 그룹에 이미 있는 이름: {', '.join(duplicates)}")
+                        else:
+                            # 해당 그룹 참가자 업데이트 및 대진 재생성
+                            tour["groups"][gn]["players"] = names
+                            mode = tour["groups"][gn]["mode"]
+                            games = tour["groups"][gn].get("games", 4)
+                            new_matches, pwn = build_matches(names, mode, games)
+                            tour["groups"][gn]["matches"] = new_matches
+                            tour["groups"][gn]["player_with_number"] = pwn
+                            # 전체 참가자 목록 갱신
+                            all_players = []
+                            for g in tour["groups"]:
+                                all_players.extend(tour["groups"][g]["players"])
+                            tour["players"] = all_players
+                            save_tours(ts)
+                            st.success(f"{gn} 참가자 설정 및 대진 재생성 완료!")
+                            st.rerun()
 
         total=sum(len(v) for v in new_assigned.values())
         st.markdown(f"<div class='ic ic-t'>총 배정: {total}명</div>",unsafe_allow_html=True)
@@ -790,7 +815,6 @@ elif M=="admin":
             sel_g=st.selectbox("그룹 선택",groups,key="a2_eg")
             cur_players=tour["groups"][sel_g]["players"].copy()
             st.markdown(f"**현재 {sel_g}:** {', '.join(cur_players) if cur_players else '없음'}")
-
             if cur_players:
                 sel_p=st.selectbox("삭제할 참가자",cur_players,key="a2_dp")
                 if st.button("🗑 삭제",use_container_width=True,key="a2_db"):
@@ -832,9 +856,7 @@ elif M=="admin":
                             if pwn3: tour["groups"][grp]["player_with_number"]=pwn3
                         save_tours(ts); st.success(f"'{move_p}' → {tgt} 이동됨"); st.rerun()
 
-    # ════════════════════════════════
-    # 탭 3: 결과 반영
-    # ════════════════════════════════
+    # ── 탭 3: 결과 반영 ──
     with adm[3]:
         ts=load_tours(); act3=[k for k,v in ts.items() if v.get("status")=="진행중"]
         if not act3: st.warning("진행 중인 대회가 없습니다."); st.stop()
