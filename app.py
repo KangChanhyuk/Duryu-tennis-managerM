@@ -7,9 +7,10 @@ from io import BytesIO
 st.set_page_config(page_title="두류 테니스", page_icon="🎾",
                    layout="centered", initial_sidebar_state="collapsed")
 
+# CSS에서 * 선택자의 font-family 강제 지정을 해제하여 Streamlit 기본 아이콘(Material Icons) 깨짐 현상을 해결했습니다.
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700;900&display=swap');
 :root{
   --g0:#1B5E20;--g2:#388E3C;--g3:#66BB6A;--g5:#E8F5E9;
   --nav0:#2E7D32;--nav1:#1565C0;--nav2:#E65100;--nav3:#4A148C;--nav4:#00695C;
@@ -22,7 +23,9 @@ st.markdown("""
   --r1:10px;--r2:16px;
   --sh:0 2px 10px rgba(0,0,0,.08);--sh2:0 4px 20px rgba(0,0,0,.13);
 }
-*{font-family:'Noto Sans KR',sans-serif!important;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html, body, [data-testid="stAppViewContainer"] * {font-family:'Noto Sans KR',sans-serif;}
+[data-testid="stExpander"] span, .st-emotion-cache-1f3w060, [class*="st-"] button, i {font-family:inherit !important;}
 .block-container{padding:0 0.6rem 5rem!important;max-width:520px!important;margin:0 auto!important;background:var(--bg)!important;}
 .stApp{background:var(--bg)!important;}
 
