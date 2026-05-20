@@ -285,25 +285,33 @@ def make_kdk(players, gperson):
     ms = [{"t1":[n2p[a],n2p[b]],"t2":[n2p[c],n2p[d]],"s1":0,"s2":0} for a,b,c,d in bp]
     return ms, p2n
 
-# 🛠️ [요구사항 반영] 고정페어 대진 생성 시 1위-최하위, 2위-차하위 매칭 정교화 구현 부위
+# 🛠️ [정밀 수정 부위] 고정페어 대진 생성 logic 오류 완전 수정 (고정된 페어 간의 대진으로 분리)
 def make_fixed(players):
-    # 마스터 랭킹 기준으로 그룹 참가자 정렬 수행
+    # 1. 마스터 랭킹 기준으로 그룹 참가자 정렬
     rk_df = load_rank()
     if not rk_df.empty and "이름" in rk_df.columns:
         rk_map = {row["이름"]: idx for idx, row in rk_df.iterrows()}
-        # 랭킹 데이터에 존재하는 선수는 상위 순서대로, 없는 선수는 뒤로 밀리도록 정렬
         sorted_players = sorted(players, key=lambda x: rk_map.get(x, 9999))
     else:
         sorted_players = players[:]
         
     n = len(sorted_players)
-    # 1위(가장 앞)와 최하위(가장 뒤), 2위와 차하위 형태로 양 끝단부터 짝 생성
+    # 2. 1위-최하위, 2위-차하위 형태로 고정 페어(조) 완벽 빌딩
     pairs = [(sorted_players[i], sorted_players[n-1-i]) for i in range(n//2)]
     
-    # 생성된 고정 팀들끼리 풀리그 형태의 대진 생성
-    ms = [{"t1":list(pairs[i]),"t2":list(pairs[j]),"s1":0,"s2":0}
-        for i in range(len(pairs)) for j in range(i+1,len(pairs))]
-    random.shuffle(ms); return ms, {}
+    # 3. KDK와 섞이지 않도록, 빌딩된 조(Pair) 자체를 하나의 완성된 팀으로 보고 조별 풀리그 대진 생성
+    ms = []
+    num_pairs = len(pairs)
+    for i in range(num_pairs):
+        for j in range(i+1, num_pairs):
+            ms.append({
+                "t1": list(pairs[i]),  # 조 전체가 하나의 팀으로 출전
+                "t2": list(pairs[j]),
+                "s1": 0,
+                "s2": 0
+            })
+    random.shuffle(ms)
+    return ms, {}
 
 def make_singles(players):
     pl = players[:]; random.shuffle(pl)
