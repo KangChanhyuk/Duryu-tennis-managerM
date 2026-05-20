@@ -535,7 +535,7 @@ elif ss.menu=="admin":
         with c3: co=st.selectbox("할당 코트", [1,2,3,4,5], index=1)
         with c4: g_count=st.number_input("설정할 그룹 수",1,6,value=3)
         
-        # ⚠️ 요구사항 반영: 대회 개막 시점부터 각 그룹별 개별 옵션(방식, 인원, 게임수) 다르게 설정 지원
+        # 각 그룹별 개별 옵션(방식, 인원, 게임수) 다르게 설정 지원
         st.markdown('<div style="font-size:0.75rem; color:#555; font-weight:bold; margin-top:5px;">⚙️ 각 그룹 초기 스펙 정의</div>', unsafe_allow_html=True)
         init_g_setup = {}
         for i in range(int(g_count)):
@@ -584,7 +584,7 @@ elif ss.menu=="admin":
                 if st.button("🗑️ 해당 대회 데이터 영구 삭제",type="primary",use_container_width=True):
                     del ts[sel_t]; save_tours(ts); st.warning("대회가 삭제되었습니다."); st.rerun()
 
-    # 탭 [2] : 당일 참가자 명단 조정 및 그룹별 실시간 자유 조율 컴포넌트 (이름 깨짐 문제 완벽 조치)
+    # 탭 [2] : 당일 참가자 명단 조정 및 그룹별 실시간 자유 조율 컴포넌트 (요청에 따른 간소화 커스텀 버전)
     with adm[2]:
         ts=load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
         if not act_tids:
@@ -593,49 +593,44 @@ elif ss.menu=="admin":
         
         st.markdown(f"### 👥 {tour['title']} 당일 출전 명단 관리")
         
-        # 1 단계: 당일 출전하는 선수들을 한눈에 텍스트로 적어 넣기
-        with st.expander("📝 [1단계] 당일 참가자 명단 텍스트 일괄 등록", expanded=True):
+        # 1 단계: 당일 출전하는 전체 선수 명단 통합 입력창
+        with st.expander("📝 [1단계] 당일 참가자 전체 명단 입력", expanded=True):
             st.markdown("오늘 출전한 모든 선수의 이름을 쉼표(,) 또는 엔터로 구분하여 아래에 적어주세요.")
             joined_p = []
             for g_info in cg.values(): joined_p.extend(g_info.get("players", []))
             
-            raw_input_p = st.text_area("참가자 명단 입력", value=", ".join(joined_p), height=100, key="day_p_input")
+            raw_input_p = st.text_area("당일 출전 전체 명단 입력", value=", ".join(joined_p), height=100, key="day_p_input")
             
-            c_auto, c_direct = st.columns(2)
-            with c_auto:
-                if st.button("⚡ 랭킹순으로 그룹 자동 배정 및 대진 생성", type="primary", use_container_width=True):
-                    parsed_p = [n.strip() for n in raw_input_p.replace("\n",",").split(",") if n.strip()]
-                    if parsed_p:
-                        parsed_p = list(dict.fromkeys(parsed_p))
-                        rk_df = load_rank()
-                        rk_map = {row["이름"]: i for i, row in rk_df.iterrows()}
-                        parsed_p.sort(key=lambda x: rk_map.get(x, 999))
-                        
-                        g_names = list(cg.keys())
-                        ptr = 0
-                        for gname in g_names:
-                            g_sz = cg[gname].get("size", 8)
-                            assigned = parsed_p[ptr:ptr+g_sz]
-                            cg[gname]["players"] = assigned
-                            ptr += g_sz
-                            ms2, pwn2 = build_matches(assigned, cg[gname]["mode"], cg[gname]["games"])
-                            cg[gname]["matches"] = ms2
-                            cg[gname]["player_with_number"] = pwn2
-                        tour["players"] = parsed_p
-                        save_tours(ts)
-                        st.success("✅ 설정된 그룹 크기에 의거해 자동 배정 및 매치 테이블 편성이 완료되었습니다."); st.rerun()
-            with c_direct:
-                if st.button("💾 명단만 일단 저장 (대진 미생성)", use_container_width=True):
-                    parsed_p = [n.strip() for n in raw_input_p.replace("\n",",").split(",") if n.strip()]
-                    tour["players"] = list(dict.fromkeys(parsed_p))
-                    save_tours(ts); st.success("✅ 출전 인원 기본 저장이 완료되었습니다. 하단에서 수동 조율하세요.")
+            if st.button("⚡ 랭킹순으로 그룹 자동 배정 및 대진 생성", type="primary", use_container_width=True):
+                parsed_p = [n.strip() for n in raw_input_p.replace("\n",",").split(",") if n.strip()]
+                if parsed_p:
+                    parsed_p = list(dict.fromkeys(parsed_p))
+                    rk_df = load_rank()
+                    rk_map = {row["이름"]: i for i, row in rk_df.iterrows()}
+                    # 마스터 랭킹에 이름이 있으면 해당 순위, 없으면 맨 뒤로 정렬
+                    parsed_p.sort(key=lambda x: rk_map.get(x, 999))
+                    
+                    g_names = list(cg.keys())
+                    ptr = 0
+                    for gname in g_names:
+                        g_sz = cg[gname].get("size", 8)
+                        assigned = parsed_p[ptr:ptr+g_sz]
+                        cg[gname]["players"] = assigned
+                        ptr += g_sz
+                        ms2, pwn2 = build_matches(assigned, cg[gname]["mode"], cg[gname]["games"])
+                        cg[gname]["matches"] = ms2
+                        cg[gname]["player_with_number"] = pwn2
+                    tour["players"] = parsed_p
+                    save_tours(ts)
+                    st.success("✅ 마스터 랭킹순 배정 및 모든 그룹 대진표 생성이 완료되었습니다."); st.rerun()
 
         st.divider()
         
-        # 2 단계: 그룹 구성 방식 커스텀 조정 및 배정된 선수 자유 수정 제어 프레임 (충돌 텍스트 미발생 패치)
-        st.markdown("### 🔀 [2단계] 그룹 배정 현황 및 자유 수정")
+        # 2 단계: 그룹별 텍스트 박스 개별 조정 (직접 입력 및 삭제 지원)
+        st.markdown("### 🔀 [2단계] 그룹별 명단 수정 및 텍스트 조정")
         for gname, gdata in list(tour["groups"].items()):
-            st.markdown(f"#### 🏷️ **{gname}** 세부 설정 변경")
+            st.markdown(f"#### 🏷️ **{gname}** 명단 조정")
+            
             c_m, c_g, c_z = st.columns(3)
             with c_m: 
                 m_opts=["KDK","고정페어","단식"]
@@ -645,19 +640,14 @@ elif ss.menu=="admin":
             with c_z: 
                 gdata["size"] = st.number_input(f"배정 정원 ({gname})", 2, 24, value=gdata.get("size",8), key=f"sz_edit_{gname}")
                 
-            # 깨짐 현상이 발생하는 기존 버튼 나열 대신 안전하고 직관적인 전용 인풋창으로 명단 출력 및 실시간 관리 구현
             cur_grp_players = gdata.get("players", [])
             
-            st.markdown(f"**📌 현재 소속 선수 ({len(cur_grp_players)}명)**")
-            if cur_grp_players:
-                # 가독성을 높이기 위해 단순 텍스트 배지 스타일로 깨짐 없이 명단 노출
-                st.info(f"👉 {', '.join(cur_grp_players)}")
-            else:
-                st.caption("현재 소속된 선수가 없습니다.")
-                
-            grp_text_input = st.text_input(f"✍️ {gname} 소속 선수 명단 직접 편집 (이름을 쉼표로 구분)", value=", ".join(cur_grp_players), key=f"grp_txt_{gname}")
+            # 각 그룹별 소속 선수 명단을 하나의 텍스트 상자로 관리 (여기서 바로 지우거나 추가)
+            grp_text_input = st.text_input(f"✍️ {gname} 소속 선수 직접 편집 (이름을 쉼표로 구분)", value=", ".join(cur_grp_players), key=f"grp_txt_{gname}")
             
             updated_grp_p = [n.strip() for n in grp_text_input.split(",") if n.strip()]
+            
+            # 텍스트 변경 감지 시 즉시 실시간 대진표 리빌딩 및 저장
             if updated_grp_p != cur_grp_players:
                 gdata["players"] = updated_grp_p
                 ms3, pwn3 = build_matches(updated_grp_p, gdata["mode"], gdata["games"])
@@ -666,38 +656,6 @@ elif ss.menu=="admin":
                 save_tours(ts)
                 st.rerun()
                 
-            # 선수 조작 보조 도구 (개별 삭제/추가/그룹간 이동)
-            if updated_grp_p:
-                cc1, cc2, cc3 = st.columns([2,2,3])
-                with cc1:
-                    target_del = st.selectbox(f"❌ {gname}에서 퇴출 제어", updated_grp_p, key=f"del_sel_{gname}")
-                    if st.button("조 선수 영구 제외", key=f"del_btn_{gname}", use_container_width=True):
-                        gdata["players"].remove(target_del)
-                        ms4, pwn4 = build_matches(gdata["players"], gdata["mode"], gdata["games"])
-                        gdata["matches"] = ms4; gdata["player_with_number"] = pwn4
-                        save_tours(ts); st.success(f"{target_del} 제거 완료"); st.rerun()
-                with cc2:
-                    all_club_m = load_members()
-                    avail_add = [m for m in all_club_m if m not in updated_grp_p]
-                    target_add = st.selectbox(f"➕ {gname}에 보강 수동 투입", avail_add, key=f"add_sel_{gname}")
-                    if st.button("조 선수 추가 실행", key=f"add_btn_{gname}", use_container_width=True):
-                        gdata["players"].append(target_add)
-                        ms5, pwn5 = build_matches(gdata["players"], gdata["mode"], gdata["games"])
-                        gdata["matches"] = ms5; gdata["player_with_number"] = pwn5
-                        save_tours(ts); st.success(f"{target_add} 추가 완료"); st.rerun()
-                with cc3:
-                    other_groups = [g for g in cg.keys() if g != gname]
-                    if other_groups:
-                        target_mv = st.selectbox("트레이드 대상 선별", updated_grp_p, key=f"mv_p_sel_{gname}")
-                        target_dest = st.selectbox("이동 목적지 조", other_groups, key=f"mv_d_sel_{gname}")
-                        if st.button("🔄 그룹간 이동 실행", key=f"mv_btn_{gname}", use_container_width=True):
-                            gdata["players"].remove(target_mv)
-                            cg[target_dest].setdefault("players", []).append(target_mv)
-                            for target_g in [gname, target_dest]:
-                                ms_rev, pwn_rev = build_matches(cg[target_g]["players"], cg[target_g]["mode"], cg[target_g]["games"])
-                                cg[target_g]["matches"] = ms_rev
-                                cg[target_g]["player_with_number"] = pwn_rev
-                            save_tours(ts); st.success("이동 및 대진표 동기화 완료"); st.rerun()
             st.markdown("<div style='height:1px; background:#ddd; margin:15px 0;'></div>", unsafe_allow_html=True)
             
         if st.button("🏁 모든 그룹 최종 변동사항 저장 및 대진 전면 확정", type="primary", use_container_width=True):
