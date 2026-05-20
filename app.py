@@ -232,18 +232,28 @@ def safe_parse_team(team_data):
         return [str(team_data)]
     return []
 
-def stats_fixed(matches):
+def stats_fixed(matches, mode="고정페어"):
     s={}
     for m in matches:
-        t1 = tuple(safe_parse_team(m.get("t1", [])))
-        t2 = tuple(safe_parse_team(m.get("t2", [])))
-        if not t1 or not t2: continue
-        for t in (t1,t2):
-            if t not in s: s[t]={"승":0,"패":0,"득실":0}
-        a,b=int(m.get("s1", 0)),int(m.get("s2", 0))
-        if a>b:   s[t1]["승"]+=1;s[t2]["패"]+=1
-        elif b>a: s[t2]["승"]+=1;s[t1]["패"]+=1
-        s[t1]["득실"]+=a-b;s[t2]["득실"]+=b-a
+        t1_raw = safe_parse_team(m.get("t1", []))
+        t2_raw = safe_parse_team(m.get("t2", []))
+        if not t1_raw or not t2_raw: continue
+        
+        # 단식 모드일 때는 튜플이 아닌 단일 문자열(이름)을 Key로 사용하도록 구조적 통일
+        if mode == "단식":
+            t1, t2 = t1_raw[0], t2_raw[0]
+        else:
+            t1, t2 = tuple(t1_raw), tuple(t2_raw)
+            
+        for t in (t1, t2):
+            if t not in s: s[t] = {"승": 0, "패": 0, "득실": 0}
+            
+        a, b = int(m.get("s1", 0)), int(m.get("s2", 0))
+        if a > b:
+            s[t1]["승"] += 1; s[t2]["패"] += 1
+        elif b > a:
+            s[t2]["승"] += 1; s[t1]["패"] += 1
+        s[t1]["득실"] += a - b; s[t2]["득실"] += b - a
     return s
 
 def stats_kdk(matches):
@@ -313,21 +323,24 @@ def matrix_html(matches,rank_items,mode,p2n):
     is_fixed = (mode == "고정페어")
     is_singles = (mode in ["단식", "싱글"])
     
+    # 1. 헤더 라벨 사전 정의
     if is_fixed:
         lab = {t: " &amp; ".join(list(t)) for t in rank_items}
     elif is_singles:
-        lab = {p: str(p[0] if isinstance(p, tuple) else p) for p in rank_items}
+        lab = {p: str(p) for p in rank_items} # 단식은 이제 순수 문자열 기반임
     else:
         lab = {p: f"{p}({p2n_dict.get(p,'?')})" if p2n_dict else str(p) for p in rank_items}
         
     keys = list(lab.values())
     mat = {rk: {ck: "■" if rk == ck else "—" for ck in keys} for rk in keys}
     
+    # 2. 스코어 매핑 (unhashable list 에러 방지를 위해 타입 체크 및 변환 철저화)
     for m in matches:
         a, b = int(m.get("s1", 0)), int(m.get("s2", 0))
         if a > 0 or b > 0:
             t1_players = safe_parse_team(m.get("t1", []))
             t2_players = safe_parse_team(m.get("t2", []))
+            if not t1_players or not t2_players: continue
             
             if is_fixed:
                 k1, k2 = tuple(t1_players), tuple(t2_players)
@@ -335,18 +348,11 @@ def matrix_html(matches,rank_items,mode,p2n):
                 if rk in mat and ck in mat[rk]: mat[rk][ck] = f"{a}:{b}"
                 if ck in mat and rk in mat[ck]: mat[ck][rk] = f"{b}:{a}"
             elif is_singles:
-                if t1_players and t2_players:
-                    x = t1_players[0]
-                    y = t2_players[0]
-                    
-                    rk, ck = None, None
-                    for original_key, label_val in lab.items():
-                        orig_str = original_key[0] if isinstance(original_key, tuple) else original_key
-                        if orig_str == x: rk = label_val
-                        if orig_str == y: ck = label_val
-                        
-                    if rk in mat and ck in mat[rk]: mat[rk][ck] = f"{a}:{b}"
-                    if ck in mat and rk in mat[ck]: mat[ck][rk] = f"{b}:{a}"
+                # 단식 전용 조회 구조 구축 (리스트 통째로 조회 방지)
+                x, y = t1_players[0], t2_players[0]
+                rk, ck = lab.get(x), lab.get(y)
+                if rk in mat and ck in mat[rk]: mat[rk][ck] = f"{a}:{b}"
+                if ck in mat and rk in mat[ck]: mat[ck][rk] = f"{b}:{a}"
             else:
                 for x in t1_players:
                     for y in t2_players:
@@ -428,7 +434,10 @@ elif ss.menu=="schedule":
         with tabs[ti]:
             gi=tour["groups"][g]; ms=gi.get("matches",[]); mode=gi.get("mode","KDK")
             p2n=gi.get("player_with_number",{})
-            fx=(mode=="고정페어"); sv=stats_fixed(ms) if (fx or mode=="단식") else stats_kdk(ms); rit=list(sv.keys())
+            
+            # mode 매개변수를 명시적으로 전달하여 단식 처리 방식 교정
+            sv=stats_fixed(ms, mode=mode) if (mode=="고정페어" or mode=="단식") else stats_kdk(ms)
+            rit=list(sv.keys())
             
             st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
             st.markdown(matrix_html(ms,rit,mode,p2n),unsafe_allow_html=True)
@@ -438,8 +447,8 @@ elif ss.menu=="schedule":
             if rit:
                 ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"])); rows=[]
                 for i,item in enumerate(ranked):
-                    if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}'})
-                    elif mode=="단식": rows.append({"순위":i+1,"선수":item[0] if isinstance(item, tuple) else item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade(i+1)})
+                    if mode=="고정페어": rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}'})
+                    elif mode=="단식": rows.append({"순위":i+1,"선수":str(item),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade(i+1)})
                     else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade(i+1)})
                 st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
                 
@@ -482,14 +491,15 @@ elif ss.menu=="result":
     for g,gi in tour.get("groups", {}).items():
         mode,ms=gi.get("mode","KDK"),gi.get("matches",[])
         p2n=gi.get("player_with_number",{})
-        fx=(mode=="고정페어"); sv=stats_fixed(ms) if (fx or mode=="단식") else stats_kdk(ms)
+        
+        sv=stats_fixed(ms, mode=mode) if (mode=="고정페어" or mode=="단식") else stats_kdk(ms)
         ranked=sorted(sv.keys(),key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
         st.markdown(f'<div class="sec sec-o">{g} ({mode})</div>',unsafe_allow_html=True)
         rows=[]
         for i,item in enumerate(ranked):
             pt=rank_pts(i+1,mode)
-            if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
-            elif mode=="단식": rows.append({"순위":i+1,"선수":item[0] if isinstance(item, tuple) else item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
+            if mode=="고정페어": rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
+            elif mode=="단식": rows.append({"순위":i+1,"선수":str(item),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
             else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
         st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
         
@@ -518,14 +528,15 @@ elif ss.menu=="archive":
     tour=past[sel]
     st.markdown(f"<div class='ic ic-p'>🏆 <strong>{tour['title']}</strong> &nbsp;|&nbsp; {tour.get('date','')} &nbsp;|&nbsp; {tour.get('place','')}</div>",unsafe_allow_html=True)
     for g,gi in tour.get("groups",{}).items():
-        mode,ms=gi.get("mode","KDK"),gi.get("matches",[]); fx=(mode=="고정페어"); sv=stats_fixed(ms) if (fx or mode=="단식") else stats_kdk(ms)
+        mode,ms=gi.get("mode","KDK"),gi.get("matches",[])
+        sv=stats_fixed(ms, mode=mode) if (mode=="고정페어" or mode=="단식") else stats_kdk(ms)
         ranked=sorted(sv.keys(),key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
         st.markdown(f'<div class="sec sec-p">{g} ({mode})</div>',unsafe_allow_html=True)
         rows=[]
         for i,item in enumerate(ranked):
             pt=rank_pts(i+1,mode)
-            if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
-            elif mode=="단식": rows.append({"순위":i+1,"선수":item[0] if isinstance(item, tuple) else item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
+            if mode=="고정페어": rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
+            elif mode=="단식": rows.append({"순위":i+1,"선수":str(item),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
             else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
         st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
 
@@ -730,21 +741,16 @@ elif ss.menu=="admin":
             mode = gdata.get("mode","KDK")
             ms = gdata.get("matches",[])
             
-            fx=(mode=="고정페어")
-            score_map = stats_fixed(ms) if (fx or mode=="단식") else stats_kdk(ms)
+            sv = stats_fixed(ms, mode=mode) if (mode=="고정페어" or mode=="단식") else stats_kdk(ms)
             if not score_map: continue
                 
-            rk_list = sorted(score_map.keys(), key=lambda x:(-score_map[x]["승"], -score_map[x]["득실"]))
+            rk_list = sorted(sv.keys(), key=lambda x:(-sv[x]["승"], -sv[x]["득실"]))
             for i, p_item in enumerate(rk_list):
                 pts = rank_pts(i+1, mode)
-                if fx:
+                if mode=="고정페어":
                     for individual in list(p_item): 
                         ind_str = str(individual).strip()
                         earn[ind_str] = earn.get(ind_str, 0) + pts
-                elif mode=="단식":
-                    individual = p_item[0] if isinstance(p_item, tuple) else p_item
-                    ind_str = str(individual).strip()
-                    earn[ind_str] = earn.get(ind_str, 0) + pts
                 else:
                     ind_str = str(p_item).strip()
                     earn[ind_str] = earn.get(ind_str, 0) + pts
