@@ -338,9 +338,12 @@ def matrix_html(matches,rank_items,is_fixed,p2n):
     return f'<div class="mx-wrap"><table class="mx"><thead><tr><th></th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
 
 def adj_score(tid,grp,mi,side,delta):
-    tours=load_tours(); m=tours[tid]["groups"][grp]["matches"][mi]
-    key="s1" if side=="A" else "s2"
-    m[key]=max(0,int(m[key])+delta); save_tours(tours)
+    tours=load_tours()
+    if tid in tours and grp in tours[tid]["groups"]:
+        m = tours[tid]["groups"][grp]["matches"][mi]
+        key = "s1" if side=="A" else "s2"
+        m[key] = max(0, int(m[key]) + delta)
+        save_tours(tours)
 
 # ══════════════════════════════════════
 # 세션 관리 및 기본값 구성
@@ -413,7 +416,6 @@ elif ss.menu=="schedule":
             for mi,m in enumerate(ms):
                 t1s=" & ".join(m["t1"]); t2s=" & ".join(m["t2"])
                 
-                # 대진카드 구별 색상 적용 (색상 인덱스 로직 다양화)
                 color_idx = mi % 8
                 mc = f"mc{color_idx}"
                 tbc = f"tb{color_idx}"
@@ -447,7 +449,7 @@ elif ss.menu=="result":
         mode,ms=gi["mode"],gi["matches"]; p2n=gi.get("player_with_number",{})
         fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms)
         ranked=sorted(sv.keys(),key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
-        st.markdown(f'<div class="sec sec-o">Group {g} ({mode})</div>',unsafe_allow_html=True)
+        st.markdown(f'<div class="sec sec-o">{g} ({mode})</div>',unsafe_allow_html=True)
         rows=[]
         for i,item in enumerate(ranked):
             pt=rank_pts(i+1,mode)
@@ -472,7 +474,7 @@ elif ss.menu=="archive":
     for g,gi in tour.get("groups",{}).items():
         mode,ms=gi["mode"],gi["matches"]; fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms)
         ranked=sorted(sv.keys(),key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
-        st.markdown(f'<div class="sec sec-p">Group {g} ({mode})</div>',unsafe_allow_html=True)
+        st.markdown(f'<div class="sec sec-p">{g} ({mode})</div>',unsafe_allow_html=True)
         rows=[]
         for i,item in enumerate(ranked):
             pt=rank_pts(i+1,mode)
@@ -533,13 +535,14 @@ elif ss.menu=="admin":
         with c2: tp=st.text_input("장소",value="두류 테니스장")
         c3,c4=st.columns(2)
         with c3: co=st.selectbox("할당 코트", [1,2,3,4,5], index=1)
-        with c4: g_count=st.number_input("설정할 그룹 수",1,6,value=3)
+        with c4: g_count=st.number_input("설정할 그룹 수",1,6,value=4)
         
         st.markdown('<div style="font-size:0.75rem; color:#555; font-weight:bold; margin-top:5px;">⚙️ 각 그룹 초기 스펙 정의</div>', unsafe_allow_html=True)
         init_g_setup = {}
         for i in range(int(g_count)):
-            g_char = chr(64 + 1 + i)
-            st.markdown(f"**[{g_char}그룹 옵션]**")
+            g_char = chr(64 + 1 + i)  # A, B, C, D...
+            g_full_name = f"{g_char}그룹" # 명명 규칙 완벽 통일
+            st.markdown(f"**[{g_full_name} 옵션]**")
             cols_init = st.columns(3)
             with cols_init[0]:
                 m_init = st.selectbox(f"방식 ({g_char})", ["KDK", "고정페어", "단식"], key=f"init_m_{g_char}")
@@ -547,7 +550,7 @@ elif ss.menu=="admin":
                 g_init = st.selectbox(f"게임 수 ({g_char})", [3, 4, 5], index=1, key=f"init_g_{g_char}")
             with cols_init[2]:
                 sz_init = st.number_input(f"배정 정원 ({g_char})", 2, 24, value=8, key=f"init_sz_{g_char}")
-            init_g_setup[f"{g_char}그룹"] = {"mode": m_init, "games": g_init, "size": int(sz_init)}
+            init_g_setup[g_full_name] = {"mode": m_init, "games": g_init, "size": int(sz_init)}
             
         if st.button("🚀 대회 공식 개막", type="primary", use_container_width=True):
             if tn.strip():
@@ -592,7 +595,6 @@ elif ss.menu=="admin":
         
         st.markdown(f"### 👥 {tour['title']} 당일 출전 명단 관리")
         
-        # 1 단계: 당일 출전하는 선수들을 한눈에 텍스트로 적어 넣기
         with st.expander("📝 [1단계] 당일 참가자 명단 텍스트 일괄 등록", expanded=False):
             st.markdown("오늘 출전한 모든 선수의 이름을 쉼표(,) 또는 엔터로 구분하여 아래에 적어주세요.")
             joined_p = []
@@ -631,7 +633,6 @@ elif ss.menu=="admin":
 
         st.divider()
         
-        # 2 단계: 그룹 구성 방식 커스텀 조정 및 텍스트 기반 명단 직접 편집
         st.markdown("### 🔀 각 그룹 명단 추가, 수정, 삭제")
         for gname, gdata in list(tour["groups"].items()):
             st.markdown(f"#### 🏷️ **{gname}** 세부 설정 변경")
@@ -652,7 +653,6 @@ elif ss.menu=="admin":
             else:
                 st.caption("현재 소속된 선수가 없습니다.")
                 
-            # 텍스트 상자 하나로 이름 추가, 수정, 삭제가 즉시 반영되는 파트
             grp_text_input = st.text_input(f"✍️ {gname} 명단 편집 (이름을 쉼표로 구분)", value=", ".join(cur_grp_players), key=f"grp_txt_{gname}")
             
             updated_grp_p = [n.strip() for n in grp_text_input.split(",") if n.strip()]
