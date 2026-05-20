@@ -669,13 +669,14 @@ elif ss.menu=="admin":
         if st.button("🏁 모든 그룹 최종 변동사항 저장 및 대진 전면 확정", type="primary", use_container_width=True):
             save_tours(ts); st.success("✅ 전체 대진 매트릭스가 완벽하게 세이브되었습니다. 대진 메뉴를 확인하세요.")
 
-    # 탭 [3] : 당일 최종 스코어 기반 랭킹 포인트 결산 및 마감 처리
+    # 탭 [3] : 당일 최종 스코어 기반 랭킹 포인트 결산 및 마감 처리 (KeyError 철저 방지 보완)
     with adm[3]:
         ts=load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
         if not act_tids: st.warning("정산 대상 대회가 활성화되어 있지 않습니다."); st.stop()
         t_key=act_tids[-1]; t_obj=ts[t_key]
         
         earn={}
+        # .get("groups", {}) 구조를 순회하여 하드코딩 오류 원천 차단
         for gname, gdata in t_obj.get("groups",{}).items():
             mode = gdata.get("mode","KDK")
             ms = gdata.get("matches",[])
@@ -706,8 +707,9 @@ elif ss.menu=="admin":
                 st.success("✅ 정상 마감 처리되어 역대 기록실로 이관되었습니다."); st.rerun()
         with c_rst:
             if st.button("🚨 입력된 경기 점수 전부 강제 초기화",use_container_width=True):
-                for gname in t_obj.get("groups",{}):
-                    for m in t_obj["groups"][gname].get("matches",[]): m["s1"]=0; m["s2"]=0
+                # 하드코딩 키 조회 대신 루프 내부에서 안전하게 구조 제어
+                for gname, gdata in t_obj.get("groups",{}).items():
+                    for m in gdata.get("matches",[]): m["s1"]=0; m["s2"]=0
                 save_tours(ts); st.success("✅ 모든 경기 스코어가 0:0으로 초기화되었습니다."); st.rerun()
 
 }
