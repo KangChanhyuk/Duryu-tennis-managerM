@@ -242,10 +242,11 @@ def df_to_html(df):
 def stats_fixed(matches):
     s={}
     for m in matches:
-        t1,t2=tuple(m["t1"]),tuple(m["t2"])
+        t1,t2=tuple(m.get("t1", [])),tuple(m.get("t2", []))
+        if not t1 or not t2: continue
         for t in (t1,t2):
             if t not in s: s[t]={"승":0,"패":0,"득실":0}
-        a,b=int(m["s1"]),int(m["s2"])
+        a,b=int(m.get("s1", 0)),int(m.get("s2", 0))
         if a>b:   s[t1]["승"]+=1;s[t2]["패"]+=1
         elif b>a: s[t2]["승"]+=1;s[t1]["패"]+=1
         s[t1]["득실"]+=a-b;s[t2]["득실"]+=b-a
@@ -254,10 +255,10 @@ def stats_fixed(matches):
 def stats_kdk(matches):
     s={}
     for m in matches:
-        p1,p2=m["t1"],m["t2"]
+        p1,p2=m.get("t1", []),m.get("t2", [])
         for p in p1+p2:
             if p not in s: s[p]={"승":0,"패":0,"득실":0}
-        a,b=int(m["s1"]),int(m["s2"])
+        a,b=int(m.get("s1", 0)),int(m.get("s2", 0))
         if a>b:
             for p in p1: s[p]["승"]+=1
             for p in p2: s[p]["패"]+=1
@@ -315,15 +316,17 @@ def matrix_html(matches,rank_items,is_fixed,p2n):
     lab={t:" &amp; ".join(list(t)) for t in rank_items} if is_fixed else {p:f"{p}({p2n.get(p,'?')})" for p in rank_items}
     mat={lab[t]:{lab[o]:("■" if t==o else "—") for o in lab} for t in lab}
     for m in matches:
-        a,b=int(m["s1"]),int(m["s2"])
+        a,b=int(m.get("s1", 0)),int(m.get("s2", 0))
         if a>0 or b>0:
             if is_fixed:
-                k1,k2=tuple(m["t1"]),tuple(m["t2"])
-                mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]]=f"{b}:{a}"
+                k1,k2=tuple(m.get("t1", [])),tuple(m.get("t2", []))
+                if k1 in lab and k2 in lab:
+                    mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]]=f"{b}:{a}"
             else:
-                for x in m["t1"]:
-                    for y in m["t2"]:
-                        mat[lab[x]][lab[y]]=f"{a}:{b}";mat[lab[y]][lab[x]]=f"{b}:{a}"
+                for x in m.get("t1", []):
+                    for y in m.get("t2", []):
+                        if x in lab and y in lab:
+                            mat[lab[x]][lab[y]]=f"{a}:{b}";mat[lab[y]][lab[x]]=f"{b}:{a}"
     keys=list(lab.values())
     header="".join(f"<th>{k}</th>" for k in keys)
     body=""
@@ -342,7 +345,7 @@ def adj_score(tid,grp,mi,side,delta):
     if tid in tours and "groups" in tours[tid] and grp in tours[tid]["groups"]:
         m = tours[tid]["groups"][grp]["matches"][mi]
         key = "s1" if side=="A" else "s2"
-        m[key] = max(0, int(m[key]) + delta)
+        m[key] = max(0, int(m.get(key, 0)) + delta)
         save_tours(tours)
 
 # ══════════════════════════════════════
@@ -414,13 +417,16 @@ elif ss.menu=="schedule":
                 
             st.markdown("<div class='sec sec-b'>🎾 경기 스코어 입력</div>",unsafe_allow_html=True)
             for mi,m in enumerate(ms):
-                t1s=" & ".join(m["t1"]); t2s=" & ".join(m["t2"])
+                t1_list = m.get("t1", [])
+                t2_list = m.get("t2", [])
+                t1s=" & ".join(t1_list) if isinstance(t1_list, list) and t1_list else "미정"
+                t2s=" & ".join(t2_list) if isinstance(t2_list, list) and t2_list else "미정"
                 
                 color_idx = mi % 8
                 mc = f"mc{color_idx}"
                 tbc = f"tb{color_idx}"
                 
-                s1v=int(m["s1"]); s2v=int(m["s2"])
+                s1v=int(m.get("s1", 0)); s2v=int(m.get("s2", 0))
                 st.markdown(f'<div class="match-card m-color-{color_idx}"><span class="match-no {mc}">MATCH {mi+1}</span>',unsafe_allow_html=True)
                 nA,nVS,nB=st.columns([5,1,5])
                 with nA: st.markdown(f'<div class="team-nm {tbc}">{t1s}</div>',unsafe_allow_html=True)
@@ -456,9 +462,19 @@ elif ss.menu=="result":
             if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
             else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
         st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
+        
         with st.expander("📋 세부 매치 기록 보기"):
-            mr=[{"경기":f"{' & '.join(m['t1'])} vs {' & '.join(m['t2'])}","결과":f"{m['s1']} : {m['s2']}"} for m in ms]
-            st.markdown(df_to_html(pd.DataFrame(mr)),unsafe_allow_html=True)
+            mr=[]
+            for m in ms:
+                t1_list = m.get("t1", [])
+                t2_list = m.get("t2", [])
+                t1s = " & ".join(t1_list) if isinstance(t1_list, list) and t1_list else "미정"
+                t2s = " & ".join(t2_list) if isinstance(t2_list, list) and t2_list else "미정"
+                mr.append({"경기": f"{t1s} vs {t2s}", "결과": f"{m.get('s1', 0)} : {m.get('s2', 0)}"})
+            if mr:
+                st.markdown(df_to_html(pd.DataFrame(mr)),unsafe_allow_html=True)
+            else:
+                st.caption("기록된 경기가 없습니다.")
 
 # ══════════════════════════════════════════════════════
 # 메뉴 4. 히스토리 기록실
@@ -609,7 +625,6 @@ elif ss.menu=="admin":
                     if parsed_p:
                         parsed_p = list(dict.fromkeys(parsed_p))
                         rk_df = load_rank()
-                        # 이름이 없거나 데이터 부족 시의 방어 코드
                         if not rk_df.empty and "이름" in rk_df.columns:
                             rk_map = {row["이름"]: i for i, row in rk_df.iterrows()}
                             parsed_p.sort(key=lambda x: rk_map.get(x, 999))
@@ -617,7 +632,6 @@ elif ss.menu=="admin":
                         g_names = list(cg.keys())
                         ptr = 0
                         for gname in g_names:
-                            # 안전하게 딕셔너리 구조 자체를 한 번 더 체크/보장
                             if gname not in cg: continue
                             g_sz = cg[gname].get("size", 8)
                             assigned = parsed_p[ptr:ptr+g_sz]
