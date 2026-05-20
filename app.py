@@ -138,7 +138,7 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .vs-badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FFB74D,#FB8C00);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.52rem;color:#fff;box-shadow:var(--sh);margin:0 auto;}
 
 .ctrl-num{display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #A5D6A7;border-radius:8px;font-size:clamp(1rem,5.5vw,1.5rem);font-weight:900;color:#1B5E20;height:42px;width:100%;}
-.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100 Tinted!important;line-height:1!important;}
+.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100%!important;line-height:1!important;}
 .ctrl-row .stButton>button:hover{background:#C8E6C9!important;}
 .ctrl-row .stButton>button:active{background:#81C784!important;transform:scale(.93)!important;}
 
@@ -237,12 +237,22 @@ def df_to_html(df):
     return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</tr></thead><tbody>{body}</tbody></table></div>'
 
 # ══════════════════════════════════════
-# 대진 및 전적 관리 로직
+# 대진 데이터 안전 가속화 파서 (핵심 예외 방어공학)
 # ══════════════════════════════════════
+def safe_parse_team(team_data):
+    """정수, 문자열, 리스트 등 비정상적으로 적재된 팀원 데이터를 안전하게 리스트(포맷)로 강제 복구합니다."""
+    if isinstance(team_data, list):
+        return [str(p) for p in team_data if p]
+    if isinstance(team_data, (str, int, float)):
+        if pd.isna(team_data) or team_data == "": return []
+        return [str(team_data)]
+    return []
+
 def stats_fixed(matches):
     s={}
     for m in matches:
-        t1,t2=tuple(m.get("t1", [])),tuple(m.get("t2", []))
+        t1 = tuple(safe_parse_team(m.get("t1", [])))
+        t2 = tuple(safe_parse_team(m.get("t2", [])))
         if not t1 or not t2: continue
         for t in (t1,t2):
             if t not in s: s[t]={"승":0,"패":0,"득실":0}
@@ -255,7 +265,8 @@ def stats_fixed(matches):
 def stats_kdk(matches):
     s={}
     for m in matches:
-        p1,p2=m.get("t1", []),m.get("t2", [])
+        p1 = safe_parse_team(m.get("t1", []))
+        p2 = safe_parse_team(m.get("t2", []))
         for p in p1+p2:
             if p not in s: s[p]={"승":0,"패":0,"득실":0}
         a,b=int(m.get("s1", 0)),int(m.get("s2", 0))
@@ -314,36 +325,32 @@ def kdk_html(n,gperson,p2n):
 def matrix_html(matches,rank_items,is_fixed,p2n):
     if not matches or not rank_items: return ""
     
-    # 1. 가로/세로축 라벨 표기 맵 빌드
     if is_fixed:
         lab = {t: " &amp; ".join(list(t)) for t in rank_items}
     else:
         lab = {p: f"{p}({p2n.get(p,'?')})" if p2n else str(p) for p in rank_items}
         
-    # 2. 비어있는 전적 판 매트릭스 사전 생성
     keys = list(lab.values())
     mat = {rk: {ck: "■" if rk == ck else "—" for ck in keys} for rk in keys}
     
-    # 3. 경기 점수 데이터 매핑 (KeyError 완전 차단 안전 로직 적용)
     for m in matches:
         a, b = int(m.get("s1", 0)), int(m.get("s2", 0))
         if a > 0 or b > 0:
+            t1_players = safe_parse_team(m.get("t1", []))
+            t2_players = safe_parse_team(m.get("t2", []))
+            
             if is_fixed:
-                k1, k2 = tuple(m.get("t1", [])), tuple(m.get("t2", []))
+                k1, k2 = tuple(t1_players), tuple(t2_players)
                 rk, ck = lab.get(k1), lab.get(k2)
                 if rk in mat and ck in mat[rk]: mat[rk][ck] = f"{a}:{b}"
                 if ck in mat and rk in mat[ck]: mat[ck][rk] = f"{b}:{a}"
             else:
-                # KDK 및 단식용 다대다/일대일 안전 루프 구조
-                t1_players = m.get("t1", [])
-                t2_players = m.get("t2", [])
                 for x in t1_players:
                     for y in t2_players:
                         rk, ck = lab.get(x), lab.get(y)
                         if rk in mat and ck in mat[rk]: mat[rk][ck] = f"{a}:{b}"
                         if ck in mat and rk in mat[ck]: mat[ck][rk] = f"{b}:{a}"
                         
-    # 4. HTML Table 문자열 렌더링
     header = "".join(f"<th>{k}</th>" for k in keys)
     body = ""
     for rk in keys:
@@ -433,10 +440,10 @@ elif ss.menu=="schedule":
                 
             st.markdown("<div class='sec sec-b'>🎾 경기 스코어 입력</div>",unsafe_allow_html=True)
             for mi,m in enumerate(ms):
-                t1_list = m.get("t1", [])
-                t2_list = m.get("t2", [])
-                t1s=" & ".join(t1_list) if isinstance(t1_list, list) and t1_list else "미정"
-                t2s=" & ".join(t2_list) if isinstance(t2_list, list) and t2_list else "미정"
+                t1_list = safe_parse_team(m.get("t1", []))
+                t2_list = safe_parse_team(m.get("t2", []))
+                t1s=" & ".join(t1_list) if t1_list else "미정"
+                t2s=" & ".join(t2_list) if t2_list else "미정"
                 
                 color_idx = mi % 8
                 mc = f"mc{color_idx}"
@@ -458,9 +465,9 @@ elif ss.menu=="schedule":
                 with cBp: st.markdown('<div class="ctrl-row">',unsafe_allow_html=True); st.button("＋",key=f"ip_{tid}_{g}_{mi}_B",on_click=adj_score,args=(tid,g,mi,"B",1),use_container_width=True); st.markdown('</div>',unsafe_allow_html=True)
                 st.markdown('</div>',unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════
+# ═══════════════════════════════════════
 # 메뉴 3. 최종 결과 현황
-# ══════════════════════════════════════════════════════
+# ═══════════════════════════════════════
 elif ss.menu=="result":
     tours=load_tours(); active=[k for k,v in tours.items() if v.get("status")=="진행중"]
     if not active:
@@ -482,10 +489,10 @@ elif ss.menu=="result":
         with st.expander("📋 세부 매치 기록 보기"):
             mr=[]
             for m in ms:
-                t1_list = m.get("t1", [])
-                t2_list = m.get("t2", [])
-                t1s = " & ".join(t1_list) if isinstance(t1_list, list) and t1_list else "미정"
-                t2s = " & ".join(t2_list) if isinstance(t2_list, list) and t2_list else "미정"
+                t1_list = safe_parse_team(m.get("t1", []))
+                t2_list = safe_parse_team(m.get("t2", []))
+                t1s = " & ".join(t1_list) if t1_list else "미정"
+                t2s = " & ".join(t2_list) if t2_list else "미정"
                 mr.append({"경기": f"{t1s} vs {t2s}", "결과": f"{m.get('s1', 0)} : {m.get('s2', 0)}"})
             if mr:
                 st.markdown(df_to_html(pd.DataFrame(mr)),unsafe_allow_html=True)
