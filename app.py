@@ -27,7 +27,7 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Noto Sans KR', sans-serif !important;
 }
 
-/* 무분별한 폰트 오버라이딩으로 인한 아이콘 깨짐(expand_more 등) 현상 차단 */
+/* 무분별한 폰트 오버라이딩으로 인한 아이콘 깨짐 현상 차단 */
 [data-testid="stIconVisibility"], 
 svg, 
 i, 
@@ -108,7 +108,7 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .kdk td:first-child{width:50px;text-align:center;}
 .kdk td:last-child{text-align:left;}
 
-/* 경기 카드별 구별 색상 그라데이션 정의 (총 8개 패턴) */
+/* 경기 카드별 구별 색상 그라데이션 정의 */
 .match-card{background:var(--card);border-radius:var(--r2);padding:12px 10px;margin:12px 0;box-shadow:var(--sh2);border:1px solid var(--bd);}
 .m-color-0 { border-top: 5px solid #2E7D32; }
 .m-color-1 { border-top: 5px solid #1565C0; }
@@ -124,7 +124,7 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .mc3{background:#4A148C;}.mc4{background:#00695C;}.mc5{background:#C62828;}
 .mc6{background:#0277BD;}.mc7{background:#EF6C00;}
 
-/* 팀명 상자 색상 다양화 */
+/* 팀명 상자 색상 */
 .team-nm{border-radius:8px;padding:7px 3px;font-weight:900;font-size:clamp(.6rem,2.8vw,.85rem);text-align:center;color:#fff;box-shadow:var(--sh);min-height:40px;display:flex;align-items:center;justify-content:center;word-break:keep-all;line-height:1.2;}
 .tb0{background:linear-gradient(135deg, #2E7D32, #4CAF50);}
 .tb1{background:linear-gradient(135deg, #1565C0, #2196F3);}
@@ -338,8 +338,8 @@ def matrix_html(matches,rank_items,is_fixed,p2n):
     return f'<div class="mx-wrap"><table class="mx"><thead><tr><th></th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
 
 def adj_score(tid,grp,mi,side,delta):
-    tours=load_tours()
-    if tid in tours and grp in tours[tid]["groups"]:
+    tours = load_tours()
+    if tid in tours and "groups" in tours[tid] and grp in tours[tid]["groups"]:
         m = tours[tid]["groups"][grp]["matches"][mi]
         key = "s1" if side=="A" else "s2"
         m[key] = max(0, int(m[key]) + delta)
@@ -397,7 +397,7 @@ elif ss.menu=="schedule":
     tabs=st.tabs([f"{GLBL[i%len(GLBL)]} {g}" for i,g in enumerate(gnames)])
     for ti,g in enumerate(gnames):
         with tabs[ti]:
-            gi=tour["groups"][g]; ms=gi["matches"]; mode=gi["mode"]; p2n=gi.get("player_with_number",{})
+            gi=tour["groups"][g]; ms=gi.get("matches",[]); mode=gi.get("mode","KDK"); p2n=gi.get("player_with_number",{})
             fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
             
             st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
@@ -445,8 +445,8 @@ elif ss.menu=="result":
         st.markdown("<div class='pg-title c2'>📊 경기 결과</div><div class='ic ic-o'>⚠️ 진행 중인 대회가 없습니다.</div>",unsafe_allow_html=True); st.stop()
     tid=active[-1]; tour=tours[tid]
     st.markdown(f"<div class='pg-title c2'>📊 {tour['title']} 최종 현황</div>",unsafe_allow_html=True)
-    for g,gi in tour["groups"].items():
-        mode,ms=gi["mode"],gi["matches"]; p2n=gi.get("player_with_number",{})
+    for g,gi in tour.get("groups", {}).items():
+        mode,ms=gi.get("mode","KDK"),gi.get("matches",[]); p2n=gi.get("player_with_number",{})
         fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms)
         ranked=sorted(sv.keys(),key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
         st.markdown(f'<div class="sec sec-o">{g} ({mode})</div>',unsafe_allow_html=True)
@@ -462,7 +462,7 @@ elif ss.menu=="result":
 
 # ══════════════════════════════════════════════════════
 # 메뉴 4. 히스토리 기록실
-# ══════════════════════════════════════════════════════
+# ══════════════════════════════════════
 elif ss.menu=="archive":
     st.markdown("<div class='pg-title c3'>📂 대회 기록실</div>",unsafe_allow_html=True)
     tours=load_tours(); past={k:v for k,v in tours.items() if v.get("status")!="진행중"}
@@ -472,7 +472,7 @@ elif ss.menu=="archive":
     tour=past[sel]
     st.markdown(f"<div class='ic ic-p'>🏆 <strong>{tour['title']}</strong> &nbsp;|&nbsp; {tour.get('date','')} &nbsp;|&nbsp; {tour.get('place','')}</div>",unsafe_allow_html=True)
     for g,gi in tour.get("groups",{}).items():
-        mode,ms=gi["mode"],gi["matches"]; fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms)
+        mode,ms=gi.get("mode","KDK"),gi.get("matches",[]); fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms)
         ranked=sorted(sv.keys(),key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
         st.markdown(f'<div class="sec sec-p">{g} ({mode})</div>',unsafe_allow_html=True)
         rows=[]
@@ -541,7 +541,7 @@ elif ss.menu=="admin":
         init_g_setup = {}
         for i in range(int(g_count)):
             g_char = chr(64 + 1 + i)  # A, B, C, D...
-            g_full_name = f"{g_char}그룹" # 명명 규칙 완벽 통일
+            g_full_name = f"{g_char}그룹"
             st.markdown(f"**[{g_full_name} 옵션]**")
             cols_init = st.columns(3)
             with cols_init[0]:
@@ -591,7 +591,7 @@ elif ss.menu=="admin":
         ts=load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
         if not act_tids:
             st.info("현재 진행 중인 대회가 존재하지 않습니다."); st.stop()
-        sel_tid=act_tids[-1]; tour=ts[sel_tid]; cg=tour["groups"]
+        sel_tid=act_tids[-1]; tour=ts[sel_tid]; cg=tour.get("groups",{})
         
         st.markdown(f"### 👥 {tour['title']} 당일 출전 명단 관리")
         
@@ -619,7 +619,7 @@ elif ss.menu=="admin":
                             assigned = parsed_p[ptr:ptr+g_sz]
                             cg[gname]["players"] = assigned
                             ptr += g_sz
-                            ms2, pwn2 = build_matches(assigned, cg[gname]["mode"], cg[gname]["games"])
+                            ms2, pwn2 = build_matches(assigned, cg[gname].get("mode","KDK"), cg[gname].get("games",4))
                             cg[gname]["matches"] = ms2
                             cg[gname]["player_with_number"] = pwn2
                         tour["players"] = parsed_p
@@ -634,7 +634,7 @@ elif ss.menu=="admin":
         st.divider()
         
         st.markdown("### 🔀 각 그룹 명단 추가, 수정, 삭제")
-        for gname, gdata in list(tour["groups"].items()):
+        for gname, gdata in list(tour.get("groups",{}).items()):
             st.markdown(f"#### 🏷️ **{gname}** 세부 설정 변경")
             c_m, c_g, c_z = st.columns(3)
             with c_m: 
@@ -677,7 +677,8 @@ elif ss.menu=="admin":
         
         earn={}
         for gname, gdata in t_obj.get("groups",{}).items():
-            mode, ms = gdata["mode"], gdata["matches"]
+            mode = gdata.get("mode","KDK")
+            ms = gdata.get("matches",[])
             fx=(mode=="고정페어"); score_map = stats_fixed(ms) if fx else stats_kdk(ms)
             rk_list = sorted(score_map.keys(), key=lambda x:(-score_map[x]["승"], -score_map[x]["득실"]))
             for i, p_item in enumerate(rk_list):
@@ -706,7 +707,7 @@ elif ss.menu=="admin":
         with c_rst:
             if st.button("🚨 입력된 경기 점수 전부 강제 초기화",use_container_width=True):
                 for gname in t_obj.get("groups",{}):
-                    for m in t_obj["groups"][gname]["matches"]: m["s1"]=0; m["s2"]=0
+                    for m in t_obj["groups"][gname].get("matches",[]): m["s1"]=0; m["s2"]=0
                 save_tours(ts); st.success("✅ 모든 경기 스코어가 0:0으로 초기화되었습니다."); st.rerun()
 
 }
