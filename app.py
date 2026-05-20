@@ -239,7 +239,6 @@ def stats_fixed(matches, mode="고정페어"):
         t2_raw = safe_parse_team(m.get("t2", []))
         if not t1_raw or not t2_raw: continue
         
-        # 단식 모드일 때는 튜플이 아닌 단일 문자열(이름)을 Key로 사용하도록 구조적 통일
         if mode == "단식":
             t1, t2 = t1_raw[0], t2_raw[0]
         else:
@@ -323,18 +322,16 @@ def matrix_html(matches,rank_items,mode,p2n):
     is_fixed = (mode == "고정페어")
     is_singles = (mode in ["단식", "싱글"])
     
-    # 1. 헤더 라벨 사전 정의
     if is_fixed:
         lab = {t: " &amp; ".join(list(t)) for t in rank_items}
     elif is_singles:
-        lab = {p: str(p) for p in rank_items} # 단식은 이제 순수 문자열 기반임
+        lab = {p: str(p) for p in rank_items}
     else:
         lab = {p: f"{p}({p2n_dict.get(p,'?')})" if p2n_dict else str(p) for p in rank_items}
         
     keys = list(lab.values())
     mat = {rk: {ck: "■" if rk == ck else "—" for ck in keys} for rk in keys}
     
-    # 2. 스코어 매핑 (unhashable list 에러 방지를 위해 타입 체크 및 변환 철저화)
     for m in matches:
         a, b = int(m.get("s1", 0)), int(m.get("s2", 0))
         if a > 0 or b > 0:
@@ -348,7 +345,6 @@ def matrix_html(matches,rank_items,mode,p2n):
                 if rk in mat and ck in mat[rk]: mat[rk][ck] = f"{a}:{b}"
                 if ck in mat and rk in mat[ck]: mat[ck][rk] = f"{b}:{a}"
             elif is_singles:
-                # 단식 전용 조회 구조 구축 (리스트 통째로 조회 방지)
                 x, y = t1_players[0], t2_players[0]
                 rk, ck = lab.get(x), lab.get(y)
                 if rk in mat and ck in mat[rk]: mat[rk][ck] = f"{a}:{b}"
@@ -435,7 +431,6 @@ elif ss.menu=="schedule":
             gi=tour["groups"][g]; ms=gi.get("matches",[]); mode=gi.get("mode","KDK")
             p2n=gi.get("player_with_number",{})
             
-            # mode 매개변수를 명시적으로 전달하여 단식 처리 방식 교정
             sv=stats_fixed(ms, mode=mode) if (mode=="고정페어" or mode=="단식") else stats_kdk(ms)
             rit=list(sv.keys())
             
@@ -598,7 +593,7 @@ elif ss.menu=="admin":
         st.markdown('<div style="font-size:0.75rem; color:#555; font-weight:bold; margin-top:5px;">⚙️ 각 그룹 초기 스펙 정의</div>', unsafe_allow_html=True)
         init_g_setup = {}
         for i in range(int(g_count)):
-            g_char = chr(64 + 1 + i)  # A, B, C, D...
+            g_char = chr(64 + 1 + i)
             g_full_name = f"{g_char}그룹"
             st.markdown(f"**[{g_full_name} 옵션]**")
             cols_init = st.columns(3)
@@ -742,7 +737,7 @@ elif ss.menu=="admin":
             ms = gdata.get("matches",[])
             
             sv = stats_fixed(ms, mode=mode) if (mode=="고정페어" or mode=="단식") else stats_kdk(ms)
-            if not score_map: continue
+            if not sv: continue
                 
             rk_list = sorted(sv.keys(), key=lambda x:(-sv[x]["승"], -sv[x]["득실"]))
             for i, p_item in enumerate(rk_list):
