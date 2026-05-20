@@ -8,17 +8,24 @@ st.set_page_config(page_title="두류 테니스", page_icon="🎾",
                    layout="centered", initial_sidebar_state="collapsed")
 
 # ══════════════════════════════════════
-# CSS (아이콘 깨짐 현상 완벽 방지 및 스타일 보강)
+# CSS (눈의 피로도를 대폭 줄인 소프트/파스텔 톤 컬러스킴 적용)
 # ══════════════════════════════════════
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700;900&display=swap');
 :root{
-  --g0:#1B5E20;--g2:#388E3C;--g3:#66BB6A;--g5:#E8F5E9;
-  --nav0:#2E7D32;--nav1:#1565C0;--nav2:#E65100;--nav3:#4A148C;--nav4:#00695C;
-  --bg:#F4F6F9;--card:#fff;--bd:#E0E4EA;
-  --r1:10px;--r2:16px;
-  --sh:0 2px 10px rgba(0,0,0,.08);--sh2:0 4px 20px rgba(0,0,0,.13);
+  /* 눈이 편안한 자연스러운 톤으로 전면 변경 */
+  --g0:#2C4C38; /* 다운톤 딥그린 */
+  --g2:#4A7C59; /* 부드러운 그린 */
+  --g3:#73A984; /* 파스텔 그린 */
+  --g5:#F1F7F3; /* 은은한 연녹색 잔상 차단용 연한 배경 */
+  
+  /* 내비게이션 및 세부 그룹용 차분한 톤 다운 컬러 */
+  --nav0:#3E6247; --nav1:#466995; --nav2:#C97A3E; --nav3:#7D5C8A; --nav4:#488286;
+  
+  --bg:#F5F7FA; --card:#fff; --bd:#E2E7ED;
+  --r1:10px; --r2:16px;
+  --sh:0 2px 10px rgba(0,0,0,.05); --sh2:0 4px 18px rgba(0,0,0,.09);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 
@@ -54,17 +61,17 @@ i,
   }
 }
 
-.hdr{background:linear-gradient(135deg,#1B5E20 0%,#2E7D32 60%,#388E3C 100%);margin:0 -0.6rem 0;padding:13px 16px 0;position:relative;overflow:hidden;box-shadow:var(--sh2);}
-.hdr::after{content:'🎾';position:absolute;right:12px;top:8px;font-size:2.4rem;opacity:.12;}
+.hdr{background:linear-gradient(135deg, var(--g0) 0%, var(--g2) 100%);margin:0 -0.6rem 0;padding:13px 16px 0;position:relative;overflow:hidden;box-shadow:var(--sh2);}
+.hdr::after{content:'🎾';position:absolute;right:12px;top:8px;font-size:2.4rem;opacity:.08;}
 .hdr-title{color:#fff;font-size:1rem;font-weight:900;margin:0 0 2px;}
-.hdr-sub{color:rgba(255,255,255,.5);font-size:.55rem;letter-spacing:2px;}
+.hdr-sub{color:rgba(255,255,255,.4);font-size:.55rem;letter-spacing:2px;}
 
 .pg-title{color:#fff;padding:11px 14px;border-radius:var(--r2);margin:0 0 12px;font-size:.95rem;font-weight:900;text-align:center;box-shadow:var(--sh2);}
-.c0{background:linear-gradient(135deg,var(--nav0),#43A047);}
-.c1{background:linear-gradient(135deg,var(--nav1),#1976D2);}
-.c2{background:linear-gradient(135deg,var(--nav2),#F4511E);}
-.c3{background:linear-gradient(135deg,var(--nav3),#7B1FA2);}
-.c4{background:linear-gradient(135deg,var(--nav4),#00897B);}
+.c0{background:linear-gradient(135deg,var(--nav0),var(--g3));}
+.c1{background:linear-gradient(135deg,var(--nav1),#6B8EB8);}
+.c2{background:linear-gradient(135deg,var(--nav2),#E29A63);}
+.c3{background:linear-gradient(135deg,var(--nav3),#9B7EAA);}
+.c4{background:linear-gradient(135deg,var(--nav4),#6AA4A8);}
 
 .sec{font-size:.82rem;font-weight:800;color:var(--g0);border-left:4px solid var(--g3);padding-left:8px;margin:14px 0 7px;}
 .sec-b{color:var(--nav1);border-left-color:var(--nav1);}
@@ -72,7 +79,7 @@ i,
 .sec-p{color:var(--nav3);border-left-color:var(--nav3);}
 .sec-t{color:var(--nav4);border-left-color:var(--nav4);}
 
-.ic{background:var(--card);border-left:4px solid var(--g3);border-radius:var(--r1);padding:9px 12px;margin:6px 0;box-shadow:var(--sh);font-size:.78rem;color:#3a3a5c;}
+.ic{background:var(--card);border-left:4px solid var(--g3);border-radius:var(--r1);padding:9px 12px;margin:6px 0;box-shadow:var(--sh);font-size:.78rem;color:#4F5660;}
 .ic-b{border-left-color:var(--nav1);}
 .ic-o{border-left-color:var(--nav2);}
 .ic-p{border-left-color:var(--nav3);}
@@ -80,15 +87,15 @@ i,
 
 button[data-baseweb="tab"]{font-size:.65rem!important;font-weight:700!important;padding:7px 4px!important;border-radius:var(--r1) var(--r1) 0 0!important;min-height:38px!important;white-space:nowrap!important;}
 button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;}
-[data-baseweb="tab-list"]{background:#DDD!important;border-radius:var(--r1) var(--r1) 0 0!important;padding:3px 3px 0!important;gap:2px!important;flex-wrap:nowrap!important;overflow-x:auto!important;}
+[data-baseweb="tab-list"]{background:#E4E8ED!important;border-radius:var(--r1) var(--r1) 0 0!important;padding:3px 3px 0!important;gap:2px!important;flex-wrap:nowrap!important;overflow-x:auto!important;}
 
 .mx-wrap{background:var(--card);border-radius:var(--r1);padding:8px;box-shadow:var(--sh);overflow-x:auto;margin:7px 0;border:1px solid var(--bd);}
 .mx{border-collapse:collapse;white-space:nowrap;font-size:.7rem;width:100%;}
 .mx th,.mx td{padding:7px 6px;border:1px solid var(--bd);text-align:center!important;vertical-align:middle!important;}
 .mx thead th{background:var(--g0);color:#fff;font-weight:700;}
 .mx tbody tr:nth-child(even) td{background:var(--g5);}
-.mx-grey{background:#D0D0D0!important;color:#D0D0D0!important;}
-.mx-dash{color:#CCC;}
+.mx-grey{background:#E2E7ED!important;color:#C2C7CD!important;}
+.mx-dash{color:#D2D6DC;}
 .mx-sc{font-weight:800;color:var(--g0);}
 
 .kdk{background:var(--card);border-radius:var(--r1);padding:8px;box-shadow:var(--sh);overflow-x:auto;margin:7px 0;border:1px solid var(--bd);}
@@ -99,39 +106,39 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .kdk td:last-child{text-align:left;}
 
 .match-card{background:var(--card);border-radius:var(--r2);padding:12px 10px;margin:12px 0;box-shadow:var(--sh2);border:1px solid var(--bd);}
-.m-color-0 { border-top: 5px solid #2E7D32; }
-.m-color-1 { border-top: 5px solid #1565C0; }
-.m-color-2 { border-top: 5px solid #E65100; }
-.m-color-3 { border-top: 5px solid #4A148C; }
-.m-color-4 { border-top: 5px solid #00695C; }
-.m-color-5 { border-top: 5px solid #C62828; }
-.m-color-6 { border-top: 5px solid #0277BD; }
-.m-color-7 { border-top: 5px solid #EF6C00; }
+.m-color-0 { border-top: 5px solid var(--nav0); }
+.m-color-1 { border-top: 5px solid var(--nav1); }
+.m-color-2 { border-top: 5px solid var(--nav2); }
+.m-color-3 { border-top: 5px solid var(--nav3); }
+.m-color-4 { border-top: 5px solid var(--nav4); }
+.m-color-5 { border-top: 5px solid #BC6C6C; }
+.m-color-6 { border-top: 5px solid #5C8A97; }
+.m-color-7 { border-top: 5px solid #C49A45; }
 
 .match-no{display:inline-block;border-radius:20px;padding:3px 12px;font-size:.6rem;font-weight:900;margin-bottom:8px;color:#fff;}
-.mc0{background:#2E7D32;}.mc1{background:#1565C0;}.mc2{background:#E65100;}
-.mc3{background:#4A148C;}.mc4{background:#00695C;}.mc5{background:#C62828;}
-.mc6{background:#0277BD;}.mc7{background:#EF6C00;}
+.mc0{background:var(--nav0);}.mc1{background:var(--nav1);}.mc2{background:var(--nav2);}
+.mc3{background:var(--nav3);}.mc4{background:var(--nav4);}.mc5{background:#BC6C6C;}
+.mc6{background:#5C8A97;}.mc7{background:#C49A45;}
 
 .team-nm{border-radius:8px;padding:7px 3px;font-weight:900;font-size:clamp(.6rem,2.8vw,.85rem);text-align:center;color:#fff;box-shadow:var(--sh);min-height:40px;display:flex;align-items:center;justify-content:center;word-break:keep-all;line-height:1.2;}
-.tb0{background:linear-gradient(135deg, #2E7D32, #4CAF50);}
-.tb1{background:linear-gradient(135deg, #1565C0, #2196F3);}
-.tb2{background:linear-gradient(135deg, #E65100, #FF8F00);}
-.tb3{background:linear-gradient(135deg, #4A148C, #9C27B0);}
-.tb4{background:linear-gradient(135deg, #00695C, #009688);}
-.tb5{background:linear-gradient(135deg, #C62828, #E53935);}
-.tb6{background:linear-gradient(135deg, #0277BD, #039BE5);}
-.tb7{background:linear-gradient(135deg, #EF6C00, #F57C00);}
+.tb0{background:linear-gradient(135deg, var(--nav0), #527A5C);}
+.tb1{background:linear-gradient(135deg, var(--nav1), #5F82AB);}
+.tb2{background:linear-gradient(135deg, var(--nav2), #D99057);}
+.tb3{background:linear-gradient(135deg, var(--nav3), #9271A1);}
+.tb4{background:linear-gradient(135deg, var(--nav4), #5B9B9F);}
+.tb5{background:linear-gradient(135deg, #BC6C6C, #CF8484);}
+.tb6{background:linear-gradient(135deg, #5C8A97, #72A1AE);}
+.tb7{background:linear-gradient(135deg, #C49A45, #D9B15B);}
 
-.vs-badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FFB74D,#FB8C00);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.52rem;color:#fff;box-shadow:var(--sh);margin:0 auto;}
+.vs-badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#D9A773,#C48645);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.52rem;color:#fff;box-shadow:var(--sh);margin:0 auto;}
 
-.ctrl-num{display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #A5D6A7;border-radius:8px;font-size:clamp(1rem,5.5vw,1.5rem);font-weight:900;color:#1B5E20;height:42px;width:100%;}
-.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100%!important;line-height:1!important;}
-.ctrl-row .stButton>button:hover{background:#C8E6C9!important;}
-.ctrl-row .stButton>button:active{background:#81C784!important;transform:scale(.93)!important;}
+.ctrl-num{display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #B4CBB7;border-radius:8px;font-size:clamp(1rem,5.5vw,1.5rem);font-weight:900;color:var(--g0);height:42px;width:100%;}
+.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#EDF4EE!important;color:var(--g0)!important;border:2px solid #B4CBB7!important;box-shadow:none!important;width:100%!important;line-height:1!important;}
+.ctrl-row .stButton>button:hover{background:#DCECDF!important;}
+.ctrl-row .stButton>button:active{background:#C6DFCC!important;transform:scale(.93)!important;}
 
 .stButton>button{border-radius:var(--r2)!important;font-weight:700!important;font-size:.8rem!important;min-height:48px!important;padding:9px 12px!important;}
-.stButton>button[kind="primary"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;border:none!important;box-shadow:0 4px 14px rgba(46,125,50,.35)!important;}
+.stButton>button[kind="primary"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;border:none!important;box-shadow:0 4px 14px rgba(44,76,56,.25)!important;}
 
 .stTextInput>div>div>input,.stTextArea>div>div>textarea,.stSelectbox>div>div{min-height:46px!important;border-radius:var(--r1)!important;}
 
@@ -224,7 +231,6 @@ def df_to_html(df):
         body+=f"<tr>{cells}</tr>"
     return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</tr></thead><tbody>{body}</tbody></table></div>'
 
-# 원본에서 가장 안정적이었던 뼈대 로직 그대로 복구 (데이터 파싱 안전장치 추가)
 def stats_fixed(matches, mode="고정페어"):
     s={}
     for m in matches:
@@ -232,7 +238,6 @@ def stats_fixed(matches, mode="고정페어"):
         t2 = m.get("t2", [])
         if not t1 or not t2: continue
         
-        # 리스트 형태 보존 처리
         t1_str = " & ".join(t1) if isinstance(t1, list) else str(t1)
         t2_str = " & ".join(t2) if isinstance(t2, list) else str(t2)
         
@@ -280,8 +285,22 @@ def make_kdk(players, gperson):
     ms = [{"t1":[n2p[a],n2p[b]],"t2":[n2p[c],n2p[d]],"s1":0,"s2":0} for a,b,c,d in bp]
     return ms, p2n
 
+# 🛠️ [요구사항 반영] 고정페어 대진 생성 시 1위-최하위, 2위-차하위 매칭 정교화 구현 부위
 def make_fixed(players):
-    n = len(players); pairs = [(players[i], players[n-1-i]) for i in range(n//2)]
+    # 마스터 랭킹 기준으로 그룹 참가자 정렬 수행
+    rk_df = load_rank()
+    if not rk_df.empty and "이름" in rk_df.columns:
+        rk_map = {row["이름"]: idx for idx, row in rk_df.iterrows()}
+        # 랭킹 데이터에 존재하는 선수는 상위 순서대로, 없는 선수는 뒤로 밀리도록 정렬
+        sorted_players = sorted(players, key=lambda x: rk_map.get(x, 9999))
+    else:
+        sorted_players = players[:]
+        
+    n = len(sorted_players)
+    # 1위(가장 앞)와 최하위(가장 뒤), 2위와 차하위 형태로 양 끝단부터 짝 생성
+    pairs = [(sorted_players[i], sorted_players[n-1-i]) for i in range(n//2)]
+    
+    # 생성된 고정 팀들끼리 풀리그 형태의 대진 생성
     ms = [{"t1":list(pairs[i]),"t2":list(pairs[j]),"s1":0,"s2":0}
         for i in range(len(pairs)) for j in range(i+1,len(pairs))]
     random.shuffle(ms); return ms, {}
@@ -305,14 +324,13 @@ def kdk_html(n, gperson, p2n):
     for i,(a,b,c,d) in enumerate(bp):
         t1 = f"{n2p.get(a,a)}({a}) &amp; {n2p.get(b,b)}({b})"
         t2 = f"{n2p.get(c,c)}({c}) &amp; {n2p.get(d,d)}({d})"
-        rows += f"<tr><td style='text-align:center'><span style='background:#1B5E20;color:#fff;border-radius:20px;padding:2px 8px;font-size:.58rem;font-weight:700'>{i+1}</span></td><td style='text-align:left'>{t1} vs {t2}</td></tr>"
-    return f'<div class="kdk"><div style="font-size:.72rem;font-weight:800;color:#1B5E20;margin-bottom:5px">📋 KDK 1인 {gperson}게임 — {n}명</div><table><thead><tr><th>순서</th><th>대진</th></tr></thead><tbody>{rows}</tbody></table></div>'
+        rows += f"<tr><td style='text-align:center'><span style='background:var(--g0);color:#fff;border-radius:20px;padding:2px 8px;font-size:.58rem;font-weight:700'>{i+1}</span></td><td style='text-align:left'>{t1} vs {t2}</td></tr>"
+    return f'<div class="kdk"><div style="font-size:.72rem;font-weight:800;color:var(--g0);margin-bottom:5px">📋 KDK 1인 {gperson}게임 — {n}명</div><table><thead><tr><th>순서</th><th>대진</th></tr></thead><tbody>{rows}</tbody></table></div>'
 
 def matrix_html(matches, rank_items, mode, p2n):
     if not matches or not rank_items: return ""
     p2n_dict = p2n if (p2n and isinstance(p2n, dict)) else {}
     
-    # 키 라벨 일치화
     lab = {item: str(item) for item in rank_items}
     keys = list(lab.values())
     mat = {rk: {ck: "■" if rk == ck else "—" for ck in keys} for rk in keys}
@@ -367,7 +385,7 @@ if "menu"     not in ss: ss.menu="ranking"
 # 상단 레이아웃 및 내비게이션 바
 # ══════════════════════════════════════
 MENUS = [("ranking","🏆","랭킹"),("schedule","📅","대진"),("result","📊","결과"),("archive","📂","기록"),("admin","⚙️","관리")]
-MENU_COLOR = {"ranking":"#2E7D32","schedule":"#1565C0","result":"#E65100","archive":"#4A148C","admin":"#00695C"}
+MENU_COLOR = {"ranking":"#3E6247","schedule":"#466995","result":"#C97A3E","archive":"#7D5C8A","admin":"#488286"}
 
 st.markdown('<div class="hdr"><div class="hdr-title">🎾 두류 테니스 클럽</div><div class="hdr-sub">DURYU TENNIS CLUB</div></div>',unsafe_allow_html=True)
 nav_cols = st.columns(len(MENUS))
@@ -375,7 +393,7 @@ for col, (key, icon, label) in zip(nav_cols, MENUS):
     with col:
         if st.button(f"{icon}\n{label}", key=f"nav_{key}", use_container_width=True, type="primary" if ss.menu==key else "secondary"):
             ss.menu=key; st.rerun()
-cc = MENU_COLOR.get(ss.menu,"#2E7D32")
+cc = MENU_COLOR.get(ss.menu,"#3E6247")
 st.markdown(f'<div style="height:4px;background:{cc};margin:0 -0.6rem 12px;box-shadow:0 2px 6px rgba(0,0,0,.18)"></div>',unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════
@@ -411,7 +429,6 @@ elif ss.menu=="schedule":
             gi = tour["groups"][g]; ms=gi.get("matches",[]); mode=gi.get("mode","KDK")
             p2n = gi.get("player_with_number",{})
             
-            # 원본 로직 호출 안정성 확보
             sv = stats_fixed(ms, mode=mode) if (mode=="고정페어" or mode=="단식") else stats_kdk(ms)
             
             if mode == "KDK":
@@ -690,7 +707,7 @@ elif ss.menu=="admin":
         if st.button("🏁 모든 그룹 최종 변동사항 저장 및 대진 전면 확정", type="primary", use_container_width=True):
             save_tours(ts); st.success("✅ 변경사항이 최종 확정되었습니다.")
 
-    # 탭 [3] : 포인트 정산 (원작의 치명적 오타 score_map 버그 수정 완료 부위)
+    # 탭 [3] : 포인트 정산
     with adm[3]:
         ts = load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
         if not act_tids: st.warning("정산 대상 대회가 활성화되어 있지 않습니다."); st.stop()
@@ -701,15 +718,13 @@ elif ss.menu=="admin":
             mode = gdata.get("mode","KDK")
             ms = gdata.get("matches",[])
             
-            # 1단계 오타 교정 완료: 오리지널 데이터 구조에 맞춰 정확히 계산 유도
             sv = stats_fixed(ms, mode=mode) if (mode=="고정페어" or mode=="단식") else stats_kdk(ms)
-            if not sv: continue  # <- 기존의 족보 없던 score_map 버그를 지우고 sv 체크로 복구 완료
+            if not sv: continue
                 
             rk_list = sorted(sv.keys(), key=lambda x:(-sv[x]["승"], -sv[x]["득실"]))
             for i, p_item in enumerate(rk_list):
                 pts = rank_pts(i+1, mode)
                 if mode=="고정페어":
-                    # 기존 문자열 파싱 처리 유지
                     for individual in p_item.split(" & "): 
                         ind_str = individual.strip()
                         earn[ind_str] = earn.get(ind_str, 0) + pts
