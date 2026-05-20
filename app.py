@@ -22,12 +22,10 @@ st.markdown("""
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 
-/* 일반 요소 Noto Sans KR 적용 및 아이콘 충돌 방지 */
 html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Noto Sans KR', sans-serif !important;
 }
 
-/* 무분별한 폰트 오버라이딩으로 인한 아이콘 깨짐 현상 차단 */
 [data-testid="stIconVisibility"], 
 svg, 
 i, 
@@ -39,7 +37,6 @@ i,
 .block-container{padding:0 0.6rem 5rem!important;max-width:520px!important;margin:0 auto!important;background:var(--bg)!important;}
 .stApp{background:var(--bg)!important;}
 
-/* 모바일 메뉴 조절 */
 @media (max-width: 640px) {
   [data-testid="stHorizontalBlock"] {
     flex-wrap: wrap !important;
@@ -57,13 +54,11 @@ i,
   }
 }
 
-/* 헤더 */
 .hdr{background:linear-gradient(135deg,#1B5E20 0%,#2E7D32 60%,#388E3C 100%);margin:0 -0.6rem 0;padding:13px 16px 0;position:relative;overflow:hidden;box-shadow:var(--sh2);}
 .hdr::after{content:'🎾';position:absolute;right:12px;top:8px;font-size:2.4rem;opacity:.12;}
 .hdr-title{color:#fff;font-size:1rem;font-weight:900;margin:0 0 2px;}
 .hdr-sub{color:rgba(255,255,255,.5);font-size:.55rem;letter-spacing:2px;}
 
-/* 페이지 타이틀 */
 .pg-title{color:#fff;padding:11px 14px;border-radius:var(--r2);margin:0 0 12px;font-size:.95rem;font-weight:900;text-align:center;box-shadow:var(--sh2);}
 .c0{background:linear-gradient(135deg,var(--nav0),#43A047);}
 .c1{background:linear-gradient(135deg,var(--nav1),#1976D2);}
@@ -71,26 +66,22 @@ i,
 .c3{background:linear-gradient(135deg,var(--nav3),#7B1FA2);}
 .c4{background:linear-gradient(135deg,var(--nav4),#00897B);}
 
-/* 섹션 헤더 */
 .sec{font-size:.82rem;font-weight:800;color:var(--g0);border-left:4px solid var(--g3);padding-left:8px;margin:14px 0 7px;}
 .sec-b{color:var(--nav1);border-left-color:var(--nav1);}
 .sec-o{color:var(--nav2);border-left-color:var(--nav2);}
 .sec-p{color:var(--nav3);border-left-color:var(--nav3);}
 .sec-t{color:var(--nav4);border-left-color:var(--nav4);}
 
-/* 인포 카드 */
 .ic{background:var(--card);border-left:4px solid var(--g3);border-radius:var(--r1);padding:9px 12px;margin:6px 0;box-shadow:var(--sh);font-size:.78rem;color:#3a3a5c;}
 .ic-b{border-left-color:var(--nav1);}
 .ic-o{border-left-color:var(--nav2);}
 .ic-p{border-left-color:var(--nav3);}
 .ic-t{border-left-color:var(--nav4);}
 
-/* 탭 */
 button[data-baseweb="tab"]{font-size:.65rem!important;font-weight:700!important;padding:7px 4px!important;border-radius:var(--r1) var(--r1) 0 0!important;min-height:38px!important;white-space:nowrap!important;}
 button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;}
 [data-baseweb="tab-list"]{background:#DDD!important;border-radius:var(--r1) var(--r1) 0 0!important;padding:3px 3px 0!important;gap:2px!important;flex-wrap:nowrap!important;overflow-x:auto!important;}
 
-/* HTML 표 */
 .mx-wrap{background:var(--card);border-radius:var(--r1);padding:8px;box-shadow:var(--sh);overflow-x:auto;margin:7px 0;border:1px solid var(--bd);}
 .mx{border-collapse:collapse;white-space:nowrap;font-size:.7rem;width:100%;}
 .mx th,.mx td{padding:7px 6px;border:1px solid var(--bd);text-align:center!important;vertical-align:middle!important;}
@@ -100,7 +91,6 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .mx-dash{color:#CCC;}
 .mx-sc{font-weight:800;color:var(--g0);}
 
-/* KDK 표 */
 .kdk{background:var(--card);border-radius:var(--r1);padding:8px;box-shadow:var(--sh);overflow-x:auto;margin:7px 0;border:1px solid var(--bd);}
 .kdk table{border-collapse:collapse;white-space:nowrap;font-size:.64rem;width:100%;}
 .kdk th,.kdk td{padding:5px 5px;border:1px solid var(--bd);text-align:center;vertical-align:middle;}
@@ -108,7 +98,6 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .kdk td:first-child{width:50px;text-align:center;}
 .kdk td:last-child{text-align:left;}
 
-/* 경기 카드별 구별 색상 그라데이션 정의 */
 .match-card{background:var(--card);border-radius:var(--r2);padding:12px 10px;margin:12px 0;box-shadow:var(--sh2);border:1px solid var(--bd);}
 .m-color-0 { border-top: 5px solid #2E7D32; }
 .m-color-1 { border-top: 5px solid #1565C0; }
@@ -124,7 +113,6 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .mc3{background:#4A148C;}.mc4{background:#00695C;}.mc5{background:#C62828;}
 .mc6{background:#0277BD;}.mc7{background:#EF6C00;}
 
-/* 팀명 상자 색상 */
 .team-nm{border-radius:8px;padding:7px 3px;font-weight:900;font-size:clamp(.6rem,2.8vw,.85rem);text-align:center;color:#fff;box-shadow:var(--sh);min-height:40px;display:flex;align-items:center;justify-content:center;word-break:keep-all;line-height:1.2;}
 .tb0{background:linear-gradient(135deg, #2E7D32, #4CAF50);}
 .tb1{background:linear-gradient(135deg, #1565C0, #2196F3);}
@@ -138,7 +126,7 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .vs-badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FFB74D,#FB8C00);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.52rem;color:#fff;box-shadow:var(--sh);margin:0 auto;}
 
 .ctrl-num{display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #A5D6A7;border-radius:8px;font-size:clamp(1rem,5.5vw,1.5rem);font-weight:900;color:#1B5E20;height:42px;width:100%;}
-.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100% Tint!important;line-height:1!important;}
+.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100%!important;line-height:1!important;}
 .ctrl-row .stButton>button:hover{background:#C8E6C9!important;}
 .ctrl-row .stButton>button:active{background:#81C784!important;transform:scale(.93)!important;}
 
@@ -277,7 +265,7 @@ def stats_kdk(matches):
     return s
 
 def rank_pts(rank,mode):
-    if mode=="고정페어": return {1:7,2:5,3:3}.get(rank,1)
+    if mode in ["고정페어", "단식"]: return {1:7,2:5,3:3}.get(rank,1)
     return 7 if rank<=2 else (5 if rank<=4 else (3 if rank<=6 else 1))
 
 def grade(rank):
@@ -305,8 +293,8 @@ def make_singles(players):
 def build_matches(players,mode,gc):
     if not players or len(players) < 2: return [], {}
     if mode=="고정페어": return make_fixed(players)
-    if mode=="KDK": return make_kdk(players,gc)
-    return make_singles(players)
+    if mode in ["단식", "싱글"]: return make_singles(players)
+    return make_kdk(players,gc)
 
 def kdk_html(n,gperson,p2n):
     if not p2n or not isinstance(p2n, dict): return ""
@@ -319,12 +307,16 @@ def kdk_html(n,gperson,p2n):
         rows+=f"<tr><td style='text-align:center'><span style='background:#1B5E20;color:#fff;border-radius:20px;padding:2px 8px;font-size:.58rem;font-weight:700'>{i+1}</span></td><td style='text-align:left'>{t1} vs {t2}</td></tr>"
     return f'<div class="kdk"><div style="font-size:.72rem;font-weight:800;color:#1B5E20;margin-bottom:5px">📋 KDK 1인 {gperson}게임 — {n}명</div><table><thead><tr><th>순서</th><th>대진</th></tr></thead><tbody>{rows}</tbody></table></div>'
 
-def matrix_html(matches,rank_items,is_fixed,p2n):
+def matrix_html(matches,rank_items,mode,p2n):
     if not matches or not rank_items: return ""
     p2n_dict = p2n if (p2n and isinstance(p2n, dict)) else {}
+    is_fixed = (mode == "고정페어")
+    is_singles = (mode in ["단식", "싱글"])
     
     if is_fixed:
         lab = {t: " &amp; ".join(list(t)) for t in rank_items}
+    elif is_singles:
+        lab = {p: str(p) for p in rank_items}
     else:
         lab = {p: f"{p}({p2n_dict.get(p,'?')})" if p2n_dict else str(p) for p in rank_items}
         
@@ -342,6 +334,12 @@ def matrix_html(matches,rank_items,is_fixed,p2n):
                 rk, ck = lab.get(k1), lab.get(k2)
                 if rk in mat and ck in mat[rk]: mat[rk][ck] = f"{a}:{b}"
                 if ck in mat and rk in mat[ck]: mat[ck][rk] = f"{b}:{a}"
+            elif is_singles:
+                if t1_players and t2_players:
+                    x, y = t1_players[0], t2_players[0]
+                    rk, ck = lab.get(x), lab.get(y)
+                    if rk in mat and ck in mat[rk]: mat[rk][ck] = f"{a}:{b}"
+                    if ck in mat and rk in mat[ck]: mat[ck][rk] = f"{b}:{a}"
             else:
                 for x in t1_players:
                     for y in t2_players:
@@ -423,10 +421,10 @@ elif ss.menu=="schedule":
         with tabs[ti]:
             gi=tour["groups"][g]; ms=gi.get("matches",[]); mode=gi.get("mode","KDK")
             p2n=gi.get("player_with_number",{})
-            fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
+            fx=(mode=="고정페어"); sv=stats_fixed(ms) if (fx or mode=="단식") else stats_kdk(ms); rit=list(sv.keys())
             
             st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
-            st.markdown(matrix_html(ms,rit,fx,p2n),unsafe_allow_html=True)
+            st.markdown(matrix_html(ms,rit,mode,p2n),unsafe_allow_html=True)
             if mode=="KDK" and p2n: st.markdown(kdk_html(len(p2n),gi.get("games",4),p2n),unsafe_allow_html=True)
             
             st.markdown("<div class='sec sec-b'>🏆 현재 그룹 순위</div>",unsafe_allow_html=True)
@@ -434,6 +432,7 @@ elif ss.menu=="schedule":
                 ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"])); rows=[]
                 for i,item in enumerate(ranked):
                     if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}'})
+                    elif mode=="단식": rows.append({"순위":i+1,"선수":list(item)[0] if isinstance(item, tuple) else item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade(i+1)})
                     else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade(i+1)})
                 st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
                 
@@ -476,13 +475,14 @@ elif ss.menu=="result":
     for g,gi in tour.get("groups", {}).items():
         mode,ms=gi.get("mode","KDK"),gi.get("matches",[])
         p2n=gi.get("player_with_number",{})
-        fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms)
+        fx=(mode=="고정페어"); sv=stats_fixed(ms) if (fx or mode=="단식") else stats_kdk(ms)
         ranked=sorted(sv.keys(),key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
         st.markdown(f'<div class="sec sec-o">{g} ({mode})</div>',unsafe_allow_html=True)
         rows=[]
         for i,item in enumerate(ranked):
             pt=rank_pts(i+1,mode)
             if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
+            elif mode=="단식": rows.append({"순위":i+1,"선수":list(item)[0] if isinstance(item, tuple) else item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
             else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
         st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
         
@@ -511,13 +511,14 @@ elif ss.menu=="archive":
     tour=past[sel]
     st.markdown(f"<div class='ic ic-p'>🏆 <strong>{tour['title']}</strong> &nbsp;|&nbsp; {tour.get('date','')} &nbsp;|&nbsp; {tour.get('place','')}</div>",unsafe_allow_html=True)
     for g,gi in tour.get("groups",{}).items():
-        mode,ms=gi.get("mode","KDK"),gi.get("matches",[]); fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms)
+        mode,ms=gi.get("mode","KDK"),gi.get("matches",[]); fx=(mode=="고정페어"); sv=stats_fixed(ms) if (fx or mode=="단식") else stats_kdk(ms)
         ranked=sorted(sv.keys(),key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
         st.markdown(f'<div class="sec sec-p">{g} ({mode})</div>',unsafe_allow_html=True)
         rows=[]
         for i,item in enumerate(ranked):
             pt=rank_pts(i+1,mode)
             if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
+            elif mode=="단식": rows.append({"순위":i+1,"선수":list(item)[0] if isinstance(item, tuple) else item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
             else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
         st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
 
@@ -722,18 +723,20 @@ elif ss.menu=="admin":
             mode = gdata.get("mode","KDK")
             ms = gdata.get("matches",[])
             
-            # [방어 조치] 경기가 전혀 없거나 선수가 지정되지 않아 계산할 전적이 없는 경우 건너뜀
             fx=(mode=="고정페어")
-            score_map = stats_fixed(ms) if fx else stats_kdk(ms)
-            if not score_map:
-                continue
+            score_map = stats_fixed(ms) if (fx or mode=="단식") else stats_kdk(ms)
+            if not score_map: continue
                 
             rk_list = sorted(score_map.keys(), key=lambda x:(-score_map[x]["승"], -score_map[x]["득실"]))
             for i, p_item in enumerate(rk_list):
                 pts = rank_pts(i+1, mode)
                 if fx:
                     for individual in list(p_item): earn[individual] = earn.get(individual,0) + pts
-                else: earn[p_item] = earn.get(p_item,0) + pts
+                elif mode=="단식":
+                    individual = list(p_item)[0] if isinstance(p_item, tuple) else p_item
+                    earn[individual] = earn.get(individual,0) + pts
+                else:
+                    earn[p_item] = earn.get(p_item,0) + pts
                 
         if earn:
             st.markdown('<div class="ic ic-t">🏆 금일 누적 획득 예정 포인트</div>',unsafe_allow_html=True)
