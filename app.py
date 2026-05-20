@@ -316,7 +316,7 @@ def matrix_html(matches,rank_items,mode,p2n):
     if is_fixed:
         lab = {t: " &amp; ".join(list(t)) for t in rank_items}
     elif is_singles:
-        lab = {p: str(p) for p in rank_items}
+        lab = {p: str(p[0] if isinstance(p, tuple) else p) for p in rank_items}
     else:
         lab = {p: f"{p}({p2n_dict.get(p,'?')})" if p2n_dict else str(p) for p in rank_items}
         
@@ -336,8 +336,15 @@ def matrix_html(matches,rank_items,mode,p2n):
                 if ck in mat and rk in mat[ck]: mat[ck][rk] = f"{b}:{a}"
             elif is_singles:
                 if t1_players and t2_players:
-                    x, y = t1_players[0], t2_players[0]
-                    rk, ck = lab.get(x), lab.get(y)
+                    x = t1_players[0]
+                    y = t2_players[0]
+                    
+                    rk, ck = None, None
+                    for original_key, label_val in lab.items():
+                        orig_str = original_key[0] if isinstance(original_key, tuple) else original_key
+                        if orig_str == x: rk = label_val
+                        if orig_str == y: ck = label_val
+                        
                     if rk in mat and ck in mat[rk]: mat[rk][ck] = f"{a}:{b}"
                     if ck in mat and rk in mat[ck]: mat[ck][rk] = f"{b}:{a}"
             else:
@@ -432,7 +439,7 @@ elif ss.menu=="schedule":
                 ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"])); rows=[]
                 for i,item in enumerate(ranked):
                     if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}'})
-                    elif mode=="단식": rows.append({"순위":i+1,"선수":list(item)[0] if isinstance(item, tuple) else item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade(i+1)})
+                    elif mode=="단식": rows.append({"순위":i+1,"선수":item[0] if isinstance(item, tuple) else item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade(i+1)})
                     else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade(i+1)})
                 st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
                 
@@ -482,7 +489,7 @@ elif ss.menu=="result":
         for i,item in enumerate(ranked):
             pt=rank_pts(i+1,mode)
             if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
-            elif mode=="단식": rows.append({"순위":i+1,"선수":list(item)[0] if isinstance(item, tuple) else item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
+            elif mode=="단식": rows.append({"순위":i+1,"선수":item[0] if isinstance(item, tuple) else item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
             else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
         st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
         
@@ -518,7 +525,7 @@ elif ss.menu=="archive":
         for i,item in enumerate(ranked):
             pt=rank_pts(i+1,mode)
             if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
-            elif mode=="단식": rows.append({"순위":i+1,"선수":list(item)[0] if isinstance(item, tuple) else item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
+            elif mode=="단식": rows.append({"순위":i+1,"선수":item[0] if isinstance(item, tuple) else item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
             else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
         st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
 
@@ -731,12 +738,16 @@ elif ss.menu=="admin":
             for i, p_item in enumerate(rk_list):
                 pts = rank_pts(i+1, mode)
                 if fx:
-                    for individual in list(p_item): earn[individual] = earn.get(individual,0) + pts
+                    for individual in list(p_item): 
+                        ind_str = str(individual).strip()
+                        earn[ind_str] = earn.get(ind_str, 0) + pts
                 elif mode=="단식":
-                    individual = list(p_item)[0] if isinstance(p_item, tuple) else p_item
-                    earn[individual] = earn.get(individual,0) + pts
+                    individual = p_item[0] if isinstance(p_item, tuple) else p_item
+                    ind_str = str(individual).strip()
+                    earn[ind_str] = earn.get(ind_str, 0) + pts
                 else:
-                    earn[p_item] = earn.get(p_item,0) + pts
+                    ind_str = str(p_item).strip()
+                    earn[ind_str] = earn.get(ind_str, 0) + pts
                 
         if earn:
             st.markdown('<div class="ic ic-t">🏆 금일 누적 획득 예정 포인트</div>',unsafe_allow_html=True)
@@ -753,10 +764,11 @@ elif ss.menu=="admin":
                 else:
                     r_master = load_rank()
                     for p, p_val in earn.items():
-                        if p in r_master["이름"].values:
-                            r_master.loc[r_master["이름"]==p, "현재포인트"] += p_val
+                        p_cleaned = str(p).strip()
+                        if p_cleaned in r_master["이름"].values:
+                            r_master.loc[r_master["이름"]==p_cleaned, "현재포인트"] += p_val
                         else:
-                            new_r = {c:"" for c in COLS_RANK}; new_r["이름"]=p; new_r["현재포인트"]=p_val
+                            new_r = {c:"" for c in COLS_RANK}; new_r["이름"]=p_cleaned; new_r["현재포인트"]=p_val
                             r_master = pd.concat([r_master, pd.DataFrame([new_r])],ignore_index=True)
                     save_rank(r_master); t_obj["status"]="완료"; save_tours(ts)
                     st.success("✅ 정상 마감 처리되어 역대 기록실로 이관되었습니다."); st.rerun()
