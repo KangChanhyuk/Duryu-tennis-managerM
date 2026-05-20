@@ -138,7 +138,7 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .vs-badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FFB74D,#FB8C00);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.52rem;color:#fff;box-shadow:var(--sh);margin:0 auto;}
 
 .ctrl-num{display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #A5D6A7;border-radius:8px;font-size:clamp(1rem,5.5vw,1.5rem);font-weight:900;color:#1B5E20;height:42px;width:100%;}
-.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100%!important;line-height:1!important;}
+.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100 Tinted!important;line-height:1!important;}
 .ctrl-row .stButton>button:hover{background:#C8E6C9!important;}
 .ctrl-row .stButton>button:active{background:#81C784!important;transform:scale(.93)!important;}
 
@@ -313,31 +313,47 @@ def kdk_html(n,gperson,p2n):
 
 def matrix_html(matches,rank_items,is_fixed,p2n):
     if not matches or not rank_items: return ""
-    lab={t:" &amp; ".join(list(t)) for t in rank_items} if is_fixed else {p:f"{p}({p2n.get(p,'?')})" for p in rank_items}
-    mat={lab[t]:{lab[o]:("■" if t==o else "—") for o in lab} for t in lab}
+    
+    # 1. 가로/세로축 라벨 표기 맵 빌드
+    if is_fixed:
+        lab = {t: " &amp; ".join(list(t)) for t in rank_items}
+    else:
+        lab = {p: f"{p}({p2n.get(p,'?')})" if p2n else str(p) for p in rank_items}
+        
+    # 2. 비어있는 전적 판 매트릭스 사전 생성
+    keys = list(lab.values())
+    mat = {rk: {ck: "■" if rk == ck else "—" for ck in keys} for rk in keys}
+    
+    # 3. 경기 점수 데이터 매핑 (KeyError 완전 차단 안전 로직 적용)
     for m in matches:
-        a,b=int(m.get("s1", 0)),int(m.get("s2", 0))
-        if a>0 or b>0:
+        a, b = int(m.get("s1", 0)), int(m.get("s2", 0))
+        if a > 0 or b > 0:
             if is_fixed:
-                k1,k2=tuple(m.get("t1", [])),tuple(m.get("t2", []))
-                if k1 in lab and k2 in lab:
-                    mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]]=f"{b}:{a}"
+                k1, k2 = tuple(m.get("t1", [])), tuple(m.get("t2", []))
+                rk, ck = lab.get(k1), lab.get(k2)
+                if rk in mat and ck in mat[rk]: mat[rk][ck] = f"{a}:{b}"
+                if ck in mat and rk in mat[ck]: mat[ck][rk] = f"{b}:{a}"
             else:
-                for x in m.get("t1", []):
-                    for y in m.get("t2", []):
-                        if x in lab and y in lab:
-                            mat[lab[x]][lab[y]]=f"{a}:{b}";mat[lab[y]][lab[x]]=f"{b}:{a}"
-    keys=list(lab.values())
-    header="".join(f"<th>{k}</th>" for k in keys)
-    body=""
+                # KDK 및 단식용 다대다/일대일 안전 루프 구조
+                t1_players = m.get("t1", [])
+                t2_players = m.get("t2", [])
+                for x in t1_players:
+                    for y in t2_players:
+                        rk, ck = lab.get(x), lab.get(y)
+                        if rk in mat and ck in mat[rk]: mat[rk][ck] = f"{a}:{b}"
+                        if ck in mat and rk in mat[ck]: mat[ck][rk] = f"{b}:{a}"
+                        
+    # 4. HTML Table 문자열 렌더링
+    header = "".join(f"<th>{k}</th>" for k in keys)
+    body = ""
     for rk in keys:
-        body+=f"<tr><th>{rk}</th>"
+        body += f"<tr><th>{rk}</th>"
         for ck in keys:
-            v=mat[rk][ck]
-            if v=="■":   body+='<td class="mx-grey">■</td>'
-            elif v=="—": body+='<td class="mx-dash">—</td>'
-            else:        body+=f'<td class="mx-sc">{v}</td>'
-        body+="</tr>"
+            v = mat[rk][ck]
+            if v == "■":   body += '<td class="mx-grey">■</td>'
+            elif v == "—": body += '<td class="mx-dash">—</td>'
+            else:        body += f'<td class="mx-sc">{v}</td>'
+        body += "</tr>"
     return f'<div class="mx-wrap"><table class="mx"><thead><tr><th></th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
 
 def adj_score(tid,grp,mi,side,delta):
@@ -405,9 +421,9 @@ elif ss.menu=="schedule":
             
             st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
             st.markdown(matrix_html(ms,rit,fx,p2n),unsafe_allow_html=True)
-            if not fx and p2n: st.markdown(kdk_html(len(p2n),gi.get("games",4),p2n),unsafe_allow_html=True)
+            if mode=="KDK" and p2n: st.markdown(kdk_html(len(p2n),gi.get("games",4),p2n),unsafe_allow_html=True)
             
-            st.markdown("<div class='sec sec-b'>🏅 현재 그룹 순위</div>",unsafe_allow_html=True)
+            st.markdown("<div class='sec sec-b'>🏆 현재 그룹 순위</div>",unsafe_allow_html=True)
             if rit:
                 ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"])); rows=[]
                 for i,item in enumerate(ranked):
