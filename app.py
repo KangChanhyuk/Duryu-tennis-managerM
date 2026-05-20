@@ -145,6 +145,33 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]::after{content:'📂 파일 선택 (xlsx/csv)';}
 [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] span{display:none!important;}
 [data-testid="stFileUploaderDropzone"]{border:2px dashed var(--g3)!important;background:var(--g5)!important;}
+
+/* 🎨 관리자 탭 그룹별 전용 테두리 및 파스텔 배경 카드 스타일 */
+.adm-group-card {
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.adm-g-A { background-color: #F0F4FA; border-left: 6px solid #466995; }
+.adm-g-B { background-color: #F1F7F3; border-left: 6px solid #4A7C59; }
+.adm-g-C { background-color: #FCF4ED; border-left: 6px solid #C97A3E; }
+.adm-g-D { background-color: #F6F2F8; border-left: 6px solid #7D5C8A; }
+.adm-g-E { background-color: #F0F6F6; border-left: 6px solid #488286; }
+.adm-g-F { background-color: #FAF0F0; border-left: 6px solid #BC6C6C; }
+.adm-g-G { background-color: #F2F5F6; border-left: 6px solid #5C8A97; }
+.adm-g-H { background-color: #FAF6ED; border-left: 6px solid #C49A45; }
+
+.cnt-badge {
+    display: inline-block;
+    background-color: #2C4C38;
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-left: 6px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -160,23 +187,15 @@ COLS_RANK   = ["랭킹","이름","현재포인트","3월 포인트","결과","�
 
 GLBL  = ["🟢","🔵","🟠","🟣","🩵","🔴","🟡","⚪"]
 
-# 1게임, 2게임 매칭 지원용 하드코딩 맵 정의 (KDK 라운드 제어용)
-KDK_1G = {
-    4:  [(1,4,2,3)],
-    8:  [(1,2,3,4),(5,6,7,8)]
-}
-KDK_2G = {
-    4:  [(1,4,2,3),(1,3,2,4)],
-    8:  [(1,2,3,4),(5,6,7,8),(1,8,2,7),(3,6,4,5)]
-}
+KDK_1G = {4: [(1,4,2,3)], 8: [(1,2,3,4),(5,6,7,8)]}
+KDK_2G = {4: [(1,4,2,3),(1,3,2,4)], 8: [(1,2,3,4),(5,6,7,8),(1,8,2,7),(3,6,4,5)]}
 KDK_3G = {
     4:  [(1,4,2,3),(1,3,2,4),(1,2,3,4)],
-    5:  [(1,2,3,4),(1,3,2,5),(1,4,3,5)], # 유연한 컷 보강
+    5:  [(1,2,3,4),(1,3,2,5),(1,4,3,5)],
     6:  [(1,3,2,4),(1,5,4,6),(2,3,5,6)],
     7:  [(1,2,3,4),(5,6,1,7),(2,3,5,7)],
     8:  [(1,2,3,4),(5,6,7,8),(1,8,2,7),(3,6,4,5),(1,4,5,8),(2,3,6,7)],
-    12: [(1,2,3,4),(5,6,7,8),(9,10,11,12),(1,3,5,7),(2,4,6,8),
-         (9,11,1,5),(4,8,9,12),(6,7,10,11),(10,12,2,3)],
+    12: [(1,2,3,4),(5,6,7,8),(9,10,11,12),(1,3,5,7),(2,4,6,8),(9,11,1,5),(4,8,9,12),(6,7,10,11),(10,12,2,3)],
 }
 KDK_4G = {
     5:  [(1,2,3,4),(1,3,2,5),(1,4,3,5),(1,5,2,4),(2,3,4,5)],
@@ -184,10 +203,8 @@ KDK_4G = {
     7:  [(1,2,3,4),(5,6,1,7),(2,3,5,7),(1,4,6,7),(3,5,2,4),(1,6,2,5),(4,6,3,7)],
     8:  [(1,2,3,4),(5,6,7,8),(1,3,5,7),(2,4,6,8),(1,5,2,6),(3,7,4,8),(1,6,3,8),(2,5,4,7)],
     9:  [(1,2,3,4),(5,6,7,8),(1,9,5,7),(2,3,6,8),(4,9,3,8),(1,5,2,6),(3,6,4,5),(1,7,8,9),(2,4,7,9)],
-    10: [(1,2,3,5),(6,7,8,10),(2,3,4,6),(7,8,1,9),(3,4,5,7),(8,9,2,10),
-         (4,5,6,8),(1,3,9,10),(5,6,7,9),(1,10,2,4)],
-    11: [(1,2,3,5),(6,7,8,10),(4,9,1,11),(2,3,6,8),(4,5,7,10),(9,11,2,6),
-         (1,3,7,11),(4,8,5,9),(1,10,2,8),(4,7,6,11),(3,9,5,10)],
+    10: [(1,2,3,5),(6,7,8,10),(2,3,4,6),(7,8,1,9),(3,4,5,7),(8,9,2,10),(4,5,6,8),(1,3,9,10),(5,6,7,9),(1,10,2,4)],
+    11: [(1,2,3,5),(6,7,8,10),(4,9,1,11),(2,3,6,8),(4,5,7,10),(9,11,2,6),(1,3,7,11),(4,8,5,9),(1,10,2,8),(4,7,6,11),(3,9,5,10)],
 }
 
 def load_pw():
@@ -256,13 +273,10 @@ def stats_fixed(matches, mode="고정페어"):
         t1 = m.get("t1", [])
         t2 = m.get("t2", [])
         if not t1 or not t2: continue
-        
         t1_str = " & ".join(t1) if isinstance(t1, list) else str(t1)
         t2_str = " & ".join(t2) if isinstance(t2, list) else str(t2)
-        
         if t1_str not in s: s[t1_str] = {"승": 0, "패": 0, "득실": 0}
         if t2_str not in s: s[t2_str] = {"승": 0, "패": 0, "득실": 0}
-        
         a, b = int(m.get("s1", 0)), int(m.get("s2", 0))
         if a > b:
             s[t1_str]["승"] += 1; s[t2_str]["패"] += 1
@@ -302,14 +316,12 @@ def make_kdk(players, gperson):
     elif gperson == 2: bp = KDK_2G.get(n, KDK_2G.get(4))
     elif gperson == 3: bp = KDK_3G.get(n, KDK_3G.get(4))
     else: bp = KDK_4G.get(n, KDK_4G.get(4))
-    
     if not bp: return [], {}
     sh = random.sample(players, n)
     n2p = {i+1:sh[i] for i in range(n)}; p2n = {sh[i]:i+1 for i in range(n)}
     ms = [{"t1":[n2p[a],n2p[b]],"t2":[n2p[c],n2p[d]],"s1":0,"s2":0} for a,b,c,d in bp]
     return ms, p2n
 
-# 🛠️ [정밀 설계] 4개 조 고정페어 풀리그 대진 전면 연동 및 덮어쓰기 문제 해결
 def make_fixed(players):
     rk_df = load_rank()
     if not rk_df.empty and "이름" in rk_df.columns:
@@ -317,20 +329,13 @@ def make_fixed(players):
         sorted_players = sorted(players, key=lambda x: rk_map.get(x, 9999))
     else:
         sorted_players = players[:]
-        
     n = len(sorted_players)
     pairs = [(sorted_players[i], sorted_players[n-1-i]) for i in range(n//2)]
-    
     ms = []
     num_pairs = len(pairs)
     for i in range(num_pairs):
         for j in range(i+1, num_pairs):
-            ms.append({
-                "t1": list(pairs[i]),
-                "t2": list(pairs[j]),
-                "s1": 0,
-                "s2": 0
-            })
+            ms.append({"t1": list(pairs[i]), "t2": list(pairs[j]), "s1": 0, "s2": 0})
     random.shuffle(ms)
     return ms, {}
 
@@ -362,17 +367,14 @@ def kdk_html(n, gperson, p2n):
 def matrix_html(matches, rank_items, mode, p2n):
     if not matches or not rank_items: return ""
     p2n_dict = p2n if (p2n and isinstance(p2n, dict)) else {}
-    
     lab = {item: str(item) for item in rank_items}
     keys = list(lab.values())
     mat = {rk: {ck: "■" if rk == ck else "—" for ck in keys} for rk in keys}
-    
     for m in matches:
         a, b = int(m.get("s1", 0)), int(m.get("s2", 0))
         if a > 0 or b > 0:
             t1 = m.get("t1", [])
             t2 = m.get("t2", [])
-            
             if mode in ["고정페어", "단식"]:
                 t1_str = " & ".join(t1) if isinstance(t1, list) else str(t1)
                 t2_str = " & ".join(t2) if isinstance(t2, list) else str(t2)
@@ -385,7 +387,6 @@ def matrix_html(matches, rank_items, mode, p2n):
                         yk = f"{y}({p2n_dict.get(y,'?')})" if p2n_dict else str(y)
                         if xk in mat and yk in mat[xk]: mat[xk][yk] = f"{a}:{b}"
                         if yk in mat and xk in mat[yk]: mat[yk][xk] = f"{b}:{a}"
-                        
     header = "".join(f"<th>{k}</th>" for k in keys)
     body = ""
     for rk in keys:
@@ -460,9 +461,7 @@ elif ss.menu=="schedule":
         with tabs[ti]:
             gi = tour["groups"][g]; ms=gi.get("matches",[]); mode=gi.get("mode","KDK")
             p2n = gi.get("player_with_number",{})
-            
             sv = stats_fixed(ms, mode=mode) if (mode=="고정페어" or mode=="단식") else stats_kdk(ms)
-            
             if mode == "KDK":
                 rit = [f"{p}({p2n.get(p,'?')})" for p in sv.keys()] if p2n else list(sv.keys())
             else:
@@ -487,9 +486,7 @@ elif ss.menu=="schedule":
                 t2s = " & ".join(t2) if isinstance(t2, list) else str(t2)
                 
                 color_idx = mi % 8
-                mc = f"mc{color_idx}"
-                tbc = f"tb{color_idx}"
-                
+                mc = f"mc{color_idx}"; tbc = f"tb{color_idx}"
                 s1v = int(m.get("s1", 0)); s2v=int(m.get("s2", 0))
                 st.markdown(f'<div class="match-card m-color-{color_idx}"><span class="match-no {mc}">MATCH {mi+1}</span>',unsafe_allow_html=True)
                 nA, nVS, nB = st.columns([5,1,5])
@@ -534,10 +531,8 @@ elif ss.menu=="result":
                 t1s = " & ".join(t1) if isinstance(t1, list) else str(t1)
                 t2s = " & ".join(t2) if isinstance(t2, list) else str(t2)
                 mr.append({"경기": f"{t1s} vs {t2s}", "결과": f"{m.get('s1', 0)} : {m.get('s2', 0)}"})
-            if mr:
-                st.markdown(df_to_html(pd.DataFrame(mr)),unsafe_allow_html=True)
-            else:
-                st.caption("기록된 경기가 없습니다.")
+            if mr: st.markdown(df_to_html(pd.DataFrame(mr)),unsafe_allow_html=True)
+            else:  st.caption("기록된 경기가 없습니다.")
 
 # ══════════════════════════════════════════════════════
 # 메뉴 4. 히스토리 기록실
@@ -547,7 +542,7 @@ elif ss.menu=="archive":
     tours = load_tours(); past={k:v for k,v in tours.items() if v.get("status")!="진행중"}
     if not past:
         st.markdown("<div class='ic ic-p'>📭 아카이브된 과거 대회가 없습니다.</div>",unsafe_allow_html=True); st.stop()
-    sel = st.selectbox("조회할 대회 선택", list(past.keys()), format_func=lambda k:f"{past[k]['title']} ({past[k].get('date','')})")
+    sel = st.selectbox("조회할 대회 선택", list(past.keys()), format_func=lambda k:f"[{past[k]['title']}] ({past[k].get('date','')})")
     tour = past[sel]
     st.markdown(f"<div class='ic ic-p'>🏆 <strong>{tour['title']}</strong> &nbsp;|&nbsp; {tour.get('date','')} &nbsp;|&nbsp; {tour.get('place','')}</div>",unsafe_allow_html=True)
     for g, gi in tour.get("groups",{}).items():
@@ -567,13 +562,9 @@ elif ss.menu=="archive":
 elif ss.menu=="admin":
     st.markdown("<div class='pg-title c4'>⚙️ 관리자 관제 센터</div>",unsafe_allow_html=True)
     pw = st.text_input("🔒 패스워드 인증", type="password", placeholder="암호코드 입력")
-    
-    # 일반 및 초기화 비밀번호 다중 지원 검증
     saved_password = load_pw()
-    if pw == saved_password or pw == MASTER_PW: 
-        ss.is_admin = True
-    else:
-        ss.is_admin = False
+    if pw == saved_password or pw == MASTER_PW: ss.is_admin = True
+    else: ss.is_admin = False
         
     if not ss.is_admin:
         if pw: st.error("❌ 패스워드가 올바르지 않습니다.")
@@ -585,7 +576,7 @@ elif ss.menu=="admin":
     with adm[0]:
         st.markdown('<div class="sec sec-t">📝 전체 회원 명단 관리 (텍스트 등록)</div>',unsafe_allow_html=True)
         cur_m = load_members()
-        txt_area = st.text_area("클럽 전체 회원 명단 (이름을 쉼표 또는 줄바꿈으로 구분해 적어주세요)", value=", ".join(cur_m), height=150)
+        txt_area = st.text_area("클럽 전체 회원 명단 (쉼표 또는 줄바꿈 구분)", value=", ".join(cur_m), height=150)
         if st.button("💾 회원 명단 갱신 및 저장", type="primary", use_container_width=True):
             parsed = [n.strip() for n in txt_area.replace("\n",",").split(",") if n.strip()]
             save_members(parsed)
@@ -621,7 +612,7 @@ elif ss.menu=="admin":
         with c2: tp = st.text_input("장소", value="두류 테니스장")
         c3, c4 = st.columns(2)
         with c3: co = st.selectbox("할당 코트", [1,2,3,4,5], index=1)
-        with c4: g_count = st.number_input("설정할 그룹 수", 1, 6, value=4)
+        with c4: g_count = st.number_input("설정할 그룹 수", 1, 8, value=4)
         
         st.markdown('<div style="font-size:0.75rem; color:#555; font-weight:bold; margin-top:5px;">⚙️ 각 그룹 초기 스펙 정의</div>', unsafe_allow_html=True)
         init_g_setup = {}
@@ -633,7 +624,6 @@ elif ss.menu=="admin":
             with cols_init[0]:
                 m_init = st.selectbox(f"방식 ({g_char})", ["KDK", "고정페어", "단식"], key=f"init_m_{g_char}")
             with cols_init[1]:
-                # 1게임, 2게임 범위 추가 확장
                 g_init = st.selectbox(f"게임 수 ({g_char})", [1, 2, 3, 4, 5], index=3, key=f"init_g_{g_char}")
             with cols_init[2]:
                 sz_init = st.number_input(f"배정 정원 ({g_char})", 2, 24, value=8, key=f"init_sz_{g_char}")
@@ -645,12 +635,8 @@ elif ss.menu=="admin":
                 ng = {}
                 for gname, spec in init_g_setup.items():
                     ng[gname] = {
-                        "players": [],
-                        "mode": spec["mode"],
-                        "games": spec["games"],
-                        "size": spec["size"],
-                        "matches": [],
-                        "player_with_number": {}
+                        "players": [], "mode": spec["mode"], "games": spec["games"],
+                        "size": spec["size"], "matches": [], "player_with_number": {}
                     }
                 ts[t_key] = {"title":tn.strip(), "date":str(td), "place":tp, "courts":co, "status":"진행중", "groups":ng, "players":[]}
                 save_tours(ts); st.success(f"✅ 대회 '{tn.strip()}'가 생성되었습니다."); st.rerun()
@@ -670,20 +656,16 @@ elif ss.menu=="admin":
                     curr_t["status"] = chg_s; save_tours(ts); st.success("변경 완료"); st.rerun()
             with c6:
                 st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
-                # 🛡️ 대회 데이터 영구 삭제 시 2차 비밀번호 확인 안전장치 구축
                 with st.popover("🗑️ 대회 영구 삭제", use_container_width=True):
                     st.warning("⚠️ 이 작업은 되돌릴 수 없습니다.")
                     del_pw = st.text_input("삭제 승인 비밀번호 입력", type="password", key="del_confirm_pw")
                     if st.button("💥 최종 삭제 확정", type="primary", use_container_width=True):
                         if del_pw == load_pw() or del_pw == MASTER_PW:
-                            del ts[sel_t]
-                            save_tours(ts)
-                            st.success("💥 대회가 완전히 삭제되었습니다.")
-                            st.rerun()
+                            del ts[sel_t]; save_tours(ts); st.success("💥 대회가 완전히 삭제되었습니다."); st.rerun()
                         else:
                             st.error("❌ 비밀번호가 다릅니다.")
 
-    # 탭 [2] : 참가자 및 그룹 수정
+    # 탭 [2] : 참가자 및 그룹 수정 (★ 에러 박멸, 실시간 명단 보임, 인원수 표기, 그룹별 색상 카드 고도화 완료 섹션)
     with adm[2]:
         ts = load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
         if not act_tids:
@@ -717,48 +699,67 @@ elif ss.menu=="admin":
                             cg[gname]["players"] = assigned
                             ptr += g_sz
                             
-                            # 고정페어 분리 로직 완전 바인딩 수집
                             ms2, pwn2 = build_matches(assigned, cg[gname].get("mode","KDK"), cg[gname].get("games",4))
                             cg[gname]["matches"] = ms2
                             cg[gname]["player_with_number"] = pwn2
-                        tour["players"] = parsed_p
-                        save_tours(ts)
+                        tour["players"] = parsed_p; save_tours(ts)
                         st.success("✅ 자동 배정 및 대진 생성이 완료되었습니다."); st.rerun()
             with c_direct:
                 if st.button("💾 명단만 일단 저장 (대진 미생성)", use_container_width=True):
                     parsed_p = [n.strip() for n in raw_input_p.replace("\n",",").split(",") if n.strip()]
-                    tour["players"] = list(dict.fromkeys(parsed_p))
-                    save_tours(ts); st.success("✅ 출전 인원 기본 저장이 완료되었습니다.")
+                    tour["players"] = list(dict.fromkeys(parsed_p)); save_tours(ts)
+                    st.success("✅ 출전 인원 기본 저장이 완료되었습니다.")
 
         st.divider()
-        st.markdown("### 🔀 각 그룹 명단 추가, 수정, 삭제")
-        for gname, gdata in list(tour.get("groups",{}).items()):
-            st.markdown(f"#### 🏷️ **{gname}** 세부 설정 변경")
+        st.markdown("### 🔀 각 그룹 명단 개별 제어 및 대진 확정")
+        
+        # 알파벳 정렬에 맞춰 그룹 카드 출력 및 색상 바인딩
+        for idx, (gname, gdata) in enumerate(sorted(list(cg.items()))):
+            # A, B, C, D... 순서대로 매핑될 클래스명 지정
+            card_class = f"adm-g-{chr(65 + (idx % 8))}"
+            
+            # 은은한 배경색 컨테이너 시작
+            st.markdown(f'<div class="adm-group-card {card_class}">', unsafe_allow_html=True)
+            
+            # 현재 등록되어 있는 인원수 실시간 계산
+            cur_grp_players = gdata.get("players", [])
+            p_count = len(cur_grp_players)
+            
+            # 타이틀 옆에 현재 인원수를 배지 형태로 강렬하게 노출
+            st.markdown(f'#### 🏷️ **{gname} 설정** <span class="cnt-badge">현재 {p_count}명</span>', unsafe_allow_html=True)
+            
             c_m, c_g, c_z = st.columns(3)
             with c_m: 
                 m_opts = ["KDK","고정페어","단식"]
                 gdata["mode"] = st.selectbox(f"방식 ({gname})", m_opts, index=m_opts.index(gdata.get("mode","KDK")), key=f"md_edit_{gname}")
             with c_g: 
-                # 인당 게임 수 조절폭 확장 (1,2 포함)
                 gdata["games"] = st.selectbox(f"인당 게임 수 ({gname})", [1,2,3,4,5], index=[1,2,3,4,5].index(gdata.get("games",4)), key=f"gm_edit_{gname}")
             with c_z: 
                 gdata["size"] = st.number_input(f"배정 정원 ({gname})", 2, 24, value=gdata.get("size",8), key=f"sz_edit_{gname}")
                 
-            cur_grp_players = gdata.get("players", [])
-            grp_text_input = st.text_input(f"✍️ {gname} 명단 편집 (이름을 쉼표로 구분)", value=", ".join(cur_grp_players), key=f"grp_txt_{gname}")
+            # 명단 편집창 (이름들이 실시간으로 양방향 동기화되어 오류 없이 상시 표시됩니다.)
+            grp_text_input = st.text_input(f"✍️ {gname} 명단 실시간 편집 (쉼표구분)", value=", ".join(cur_grp_players), key=f"grp_txt_{gname}")
             
+            # 텍스트 변경 유무 파악 후 실시간 대진표 리빌딩 유도
             updated_grp_p = [n.strip() for n in grp_text_input.split(",") if n.strip()]
             if updated_grp_p != cur_grp_players:
                 gdata["players"] = updated_grp_p
-                # 실시간 변경 감지 시 정확한 분리 매칭 연동
                 ms3, pwn3 = build_matches(updated_grp_p, gdata["mode"], gdata["games"])
                 gdata["matches"] = ms3
                 gdata["player_with_number"] = pwn3
-                save_tours(ts)
-                st.rerun()
+                save_tours(ts); st.rerun()
+                
+            # 현재 구성된 멤버 이름들을 눈에 익기 편하게 한번 더 직관적으로 렌더링
+            if updated_grp_p:
+                badges_str = " ".join([f"`{p}`" for p in updated_grp_p])
+                st.markdown(f"🏃‍♂️ **확정 인원 명단:** {badges_str}")
+            else:
+                st.caption("⚠️ 현재 등록된 명단이 비어 있습니다. 쉼표로 명단을 채워주세요.")
+                
+            st.markdown('</div>', unsafe_allow_html=True) # 컨테이너 닫기
                 
         if st.button("🏁 모든 그룹 최종 변동사항 저장 및 대진 전면 확정", type="primary", use_container_width=True):
-            save_tours(ts); st.success("✅ 변경사항이 최종 확정되었습니다.")
+            save_tours(ts); st.success("✅ 모든 그룹 명단 및 대진표 세팅이 클라우드에 성공적으로 고정되었습니다."); st.rerun()
 
     # 탭 [3] : 포인트 정산 및 관리자 보안 제어
     with adm[3]:
@@ -770,22 +771,17 @@ elif ss.menu=="admin":
             t_key = act_tids[-1]; t_obj=ts[t_key]
             earn = {}
             for gname, gdata in t_obj.get("groups",{}).items():
-                mode = gdata.get("mode","KDK")
-                ms = gdata.get("matches",[])
-                
+                mode = gdata.get("mode","KDK"); ms = gdata.get("matches",[])
                 sv = stats_fixed(ms, mode=mode) if (mode=="고정페어" or mode=="단식") else stats_kdk(ms)
                 if not sv: continue
-                    
                 rk_list = sorted(sv.keys(), key=lambda x:(-sv[x]["승"], -sv[x]["득실"]))
                 for i, p_item in enumerate(rk_list):
                     pts = rank_pts(i+1, mode)
                     if mode=="고정페어":
                         for individual in p_item.split(" & "): 
-                            ind_str = individual.strip()
-                            earn[ind_str] = earn.get(ind_str, 0) + pts
+                            ind_str = individual.strip(); earn[ind_str] = earn.get(ind_str, 0) + pts
                     else:
-                        ind_str = str(p_item).strip()
-                        earn[ind_str] = earn.get(ind_str, 0) + pts
+                        ind_str = str(p_item).strip(); earn[ind_str] = earn.get(ind_str, 0) + pts
                     
             if earn:
                 st.markdown('<div class="ic ic-t">🏆 금일 누적 획득 예정 포인트</div>',unsafe_allow_html=True)
@@ -797,8 +793,7 @@ elif ss.menu=="admin":
                     if st.button("🏆 계산된 포인트 마스터 랭킹에 영구 반영", type="primary", use_container_width=True):
                         r_master = load_rank()
                         for p, p_val in earn.items():
-                            if p in r_master["이름"].values:
-                                r_master.loc[r_master["이름"]==p, "현재포인트"] += p_val
+                            if p in r_master["이름"].values:     r_master.loc[r_master["이름"]==p, "현재포인트"] += p_val
                             else:
                                 new_r = {c:"" for c in COLS_RANK}; new_r["이름"]=p; new_r["현재포인트"]=p_val
                                 r_master = pd.concat([r_master, pd.DataFrame([new_r])], ignore_index=True)
@@ -813,7 +808,6 @@ elif ss.menu=="admin":
                 st.caption("ℹ️ 결과가 입력되면 정산 표가 여기에 노출됩니다.")
                 
         st.divider()
-        # 🔑 [신설] 관리자 비밀번호 변경 통제소
         st.markdown('<div class="sec sec-t">🔑 관리자 비밀번호 세팅 변경</div>',unsafe_allow_html=True)
         new_pwd_input = st.text_input("새로운 관리자 비밀번호 설정", type="password", placeholder="변경할 암호를 입력해 주세요")
         if st.button("🔒 비밀번호 새값으로 업데이트", type="secondary", use_container_width=True):
