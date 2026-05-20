@@ -138,7 +138,7 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .vs-badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FFB74D,#FB8C00);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.52rem;color:#fff;box-shadow:var(--sh);margin:0 auto;}
 
 .ctrl-num{display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #A5D6A7;border-radius:8px;font-size:clamp(1rem,5.5vw,1.5rem);font-weight:900;color:#1B5E20;height:42px;width:100%;}
-.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100 Tint!important;line-height:1!important;}
+.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100% Tint!important;line-height:1!important;}
 .ctrl-row .stButton>button:hover{background:#C8E6C9!important;}
 .ctrl-row .stButton>button:active{background:#81C784!important;transform:scale(.93)!important;}
 
@@ -721,7 +721,13 @@ elif ss.menu=="admin":
         for gname, gdata in t_obj.get("groups",{}).items():
             mode = gdata.get("mode","KDK")
             ms = gdata.get("matches",[])
-            fx=(mode=="고정페어"); score_map = stats_fixed(ms) if fx else stats_kdk(ms)
+            
+            # [방어 조치] 경기가 전혀 없거나 선수가 지정되지 않아 계산할 전적이 없는 경우 건너뜀
+            fx=(mode=="고정페어")
+            score_map = stats_fixed(ms) if fx else stats_kdk(ms)
+            if not score_map:
+                continue
+                
             rk_list = sorted(score_map.keys(), key=lambda x:(-score_map[x]["승"], -score_map[x]["득실"]))
             for i, p_item in enumerate(rk_list):
                 pts = rank_pts(i+1, mode)
@@ -733,19 +739,24 @@ elif ss.menu=="admin":
             st.markdown('<div class="ic ic-t">🏆 금일 누적 획득 예정 포인트</div>',unsafe_allow_html=True)
             res_df = pd.DataFrame(sorted(earn.items(),key=lambda x:-x[1]),columns=["선수명","지급포인트"])
             st.markdown(df_to_html(res_df),unsafe_allow_html=True)
+        else:
+            st.info("ℹ️ 현재 스코어가 입력되었거나 진행된 경기가 없어 정산할 포인트 데이터가 없습니다.")
             
         c_fin, c_rst = st.columns(2)
         with c_fin:
             if st.button("🏆 계산된 포인트 마스터 랭킹에 영구 반영",type="primary",use_container_width=True):
-                r_master = load_rank()
-                for p, p_val in earn.items():
-                    if p in r_master["이름"].values:
-                        r_master.loc[r_master["이름"]==p, "현재포인트"] += p_val
-                    else:
-                        new_r = {c:"" for c in COLS_RANK}; new_r["이름"]=p; new_r["현재포인트"]=p_val
-                        r_master = pd.concat([r_master, pd.DataFrame([new_r])],ignore_index=True)
-                save_rank(r_master); t_obj["status"]="완료"; save_tours(ts)
-                st.success("✅ 정상 마감 처리되어 역대 기록실로 이관되었습니다."); st.rerun()
+                if not earn:
+                    st.error("❌ 정산할 포인트 내역이 없어 마감할 수 없습니다. 최소 1경기 이상의 결과를 입력해주세요.")
+                else:
+                    r_master = load_rank()
+                    for p, p_val in earn.items():
+                        if p in r_master["이름"].values:
+                            r_master.loc[r_master["이름"]==p, "현재포인트"] += p_val
+                        else:
+                            new_r = {c:"" for c in COLS_RANK}; new_r["이름"]=p; new_r["현재포인트"]=p_val
+                            r_master = pd.concat([r_master, pd.DataFrame([new_r])],ignore_index=True)
+                    save_rank(r_master); t_obj["status"]="완료"; save_tours(ts)
+                    st.success("✅ 정상 마감 처리되어 역대 기록실로 이관되었습니다."); st.rerun()
         with c_rst:
             if st.button("🚨 입력된 경기 점수 전부 강제 초기화",use_container_width=True):
                 for gname, gdata in t_obj.get("groups",{}).items():
