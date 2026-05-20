@@ -138,7 +138,7 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .vs-badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FFB74D,#FB8C00);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.52rem;color:#fff;box-shadow:var(--sh);margin:0 auto;}
 
 .ctrl-num{display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #A5D6A7;border-radius:8px;font-size:clamp(1rem,5.5vw,1.5rem);font-weight:900;color:#1B5E20;height:42px;width:100%;}
-.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100%!important;line-height:1!important;}
+.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100 Tint!important;line-height:1!important;}
 .ctrl-row .stButton>button:hover{background:#C8E6C9!important;}
 .ctrl-row .stButton>button:active{background:#81C784!important;transform:scale(.93)!important;}
 
@@ -236,11 +236,7 @@ def df_to_html(df):
         body+=f"<tr>{cells}</tr>"
     return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</tr></thead><tbody>{body}</tbody></table></div>'
 
-# ══════════════════════════════════════
-# 대진 데이터 안전 가속화 파서 (핵심 예외 방어공학)
-# ══════════════════════════════════════
 def safe_parse_team(team_data):
-    """정수, 문자열, 리스트 등 비정상적으로 적재된 팀원 데이터를 안전하게 리스트(포맷)로 강제 복구합니다."""
     if isinstance(team_data, list):
         return [str(p) for p in team_data if p]
     if isinstance(team_data, (str, int, float)):
@@ -313,6 +309,7 @@ def build_matches(players,mode,gc):
     return make_singles(players)
 
 def kdk_html(n,gperson,p2n):
+    if not p2n or not isinstance(p2n, dict): return ""
     bp=KDK_3G.get(n) if gperson==3 else KDK_4G.get(n)
     if not bp: return ""
     n2p={v:k for k,v in p2n.items()}; rows=""
@@ -324,11 +321,12 @@ def kdk_html(n,gperson,p2n):
 
 def matrix_html(matches,rank_items,is_fixed,p2n):
     if not matches or not rank_items: return ""
+    p2n_dict = p2n if (p2n and isinstance(p2n, dict)) else {}
     
     if is_fixed:
         lab = {t: " &amp; ".join(list(t)) for t in rank_items}
     else:
-        lab = {p: f"{p}({p2n.get(p,'?')})" if p2n else str(p) for p in rank_items}
+        lab = {p: f"{p}({p2n_dict.get(p,'?')})" if p2n_dict else str(p) for p in rank_items}
         
     keys = list(lab.values())
     mat = {rk: {ck: "■" if rk == ck else "—" for ck in keys} for rk in keys}
@@ -423,7 +421,8 @@ elif ss.menu=="schedule":
     tabs=st.tabs([f"{GLBL[i%len(GLBL)]} {g}" for i,g in enumerate(gnames)])
     for ti,g in enumerate(gnames):
         with tabs[ti]:
-            gi=tour["groups"][g]; ms=gi.get("matches",[]); mode=gi.get("mode","KDK"); p2n=gi.get("player_with_number",{})
+            gi=tour["groups"][g]; ms=gi.get("matches",[]); mode=gi.get("mode","KDK")
+            p2n=gi.get("player_with_number",{})
             fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
             
             st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
@@ -475,7 +474,8 @@ elif ss.menu=="result":
     tid=active[-1]; tour=tours[tid]
     st.markdown(f"<div class='pg-title c2'>📊 {tour['title']} 최종 현황</div>",unsafe_allow_html=True)
     for g,gi in tour.get("groups", {}).items():
-        mode,ms=gi.get("mode","KDK"),gi.get("matches",[]); p2n=gi.get("player_with_number",{})
+        mode,ms=gi.get("mode","KDK"),gi.get("matches",[])
+        p2n=gi.get("player_with_number",{})
         fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms)
         ranked=sorted(sv.keys(),key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
         st.markdown(f'<div class="sec sec-o">{g} ({mode})</div>',unsafe_allow_html=True)
