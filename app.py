@@ -8,7 +8,7 @@ st.set_page_config(page_title="두류 테니스", page_icon="🎾",
                    layout="centered", initial_sidebar_state="collapsed")
 
 # ══════════════════════════════════════
-# CSS (아이콘 깨짐 현상 완벽 방지 및 스타일 보강 - 대진 카드 색상 연하게 변경)
+# CSS (아이콘 깨짐 현상 완벽 방지 및 스타일 보강)
 # ══════════════════════════════════════
 st.markdown("""
 <style>
@@ -27,7 +27,7 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Noto Sans KR', sans-serif !important;
 }
 
-/* 무분별한 폰트 오버라이딩으로 인한 아이콘 깨짐 현상 차단 */
+/* 무분별한 폰트 오버라이딩으로 인한 아이콘 깨짐(expand_more 등) 현상 차단 */
 [data-testid="stIconVisibility"], 
 svg, 
 i, 
@@ -108,21 +108,21 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .kdk td:first-child{width:50px;text-align:center;}
 .kdk td:last-child{text-align:left;}
 
-/* 경기 카드별 구별 색상 그라데이션 정의 (요청에 따라 파스텔톤 연한 색상으로 수정) */
+/* 경기 카드별 구별 색상 그라데이션 정의 (총 8개 패턴) */
 .match-card{background:var(--card);border-radius:var(--r2);padding:12px 10px;margin:12px 0;box-shadow:var(--sh2);border:1px solid var(--bd);}
-.m-color-0 { border-top: 5px solid #A5D6A7; }
-.m-color-1 { border-top: 5px solid #90CAF9; }
-.m-color-2 { border-top: 5px solid #FFCC80; }
-.m-color-3 { border-top: 5px solid #CE93D8; }
-.m-color-4 { border-top: 5px solid #80CBC4; }
-.m-color-5 { border-top: 5px solid #EF9A9A; }
-.m-color-6 { border-top: 5px solid #81D4FA; }
-.m-color-7 { border-top: 5px solid #FFB74D; }
+.m-color-0 { border-top: 5px solid #2E7D32; }
+.m-color-1 { border-top: 5px solid #1565C0; }
+.m-color-2 { border-top: 5px solid #E65100; }
+.m-color-3 { border-top: 5px solid #4A148C; }
+.m-color-4 { border-top: 5px solid #00695C; }
+.m-color-5 { border-top: 5px solid #C62828; }
+.m-color-6 { border-top: 5px solid #0277BD; }
+.m-color-7 { border-top: 5px solid #EF6C00; }
 
 .match-no{display:inline-block;border-radius:20px;padding:3px 12px;font-size:.6rem;font-weight:900;margin-bottom:8px;color:#fff;}
-.mc0{background:#81C784;}.mc1{background:#64B5F6;}.mc2{background:#FFB74D;}
-.mc3{background:#BA68C8;}.mc4{background:#4DB6AC;}.mc5{background:#E57373;}
-.mc6{background:#4FC3F7;}.mc7{background:#FFA726;}
+.mc0{background:#2E7D32;}.mc1{background:#1565C0;}.mc2{background:#E65100;}
+.mc3{background:#4A148C;}.mc4{background:#00695C;}.mc5{background:#C62828;}
+.mc6{background:#0277BD;}.mc7{background:#EF6C00;}
 
 /* 팀명 상자 색상 다양화 */
 .team-nm{border-radius:8px;padding:7px 3px;font-weight:900;font-size:clamp(.6rem,2.8vw,.85rem);text-align:center;color:#fff;box-shadow:var(--sh);min-height:40px;display:flex;align-items:center;justify-content:center;word-break:keep-all;line-height:1.2;}
@@ -161,7 +161,7 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 RANK_FILE   = "ranking_master.csv"
 MEMBER_FILE = "member_roster.json"
 TOUR_FILE   = "tournaments.json"
-ADMIN_PW    = "0502"
+CONFIG_FILE = "admin_config.json"
 COLS_RANK   = ["랭킹","이름","현재포인트","3월 포인트","결과","부과점","그룹","비고"]
 
 GLBL  = ["🟢","🔵","🟠","🟣","🩵","🔴","🟡","⚪"]
@@ -183,6 +183,19 @@ KDK_4G = {
     11: [(1,2,3,5),(6,7,8,10),(4,9,1,11),(2,3,6,8),(4,5,7,10),(9,11,2,6),
          (1,3,7,11),(4,8,5,9),(1,10,2,8),(4,7,6,11),(3,9,5,10)],
 }
+
+def load_admin_password():
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, "r") as f:
+                return json.load(f).get("admin_password", "0502")
+        except:
+            return "0502"
+    return "0502"
+
+def save_admin_password(new_pw):
+    with open(CONFIG_FILE, "w") as f:
+        json.dump({"admin_password": new_pw}, f)
 
 def load_rank():
     if not os.path.exists(RANK_FILE): return pd.DataFrame(columns=COLS_RANK)
@@ -349,6 +362,8 @@ ss=st.session_state
 if "is_admin" not in ss: ss.is_admin=False
 if "menu"     not in ss: ss.menu="ranking"
 
+ADMIN_PW = load_admin_password()
+
 # ══════════════════════════════════════
 # 상단 레이아웃 및 내비게이션 바
 # ══════════════════════════════════════
@@ -491,6 +506,22 @@ elif ss.menu=="admin":
         if pw: st.error("❌ 패스워드가 올바르지 않습니다.")
         st.stop()
         
+    # 관리자 비밀번호 변경 기능 UI 추가
+    with st.expander("🔐 관리자 비밀번호 변경 권한"):
+        st.markdown("<div style='font-size:0.75rem; color:#555;'>관리자용 암호코드를 새롭게 수정할 수 있습니다.</div>", unsafe_allow_html=True)
+        current_pw_check = st.text_input("현재 비밀번호 확인", type="password", key="cur_pw_chk")
+        new_pw_input = st.text_input("새로운 비밀번호 입력", type="password", key="new_pw_inp")
+        if st.button("💾 비밀번호 변경 및 저장", use_container_width=True, type="primary"):
+            if current_pw_check == ADMIN_PW:
+                if new_pw_input.strip():
+                    save_admin_password(new_pw_input.strip())
+                    st.success("✅ 비밀번호가 성공적으로 변경되었습니다. 다음 로그인부터 적용됩니다.")
+                    st.rerun()
+                else:
+                    st.error("❌ 빈 값은 비밀번호로 사용할 수 없습니다.")
+            else:
+                st.error("❌ 현재 비밀번호가 일치하지 않습니다.")
+
     adm=st.tabs(["📋 회원 명단","🏆 대회 생성/관리","👥 참가자·그룹 자유 수정","💾 포인트 정산"])
 
     # 탭 [0] : 마스터 랭킹 및 텍스트 기반 명단 구성
@@ -535,6 +566,7 @@ elif ss.menu=="admin":
         with c3: co=st.selectbox("할당 코트", [1,2,3,4,5], index=1)
         with c4: g_count=st.number_input("설정할 그룹 수",1,6,value=3)
         
+        # ⚠️ 요구사항 반영: 대회 개막 시점부터 각 그룹별 개별 옵션(방식, 인원, 게임수) 다르게 설정 지원
         st.markdown('<div style="font-size:0.75rem; color:#555; font-weight:bold; margin-top:5px;">⚙️ 각 그룹 초기 스펙 정의</div>', unsafe_allow_html=True)
         init_g_setup = {}
         for i in range(int(g_count)):
@@ -579,11 +611,15 @@ elif ss.menu=="admin":
                 if st.button("💾 상태 저장",use_container_width=True):
                     curr_t["status"]=chg_s; save_tours(ts); st.success("변경 완료"); st.rerun()
             with c6:
-                st.markdown("<div style='height:28px'></div>",unsafe_allow_html=True)
+                st.markdown("<div style='font-size:0.75rem; color:red; font-weight:bold;'>⚠️ 대회 영구 삭제 안전장치</div>",unsafe_allow_html=True)
+                del_pw_check = st.text_input("삭제 승인 비밀번호 입력", type="password", key="del_pw_chk", placeholder="관리자 패스워드 재입력")
                 if st.button("🗑️ 해당 대회 데이터 영구 삭제",type="primary",use_container_width=True):
-                    del ts[sel_t]; save_tours(ts); st.warning("대회가 삭제되었습니다."); st.rerun()
+                    if del_pw_check == ADMIN_PW:
+                        del ts[sel_t]; save_tours(ts); st.warning("대회가 삭제되었습니다."); st.rerun()
+                    else:
+                        st.error("❌ 삭제 승인 비밀번호가 올바르지 않습니다.")
 
-    # 탭 [2] : 당일 참가자 명단 조정 및 그룹별 실시간 자유 조율 컴포넌트 (명단 미노출 버그 완벽 조치)
+    # 탭 [2] : 당일 참가자 명단 조정 및 그룹별 실시간 자유 조율 컴포넌트 (이름 깨짐 문제 완벽 조치)
     with adm[2]:
         ts=load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
         if not act_tids:
@@ -631,7 +667,7 @@ elif ss.menu=="admin":
 
         st.divider()
         
-        # 2 단계: 그룹 구성 방식 커스텀 조정 및 배정된 선수 자유 수정 제어 프레임
+        # 2 단계: 그룹 구성 방식 커스텀 조정 및 배정된 선수 자유 수정 제어 프레임 (충돌 텍스트 미발생 패치)
         st.markdown("### 🔀 [2단계] 그룹 배정 현황 및 자유 수정")
         for gname, gdata in list(tour["groups"].items()):
             st.markdown(f"#### 🏷️ **{gname}** 세부 설정 변경")
@@ -644,22 +680,20 @@ elif ss.menu=="admin":
             with c_z: 
                 gdata["size"] = st.number_input(f"배정 정원 ({gname})", 2, 24, value=gdata.get("size",8), key=f"sz_edit_{gname}")
                 
+            # 깨짐 현상이 발생하는 기존 버튼 나열 대신 안전하고 직관적인 전용 인풋창으로 명단 출력 및 실시간 관리 구현
             cur_grp_players = gdata.get("players", [])
             
             st.markdown(f"**📌 현재 소속 선수 ({len(cur_grp_players)}명)**")
             if cur_grp_players:
+                # 가독성을 높이기 위해 단순 텍스트 배지 스타일로 깨짐 없이 명단 노출
                 st.info(f"👉 {', '.join(cur_grp_players)}")
             else:
                 st.caption("현재 소속된 선수가 없습니다.")
                 
-            # 💡 [버그 조치 및 안정화] 실시간 입력값 상태 유지를 위해 값 변경 시에만 동적 동기화 수행
             grp_text_input = st.text_input(f"✍️ {gname} 소속 선수 명단 직접 편집 (이름을 쉼표로 구분)", value=", ".join(cur_grp_players), key=f"grp_txt_{gname}")
             
             updated_grp_p = [n.strip() for n in grp_text_input.split(",") if n.strip()]
-            
-            # 선수 목록의 데이터가 실제로 바뀐 경우에만 대진표 전면 재생성 및 즉시 세이브 보장
-            if getattr(st.session_state, f"prev_grp_{gname}", None) != updated_grp_p and updated_grp_p != cur_grp_players:
-                st.session_state[f"prev_grp_{gname}"] = updated_grp_p
+            if updated_grp_p != cur_grp_players:
                 gdata["players"] = updated_grp_p
                 ms3, pwn3 = build_matches(updated_grp_p, gdata["mode"], gdata["games"])
                 gdata["matches"] = ms3
@@ -680,15 +714,12 @@ elif ss.menu=="admin":
                 with cc2:
                     all_club_m = load_members()
                     avail_add = [m for m in all_club_m if m not in updated_grp_p]
-                    if avail_add:
-                        target_add = st.selectbox(f"➕ {gname}에 보강 수동 투입", avail_add, key=f"add_sel_{gname}")
-                        if st.button("조 선수 추가 실행", key=f"add_btn_{gname}", use_container_width=True):
-                            gdata["players"].append(target_add)
-                            ms5, pwn5 = build_matches(gdata["players"], gdata["mode"], gdata["games"])
-                            gdata["matches"] = ms5; gdata["player_with_number"] = pwn5
-                            save_tours(ts); st.success(f"{target_add} 추가 완료"); st.rerun()
-                    else:
-                        st.caption("추가 가능한 명단이 없습니다.")
+                    target_add = st.selectbox(f"➕ {gname}에 보강 수동 투입", avail_add, key=f"add_sel_{gname}")
+                    if st.button("조 선수 추가 실행", key=f"add_btn_{gname}", use_container_width=True):
+                        gdata["players"].append(target_add)
+                        ms5, pwn5 = build_matches(gdata["players"], gdata["mode"], gdata["games"])
+                        gdata["matches"] = ms5; gdata["player_with_number"] = pwn5
+                        save_tours(ts); st.success(f"{target_add} 추가 완료"); st.rerun()
                 with cc3:
                     other_groups = [g for g in cg.keys() if g != gname]
                     if other_groups:
@@ -746,5 +777,3 @@ elif ss.menu=="admin":
                 for gname in t_obj.get("groups",{}):
                     for m in t_obj["groups"][gname]["matches"]: m["s1"]=0; m["s2"]=0
                 save_tours(ts); st.success("✅ 모든 경기 스코어가 0:0으로 초기화되었습니다."); st.rerun()
-
-}
