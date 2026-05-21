@@ -251,7 +251,7 @@ def df_to_html(df):
             if isinstance(val,float) and not pd.isna(val) and val==int(val): val=int(val)
             cells+=f"<td>{val}</td>"
         body+=f"<tr>{cells}</tr>"
-    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</tr></thead><tbody>{body}</tbody></table></div>'
+    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</td></thead><tbody>{body}</tbody></table></div>'
 
 # ══════════════════════════════════════
 # 대진 및 전적 관리 로직
@@ -301,10 +301,16 @@ def make_kdk(players,gperson):
     return ms,p2n
 
 def make_fixed(players):
-    n=len(players); pairs=[(players[i],players[n-1-i]) for i in range(n//2)]
-    ms=[{"t1":list(pairs[i]),"t2":list(pairs[j]),"s1":0,"s2":0}
-        for i in range(len(pairs)) for j in range(i+1,len(pairs))]
-    random.shuffle(ms); return ms,{}
+    # 랭킹 순서로 선수 정렬 (1위 + 최하위, 2위 + 차하위, ...)
+    rank_df = load_rank()
+    rank_order = {row["이름"]: idx for idx, row in rank_df.iterrows()}
+    players_sorted = sorted(players, key=lambda x: rank_order.get(x, 999))
+    n = len(players_sorted)
+    pairs = [(players_sorted[i], players_sorted[n-1-i]) for i in range(n//2)]
+    ms = [{"t1": list(pairs[i]), "t2": list(pairs[j]), "s1": 0, "s2": 0}
+          for i in range(len(pairs)) for j in range(i+1, len(pairs))]
+    random.shuffle(ms)
+    return ms, {}
 
 def make_singles(players):
     pl=players[:]; random.shuffle(pl)
@@ -416,7 +422,7 @@ elif ss.menu=="schedule":
             
             st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
             st.markdown(matrix_html(ms,rit,fx,p2n),unsafe_allow_html=True)
-            # 🔧 수정: KDK 대진표는 mode가 'KDK'일 때만 표시 (고정페어/단식 제외)
+            # 🔧 수정: KDK 모드에서만 KDK 대진표 표시
             if mode == "KDK" and p2n:
                 st.markdown(kdk_html(len(p2n),gi.get("games",4),p2n),unsafe_allow_html=True)
             
@@ -599,7 +605,6 @@ elif ss.menu=="admin":
                     curr_t["date"] = str(new_date)
                     curr_t["place"] = new_place
                     curr_t["courts"] = new_courts
-                    # key는 그대로 유지 (제목 변경 시에도 기존 key 사용, 표시는 새 제목으로)
                     save_tours(ts)
                     st.success("✅ 대회 정보가 수정되었습니다.")
                     st.rerun()
