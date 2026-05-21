@@ -303,8 +303,6 @@ def make_singles(players):
     random.shuffle(ms); return ms,{}
 
 def make_team_match(team_data):
-    # team_data: {"팀명1": [선수들], "팀명2": [선수들], ...}
-    # 각 팀의 명단에서 2명씩 순서대로 페어를 구성
     team_pairs = {}
     for t_name, p_list in team_data.items():
         pairs = []
@@ -312,13 +310,11 @@ def make_team_match(team_data):
             pairs.append((p_list[i], p_list[i+1]))
         team_pairs[t_name] = pairs
 
-    # 순서 기반 매칭: 동일한 인덱스(순번)의 페어끼리 순차 대진 생성
     ms = []
     t_names = list(team_data.keys())
     max_idx = max(len(p) for p in team_pairs.values()) if team_pairs else 0
     
     for idx in range(max_idx):
-        # 해당 순번에 페어가 존재하는 팀들만 모아서 라운드 로빈 매칭
         available = [t for t in t_names if idx < len(team_pairs[t])]
         for i in range(len(available)):
             for j in range(i+1, len(available)):
@@ -408,7 +404,7 @@ elif ss.menu=="schedule":
             st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
             st.markdown(matrix_html(ms,rit,fx,p2n),unsafe_allow_html=True)
             if mode == "KDK" and p2n: st.markdown(kdk_html(len(p2n),gi.get("games",4),p2n),unsafe_allow_html=True)
-            st.markdown("<div class='sec sec-b'>🏅 현재 그룹 순위</div>",unsafe_allow_html=True)
+            st.markdown("<div class='sec sec-b'>🏆 현재 그룹 순위</div>",unsafe_allow_html=True)
             if rit:
                 ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"])); rows=[]
                 for i,item in enumerate(ranked):
@@ -430,7 +426,8 @@ elif ss.menu=="schedule":
                 st.markdown("<div style='height:8px'></div>",unsafe_allow_html=True)
                 sc1,sc2=st.columns(2)
                 with sc1:
-                    c_id1,c_id2=f"ctrl_{g}_{mi}_1_dn",f"ctrl_{g}_{mi}_1_up"
+                    # ⭐ 중복 에러 전면 방지: key 값에 확실한 구분용 접미사(_sch) 부여
+                    c_id1,c_id2=f"ctrl_{g}_{mi}_1_dn_sch",f"ctrl_{g}_{mi}_1_up_sch"
                     st.markdown(f'<div class="ctrl-row" style="display:flex;gap:4px;align-items:center;">',unsafe_allow_html=True)
                     col_d,col_n,col_u = st.columns([1,2,1])
                     with col_d:
@@ -442,7 +439,8 @@ elif ss.menu=="schedule":
                             ms[mi]["s1"]=s1v+1; save_tours(tours); st.rerun()
                     st.markdown('</div>',unsafe_allow_html=True)
                 with sc2:
-                    c_id3,c_id4=f"ctrl_{g}_{mi}_2_dn",f"ctrl_{g}_{mi}_2_up"
+                    # ⭐ 중복 에러 전면 방지: key 값에 확실한 구분용 접미사(_sch) 부여
+                    c_id3,c_id4=f"ctrl_{g}_{mi}_2_dn_sch",f"ctrl_{g}_{mi}_2_up_sch"
                     st.markdown(f'<div class="ctrl-row" style="display:flex;gap:4px;align-items:center;">',unsafe_allow_html=True)
                     col_d,col_n,col_u = st.columns([1,2,1])
                     with col_d:
@@ -609,7 +607,6 @@ elif ss.menu=="admin":
             
         chosen_p = st.multiselect("출전 선수 직접 선택", options=all_m, default=def_players, key="multiselect_players_act")
         
-        # ⭐ [불편함 완전 개선] 선택된 참가자들을 한눈에 쉽게 펼쳐볼 수 있는 전용 토글 보드 배치
         with st.expander("📋 현재 선택된 출전 선수 목록 확인", expanded=True):
             if chosen_p:
                 st.write(", ".join(chosen_p))
@@ -629,13 +626,11 @@ elif ss.menu=="admin":
             st.markdown(f"##### 🏷️ **{gname}** 설정")
             c_m, c_g, c_z = st.columns(3)
             with c_m:
-                # ⭐ 경기 방식 목록에 '팀전' 옵션 추가
                 m_opts=["KDK","고정페어","팀전","단식"]
                 gdata["mode"] = st.selectbox(f"방식 ({gname})", m_opts, index=m_opts.index(gdata.get("mode","KDK")), key=f"md_edit_{gname}")
             with c_g: gdata["games"] = st.selectbox(f"인당 게임 수 ({gname})", [3,4,5], index=[3,4,5].index(gdata.get("games",4)), key=f"gm_edit_{gname}")
             with c_z: gdata["size"] = st.number_input(f"정원 ({gname})", 2, 24, value=gdata.get("size",8), key=f"sz_edit_{gname}")
             
-            # 팀전 방식일 때 세부 분할 입력 처리
             if gdata["mode"] == "팀전":
                 st.markdown(f"⚙️ **{gname} 팀전 상세 배정**")
                 t_count = st.number_input(f"나눌 팀 개수 ({gname})", min_value=2, max_value=10, value=gdata.get("team_count", 2), key=f"t_cnt_{gname}")
@@ -649,7 +644,6 @@ elif ss.menu=="admin":
                     t_input = st.text_input(f"✍️ {t_label} 명단 (쉼표 구분 / 순서대로 2명씩 조 편성)", value=old_val, key=f"t_in_{gname}_{t_idx}")
                     new_t_data[t_label] = [n.strip() for n in t_input.split(",") if n.strip()]
                 gdata["team_data"] = new_t_data
-                # 전체 명단은 합산 처리
                 all_t_players = []
                 for pl in new_t_data.values(): all_t_players.extend(pl)
                 gdata["players"] = all_t_players
