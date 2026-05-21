@@ -643,14 +643,10 @@ elif ss.menu=="admin":
             
         chosen_p = st.multiselect("출전 선수 직접 선택", options=all_m, default=def_players, key="multiselect_players_act")
         
-        # ══════════════════════════════════════════════════════
-        # 개편 파트: 출전 선수 목록 가독성 혁신 (Grid 형태로 전면 개편)
-        # ══════════════════════════════════════════════════════
+        # 👥 출전 선수 목록 그리드 노출 파트
         with st.expander("📋 현재 선택된 출전 선수 목록 확인", expanded=True):
             if chosen_p:
                 st.markdown(f'<div class="player-count-badge">총 {len(chosen_p)}명 배정됨</div>', unsafe_allow_html=True)
-                
-                # HTML 구조로 3열 격자 형태(Grid) 칩 디자인 설계
                 chips_html = "".join([f'<div class="player-chip">{p}</div>' for p in chosen_p])
                 st.markdown(f'<div class="player-grid-box"><div class="player-grid">{chips_html}</div></div>', unsafe_allow_html=True)
             else:
