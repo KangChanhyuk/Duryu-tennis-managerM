@@ -357,7 +357,7 @@ if "is_admin" not in ss: ss.is_admin=False
 # 헤더 렌더링
 st.markdown("<div class='hdr'><div class='hdr-title'>두류 테니스 클럽</div><div class='hdr-sub'>DURYU TENNIS CLUB SYSTEM</div></div><div style='height:18px'></div>",unsafe_allow_html=True)
 
-# 상단 모바일 최적화 메뉴바 (설정 메뉴가 관리자 뒤로 가도록 수정)
+# 상단 모바일 최적화 메뉴바
 m_cols=st.columns(5)
 m_items=[("ranking","🏆 랭킹"),("schedule","📅 대진"),("result","🎾 결과"),("admin","⚙️ 관리"),("config","🛠️ 설정")]
 for idx,(m_id,m_lb) in enumerate(m_items):
@@ -554,11 +554,18 @@ elif ss.menu=="admin":
                     else:
                         st.error("❌ 삭제 비밀번호가 일치하지 않습니다.")
 
-    # 탭 [2] : 당일 참가자 텍스트 등록 및 그룹 자유 편집 시스템 (말 길던 부분 깔끔히 수정 및 선택/해제, 텍스트칸 완벽 보강)
+    # 탭 [2] : 당일 참가자 텍스트 등록 및 그룹 자유 편집 시스템
     with adm[2]:
         ts=load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
         if not act_tids: st.info("현재 진행 중인 대회가 존재하지 않습니다."); st.stop()
-        sel_tid=act_tids[-1]; tour=ts[sel_tid]; cg=tour["groups"]
+        sel_tid=act_tids[-1]; tour=ts[sel_tid]
+        
+        # [★ KeyFlaw 수정 핵심] 방금 생성된 새 대회 데이터 구조에 groups가 정상 바인딩되었는지 2차 방어막 구축
+        if "groups" not in tour:
+            tour["groups"] = {"A그룹":{"players":[],"mode":"KDK","games":4,"matches":[],"player_with_number":{},"size":8}}
+            save_tours(ts)
+            
+        cg=tour["groups"]
         
         st.markdown(f"### 👥 {tour['title']} 참가자 조율")
         all_m=load_members()
@@ -665,7 +672,7 @@ elif ss.menu=="admin":
             if st.button("🏆 계산된 포인트 마스터 랭킹에 영구 반영",type="primary",use_container_width=True):
                 r_master = load_rank()
                 for p, p_val in earn.items():
-                    if p in r_master["이름"].values: r_master.loc[r_master["이름"]==p, \"현재포인트\"] += p_val
+                    if p in r_master["이름"].values: r_master.loc[r_master["이름"]==p, "현재포인트"] += p_val
                     else:
                         new_r = {c:"" for c in COLS_RANK}; new_r["이름"]=p; new_r["현재포인트"]=p_val
                         r_master = pd.concat([r_master, pd.DataFrame([new_r])],ignore_index=True)
