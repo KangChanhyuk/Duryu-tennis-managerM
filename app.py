@@ -289,7 +289,13 @@ def rank_pts(rank,mode):
     if mode=="고정페어": return {1:7,2:5,3:3}.get(rank,1)
     return 7 if rank<=2 else (5 if rank<=4 else (3 if rank<=6 else 1))
 
-def grade(rank):
+def grade_fixed(rank):
+    if rank == 1: return "🥇 우승"
+    elif rank == 2: return "🥈 준우승"
+    elif rank == 3: return "🥉 3위"
+    return "참가"
+
+def grade_kdk(rank):
     return "🥇 우승" if rank<=2 else ("🥈 준우승" if rank<=4 else ("🥉 3위" if rank<=6 else "참가"))
 
 def make_kdk(players,gperson):
@@ -396,8 +402,8 @@ elif ss.menu=="schedule":
             if rit:
                 ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"])); rows=[]
                 for i,item in enumerate(ranked):
-                    if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}'})
-                    else: rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade(i+1)})
+                    if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade_fixed(i+1)})
+                    else: rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade_kdk(i+1)})
                 st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
             st.markdown("<div class='sec sec-b'>🎾 경기 스코어 입력</div>",unsafe_allow_html=True)
             for mi,m in enumerate(ms):
@@ -457,8 +463,8 @@ elif ss.menu=="result":
             rows=[]
             for i,item in enumerate(ranked):
                 pt=rank_pts(i+1,mode)
-                if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
-                else: rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
+                if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade_fixed(i+1)})
+                else: rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade_kdk(i+1)})
             st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════
@@ -560,7 +566,6 @@ elif ss.menu=="admin":
         if not act_tids: st.info("현재 진행 중인 대회가 존재하지 않습니다."); st.stop()
         sel_tid=act_tids[-1]; tour=ts[sel_tid]
         
-        # [★ KeyFlaw 수정 핵심] 방금 생성된 새 대회 데이터 구조에 groups가 정상 바인딩되었는지 2차 방어막 구축
         if "groups" not in tour:
             tour["groups"] = {"A그룹":{"players":[],"mode":"KDK","games":4,"matches":[],"player_with_number":{},"size":8}}
             save_tours(ts)
@@ -574,7 +579,6 @@ elif ss.menu=="admin":
         st.markdown("#### [1단계] 당일 참가자 선택")
         saved_p=tour.get("players", [])
         
-        # 전체 선택 / 전체 해제 제어용 세션 바인딩
         if "sel_all_trigger" not in ss: ss.sel_all_trigger = None
         
         c_sel1, c_sel2 = st.columns(2)
@@ -598,7 +602,6 @@ elif ss.menu=="admin":
             
         chosen_p = st.multiselect("출전 선수 직접 선택", options=all_m, default=def_players, key="multiselect_players_act")
         
-        # 텍스트로 추가/편집할 수 있는 칸 복원 및 연동
         text_p_input = st.text_input("✍️ 출전 선수 텍스트 직접 추가/편집 (이름을 쉼표로 구분)", value=", ".join(chosen_p))
         final_chosen_p = [n.strip() for n in text_p_input.split(",") if n.strip()]
         
