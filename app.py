@@ -4,15 +4,11 @@ import random, os, json
 from datetime import date
 from io import BytesIO
 
-st.set_page_config(
-    page_title="두류 테니스", 
-    page_icon="🎾",
-    layout="centered", 
-    initial_sidebar_state="collapsed"
-)
+st.set_page_config(page_title="두류 테니스", page_icon="🎾",
+                   layout="centered", initial_sidebar_state="collapsed")
 
 # ══════════════════════════════════════
-# CSS (모바일 가로 1줄 정렬 레이아웃 고도화)
+# CSS (아이콘 깨짐 현상 완벽 방지 보강)
 # ══════════════════════════════════════
 st.markdown("""
 <style>
@@ -32,7 +28,14 @@ st.markdown("""
 .block-container{ padding:0 0.5rem 5rem!important; max-width:520px!important; margin:0 auto!important; background:var(--bg)!important; }
 .stApp{ background:var(--bg)!important; }
 
-/* 헤더 & 네비 */
+/* 랭킹 데이터프레임 강제 무조건 가운데 정렬 보완 */
+div[data-testid="stDataFrame"], div[data-testid="stDataFrame"] >, div[data-testid="stDataFrame"] * {
+  text-align: center !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 0 auto !important;
+}
+
 .hdr{ background:linear-gradient(135deg,#1B5E20 0%,#2E7D32 60%,#388E3C 100%); margin:0 -0.5rem 0; padding:14px 18px 0; position:relative; overflow:hidden; box-shadow:var(--sh2); }
 .hdr::after{ content:'🎾'; position:absolute; right:14px; top:8px; font-size:2.6rem; opacity:.12; }
 .hdr-title{ color:#fff; font-size:1.05rem; font-weight:900; margin:0 0 2px; }
@@ -54,53 +57,19 @@ button[data-baseweb="tab"]{ font-size:.75rem!important; font-weight:700!importan
 button[data-baseweb="tab"][aria-selected="true"]{ background:linear-gradient(135deg,var(--g0),var(--g2))!important; color:#fff!important; }
 [data-baseweb="tab-list"]{ background:#DDD!important; border-radius:var(--r1) var(--r1) 0 0!important; padding:4px 4px 0!important; gap:2px!important; }
 
-/* 데이터프레임/테이블 가운데 정렬 */
-div[data-testid="stDataFrame"] iframe { width: 100%; }
-div[data-testid="stDataFrame"] *, div[data-testid="stDataFrame"] [role="gridcell"], div[data-testid="stDataFrame"] [role="columnheader"] { text-align: center !important; justify-content: center !important; align-items: center !important; }
-
-/* ══════════════════════════════════════
-   🔥 모바일 가로 1열 강제 고정 핵심 구조 보강
-   ══════════════════════════════════════ */
 .match-card{ background:var(--card); border-radius:var(--r2); padding:10px; margin:12px 0; box-shadow:var(--sh2); border:1px solid var(--bd); }
 .match-no{ display:inline-block; border-radius:20px; padding:3px 12px; font-size:.6rem; font-weight:900; margin-bottom:10px; color:#fff; }
 .mc0{background:var(--mc0);} .mc1{background:var(--mc1);} .mc2{background:var(--mc2);} .mc3{background:var(--mc3);}
 .mc4{background:var(--mc4);} .mc5{background:var(--mc5);} .mc6{background:var(--mc6);} .mc7{background:var(--mc7);}
 
-/* 팀 박스 디자인 수정 */
 .team-name{ border-radius:var(--r1); padding:6px 4px; font-weight:900; font-size:.78rem; text-align:center; color:#fff; box-shadow:var(--sh); min-height:36px; display:flex; align-items:center; justify-content:center; word-break:keep-all; line-height:1.2; margin-bottom:6px; }
 .tb0{background:var(--tb0);} .tb1{background:var(--tb1);} .tb2{background:var(--tb2);} .tb3{background:var(--tb3);}
 .tb4{background:var(--tb4);} .tb5{background:var(--tb5);} .tb6{background:var(--tb6);} .tb7{background:var(--tb7);}
 
-/* 🚨 대진 입력 컬럼 가로 한 줄 강제 정렬 스크립트 */
-div.score-btn-wrap [data-testid="stHorizontalBlock"] {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  width: 100% !important;
-  gap: 4px !important;
-  align-items: center !important;
-}
-div.score-btn-wrap [data-testid="stHorizontalBlock"] > div {
-  flex: 1 !important;
-  min-width: 0 !important;
-}
-/* VS 중간 정렬 피팅 */
-div.score-btn-wrap [data-testid="stHorizontalBlock"] > div:nth-child(2) {
-  flex: 0 0 35px !important;
-}
-
-div.score-btn-wrap button, .score-num-display {
-  width: 100% !important;
-  aspect-ratio: 1.1 / 1 !important;
-  height: auto !important;
-  font-size: 1.05rem !important;
-  font-weight: 900 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
+div.score-btn-wrap [data-testid="stHorizontalBlock"] { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; width: 100% !important; gap: 4px !important; align-items: center !important; }
+div.score-btn-wrap [data-testid="stHorizontalBlock"] > div { flex: 1 !important; min-width: 0 !important; }
+div.score-btn-wrap [data-testid="stHorizontalBlock"] > div:nth-child(2) { flex: 0 0 35px !important; }
+div.score-btn-wrap button, .score-num-display { width: 100% !important; aspect-ratio: 1.1 / 1 !important; height: auto !important; font-size: 1.05rem !important; font-weight: 900 !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 0 !important; margin: 0 !important; }
 div.score-btn-wrap button { background: #E8F5E9 !important; border: 1.5px solid #C8E6C9 !important; color: #1B5E20 !important; border-radius: 8px !important; }
 div.score-btn-wrap button:active { background: #A5D6A7 !important; }
 .score-num-display { background: #fff; border: 1.5px solid #C8E6C9; border-radius: 8px; color: #1B5E20; }
@@ -111,7 +80,6 @@ div.score-btn-wrap button:active { background: #A5D6A7 !important; }
 .stButton>button{ border-radius:var(--r2)!important; font-weight:700!important; font-size:.82rem!important; min-height:46px!important; padding:10px 14px!important; }
 .stButton>button[kind="primary"]{ background:linear-gradient(135deg,var(--g0),var(--g2))!important; color:#fff!important; border:none!important; box-shadow:0 4px 14px rgba(46,125,50,.35)!important; }
 
-/* 전적 표 스타일 */
 .mx-wrap{ background:var(--card); border-radius:var(--r1); padding:10px; box-shadow:var(--sh); overflow-x:auto; margin:8px 0; border:1px solid var(--bd); }
 .mx{ border-collapse:collapse; white-space:nowrap; font-size:.7rem; width:100%; }
 .mx th,.mx td{ padding:6px 8px; border:1px solid var(--bd); text-align:center; }
@@ -373,8 +341,6 @@ elif M == "schedule":
                     t2_txt = " & ".join(m["t2"])
                     
                     st.markdown(f'<div class="match-card"><span class="match-no {GCLS[mi%len(GCLS)]}">MATCH {mi+1}</span>', unsafe_allow_html=True)
-                    
-                    # 🚨 래퍼 적용으로 내부 요소들을 감싸 깨짐 완벽 방지
                     st.markdown('<div class="score-btn-wrap">', unsafe_allow_html=True)
                     c1, cv, c2 = st.columns([10, 3, 10])
                     
@@ -521,12 +487,13 @@ elif M == "admin":
             st.markdown("<div class='sec sec-t'>🌿 조 분할 스케줄링 및 대진 로직 바인딩</div>", unsafe_allow_html=True)
             g_cnt = st.number_input("진행할 조 분할 개수 (최대 4개 조)", min_value=1, max_value=4, value=1)
             
+            # 🚨 루프 내 고유 키 매핑 분리 및 리스트 초기화 오류 원천 차단 보정
             groups_config = {}
             for gi in range(int(g_cnt)):
                 gn = chr(64 + (gi + 1))
                 st.markdown(f"**🟢 [그룹 {gn}] 세부 옵션 빌딩**")
-                g_p = st.multiselect(f"그룹 {gn} 매칭에 귀속시킬 참가자 선택", final_players, default=final_players if g_cnt==1 else None, key=f"g_sel_p_{gn}")
-                g_m = st.selectbox(f"그룹 {gn} 공식 경기 운영 방식", ["KDK (1인 3게임)", "KDK (1인 4게임)", "고정페어", "단식 풀리그"], key=f"g_sel_m_{gn}")
+                g_p = st.multiselect(f"그룹 {gn} 매칭에 귀속시킬 참가자 선택", final_players, default=final_players if g_cnt==1 else None, key=f"g_sel_p_v2_{gn}")
+                g_m = st.selectbox(f"그룹 {gn} 공식 경기 운영 방식", ["KDK (1인 3게임)", "KDK (1인 4게임)", "고정페어", "단식 풀리그"], key=f"g_sel_m_v2_{gn}")
                 groups_config[gn] = {"players": g_p, "mode": g_m}
                 
             if st.button("🚀 설정 세션 기반 자동 대진 매트릭스 동시 생성", type="primary", use_container_width=True):
