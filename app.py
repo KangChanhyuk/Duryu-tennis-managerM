@@ -431,10 +431,20 @@ elif ss.menu=="schedule":
     st.markdown(f"<div class='pg-title c1'>📅 {tour['title']}</div>",unsafe_allow_html=True)
     st.markdown(f"<div class='ic ic-b'>📍 {tour.get('date','')} &nbsp;|&nbsp; {tour.get('place','')} &nbsp;|&nbsp; 코트 {tour.get('courts',2)}면</div>",unsafe_allow_html=True)
     if not gnames: st.markdown("<div class='ic ic-b'>ℹ️ 편성된 대진 그룹이 없습니다.</div>",unsafe_allow_html=True); st.stop()
+    
     tabs=st.tabs([f"{GLBL[i%len(GLBL)]} {g}" for i,g in enumerate(gnames)])
     for ti,g in enumerate(gnames):
         with tabs[ti]:
-            gi=tour["groups"][g]; ms=gi["matches"]; mode=gi["mode"]; p2n=gi.get("player_with_number",{})
+            # 💡 KeyError 방지 보강: .get()을 이용해 구조가 비어있을 때 유연하게 방어 처리
+            gi=tour["groups"].get(g, {})
+            ms=gi.get("matches", [])
+            mode=gi.get("mode", "KDK")
+            p2n=gi.get("player_with_number", {})
+            
+            if not ms:
+                st.markdown("<div style='color:#777; font-size:0.8rem; padding:15px; text-align:center;'>아직 이 그룹의 대진표 빌드가 완료되지 않았거나 출전 인원이 없습니다.<br>[⚙️ 관리 -> 참가자 명단 조율] 에서 대진표 최종 빌드를 완료해주세요!</div>", unsafe_allow_html=True)
+                continue
+                
             fx=(mode in ["고정페어", "팀전"]); sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
             st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
             st.markdown(matrix_html(ms,rit,fx,p2n),unsafe_allow_html=True)
@@ -490,11 +500,13 @@ elif ss.menu=="result":
     st.markdown("<div class='pg-title c2'>🎾 대회 종합 결과</div>",unsafe_allow_html=True)
     tours=load_tours(); t_done=[k for k,v in tours.items() if v.get("status")=="완료"]
     if not t_done: st.markdown("<div class='ic ic-o'>ℹ️ 마감 완료된 대회가 아직 존재하지 않습니다.</div>",unsafe_allow_html=True); st.stop()
-    sel_tid=st.selectbox("🏆 지난 대회 아카이브 선택",t_done[::-1],format_func=lambda x: tours[x]["title"])
+    sel_tid=st.selectbox("🏆 지난 대회 아카이브 선택", t_done[::-1], format_func=lambda x: tours[x]["title"])
     tour=tours[sel_tid]
     st.markdown(f"<div class='ic ic-o'><b>🏆 {tour['title']} 공식 결과 보고서</b><br>📍 일자: {tour.get('date','')} | 장소: {tour.get('place','')}</div>",unsafe_allow_html=True)
     for g,gi in tour.get("groups",{}).items():
-        ms=gi["matches"]; mode=gi["mode"]; fx=(mode in ["고정페어", "팀전"]); sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
+        ms=gi.get("matches", []); mode=gi.get("mode", "KDK")
+        if not ms: continue
+        fx = (mode in ["고정페어", "팀전"]); sv = stats_fixed(ms) if fx else stats_kdk(ms); rit = list(sv.keys())
         if rit:
             ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
             st.markdown(f'<div class="sec sec-p">Group {g} ({mode})</div>',unsafe_allow_html=True)
@@ -684,7 +696,6 @@ elif ss.menu=="admin":
         st.divider()
         st.markdown("#### [3단계] 대진표 최종 빌드")
         if st.button("🔥 설정 맞춰 대진표 자동 매칭 실행", use_container_width=True, type="primary"):
-            # 💡 tour["groups"]가 변경되는 것에 대응하기 위해 전체 키 리스트를 명확히 기반으로 순회
             for gn in list(tour["groups"].keys()):
                 gd = tour["groups"][gn]
                 pl = gd.get("players", [])
@@ -716,7 +727,7 @@ elif ss.menu=="admin":
         t_key=act_tids[-1]; t_obj=ts[t_key]
         earn={}
         for gname, gdata in t_obj.get("groups",{}).items():
-            mode, ms = gdata["mode"], gdata["matches"]
+            mode, ms = gdata.get("mode","KDK"), gdata.get("matches",[])
             fx = (mode in ["고정페어", "팀전"])
             sv = stats_fixed(ms) if fx else stats_kdk(ms)
             rit = list(sv.keys())
