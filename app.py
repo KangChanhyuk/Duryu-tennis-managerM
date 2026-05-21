@@ -107,7 +107,6 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .kdk td:first-child{width:50px;text-align:center;}
 .kdk td:last-child{text-align:left;}
 
-/* 👥 출전 선수 명단 그리드 스타일 추가 */
 .player-grid-box {
     background: #F8F9FA;
     border: 1px solid #E0E4EA;
@@ -404,10 +403,8 @@ ss=st.session_state
 if "menu" not in ss: ss.menu="ranking"
 if "is_admin" not in ss: ss.is_admin=False
 
-# 헤더 렌더링
 st.markdown("<div class='hdr'><div class='hdr-title'>두류 테니스 클럽</div><div class='hdr-sub'>DURYU TENNIS CLUB SYSTEM</div></div><div style='height:18px'></div>",unsafe_allow_html=True)
 
-# 상단 메뉴바
 m_cols=st.columns(5)
 m_items=[("ranking","🏆 랭킹"),("schedule","📅 대진"),("result","🎾 결과"),("admin","⚙️ 관리"),("config","🛠️ 설정")]
 for idx,(m_id,m_lb) in enumerate(m_items):
@@ -455,12 +452,9 @@ elif ss.menu=="schedule":
                 mc=GCLS[mi%len(GCLS)]; tbc=TBCLS[mi%len(TBCLS)]; s1v=int(m["s1"]); s2v=int(m["s2"])
                 st.markdown(f'<div class="match-card"><span class="match-no {mc}">MATCH {mi+1} {f"[{m.get(\'info\')}]" if "info" in m else ""}</span>',unsafe_allow_html=True)
                 nA,nVS,nB=st.columns([5,1,5])
-                with nA:
-                    st.markdown(f'<div class="team-nm {tbc}">{t1s}</div>',unsafe_allow_html=True)
-                with nVS:
-                    st.markdown('<div style="height:40px;display:flex;align-items:center;justify-content:center;"><div class="vs-badge">VS</div></div>',unsafe_allow_html=True)
-                with nB:
-                    st.markdown(f'<div class="team-nm {tbc}">{t2s}</div>',unsafe_allow_html=True)
+                with nA: st.markdown(f'<div class="team-nm {tbc}">{t1s}</div>',unsafe_allow_html=True)
+                with nVS: st.markdown('<div style="height:40px;display:flex;align-items:center;justify-content:center;"><div class="vs-badge">VS</div></div>',unsafe_allow_html=True)
+                with nB: st.markdown(f'<div class="team-nm {tbc}">{t2s}</div>',unsafe_allow_html=True)
                 st.markdown("<div style='height:8px'></div>",unsafe_allow_html=True)
                 sc1,sc2=st.columns(2)
                 with sc1:
@@ -523,7 +517,7 @@ elif ss.menu=="config":
         if old_pw==get_admin_pw():
             if len(new_pw.strip())>=4: cfg=load_config(); cfg["admin_pw"]=new_pw.strip(); save_config(cfg); st.success("✅ 비밀번호가 수정되었습니다."); st.rerun()
             else: st.error("❌ 비밀번호는 공백 제외 최소 4자리 이상이어야 합니다.")
-        else: r=st.error("❌ 현재 패스워드가 올바르지 않습니다.")
+        else: st.error("❌ 현재 패스워드가 올바르지 않습니다.")
     st.divider()
     
     init_pw=st.text_input("비밀번호 강제 초기화 (마스터 키)",type="password",key="cfg_init_pw")
@@ -599,8 +593,7 @@ elif ss.menu=="admin":
                 if st.button("🗑️ 해당 대회 데이터 영구 삭제",type="primary",use_container_width=True):
                     if del_pw == get_admin_pw():
                         del ts[sel_t]; save_tours(ts); st.warning("대회가 삭제되었습니다."); st.rerun()
-                    else:
-                        st.error("❌ 삭제 비밀번호가 일치하지 않습니다.")
+                    else: st.error("❌ 삭제 비밀번호가 일치하지 않습니다.")
 
     with adm[2]:
         ts=load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
@@ -625,25 +618,20 @@ elif ss.menu=="admin":
         c_sel1, c_sel2 = st.columns(2)
         with c_sel1:
             if st.button("✅ 전체 회원 체크", use_container_width=True):
-                ss.sel_all_trigger = True
-                st.rerun()
+                ss.sel_all_trigger = True; st.rerun()
         with c_sel2:
             if st.button("❌ 전체 체크 해제", use_container_width=True):
-                ss.sel_all_trigger = False
-                st.rerun()
+                ss.sel_all_trigger = False; st.rerun()
                 
         if ss.sel_all_trigger is True:
-            def_players = all_m
-            ss.sel_all_trigger = None
+            def_players = all_m; ss.sel_all_trigger = None
         elif ss.sel_all_trigger is False:
-            def_players = []
-            ss.sel_all_trigger = None
+            def_players = []; ss.sel_all_trigger = None
         else:
             def_players = [p for p in saved_p if p in all_m]
             
         chosen_p = st.multiselect("출전 선수 직접 선택", options=all_m, default=def_players, key="multiselect_players_act")
         
-        # 👥 출전 선수 목록 그리드 노출 파트
         with st.expander("📋 현재 선택된 출전 선수 목록 확인", expanded=True):
             if chosen_p:
                 st.markdown(f'<div class="player-count-badge">총 {len(chosen_p)}명 배정됨</div>', unsafe_allow_html=True)
@@ -696,7 +684,9 @@ elif ss.menu=="admin":
         st.divider()
         st.markdown("#### [3단계] 대진표 최종 빌드")
         if st.button("🔥 설정 맞춰 대진표 자동 매칭 실행", use_container_width=True, type="primary"):
-            for gn, gd in tour["groups"].items():
+            # 💡 tour["groups"]가 변경되는 것에 대응하기 위해 전체 키 리스트를 명확히 기반으로 순회
+            for gn in list(tour["groups"].keys()):
+                gd = tour["groups"][gn]
                 pl = gd.get("players", [])
                 m = gd.get("mode", "KDK")
                 gp = gd.get("games", 4)
