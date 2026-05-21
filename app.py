@@ -251,7 +251,7 @@ def df_to_html(df):
             if isinstance(val,float) and not pd.isna(val) and val==int(val): val=int(val)
             cells+=f"<td>{val}</td>"
         body+=f"<tr>{cells}</tr>"
-    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</td></thead><tbody>{body}</tbody></table></div>'
+    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</tr></thead><tbody>{body}</tbody></table></div>'
 
 # ══════════════════════════════════════
 # 대진 및 전적 관리 로직
@@ -289,8 +289,25 @@ def rank_pts(rank,mode):
     if mode=="고정페어": return {1:7,2:5,3:3}.get(rank,1)
     return 7 if rank<=2 else (5 if rank<=4 else (3 if rank<=6 else 1))
 
-def grade(rank):
-    return "🥇 우승" if rank<=2 else ("🥈 준우승" if rank<=4 else ("🥉 3위" if rank<=6 else "참가"))
+def grade(rank, mode):
+    if mode == "고정페어":
+        if rank == 1:
+            return "🥇 우승"
+        elif rank == 2:
+            return "🥈 준우승"
+        elif rank == 3:
+            return "🥉 3위"
+        else:
+            return "참가"
+    else:
+        if rank <= 2:
+            return "🥇 우승"
+        elif rank <= 4:
+            return "🥈 준우승"
+        elif rank <= 6:
+            return "🥉 3위"
+        else:
+            return "참가"
 
 def make_kdk(players,gperson):
     n=len(players); bp=KDK_3G.get(n) if gperson==3 else KDK_4G.get(n)
@@ -422,7 +439,7 @@ elif ss.menu=="schedule":
             
             st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
             st.markdown(matrix_html(ms,rit,fx,p2n),unsafe_allow_html=True)
-            # 🔧 수정: KDK 모드에서만 KDK 대진표 표시
+            # KDK 모드에서만 KDK 대진표 표시
             if mode == "KDK" and p2n:
                 st.markdown(kdk_html(len(p2n),gi.get("games",4),p2n),unsafe_allow_html=True)
             
@@ -430,8 +447,11 @@ elif ss.menu=="schedule":
             if rit:
                 ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"])); rows=[]
                 for i,item in enumerate(ranked):
-                    if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}'})
-                    else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade(i+1)})
+                    # 비고 컬럼을 모든 모드에서 표시 (grade에 mode 전달)
+                    if fx:
+                        rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade(i+1, mode)})
+                    else:
+                        rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade(i+1, mode)})
                 st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
                 
             st.markdown("<div class='sec sec-b'>🎾 경기 스코어 입력</div>",unsafe_allow_html=True)
@@ -470,8 +490,8 @@ elif ss.menu=="result":
         rows=[]
         for i,item in enumerate(ranked):
             pt=rank_pts(i+1,mode)
-            if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
-            else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
+            if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1, mode)})
+            else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1, mode)})
         st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
         with st.expander("📋 세부 매치 기록 보기"):
             mr=[{"경기":f"{' & '.join(m['t1'])} vs {' & '.join(m['t2'])}","결과":f"{m['s1']} : {m['s2']}"} for m in ms]
@@ -495,8 +515,8 @@ elif ss.menu=="archive":
         rows=[]
         for i,item in enumerate(ranked):
             pt=rank_pts(i+1,mode)
-            if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
-            else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1)})
+            if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1, mode)})
+            else:  rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade(i+1, mode)})
         st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════
@@ -618,7 +638,7 @@ elif ss.menu=="admin":
                     curr_t["status"]=chg_s; save_tours(ts); st.success("변경 완료"); st.rerun()
             with c6:
                 st.markdown("<div style='height:28px'></div>",unsafe_allow_html=True)
-                # 🔧 삭제 시 비밀번호 재확인
+                # 삭제 시 비밀번호 재확인
                 del_pw = st.text_input("🔒 삭제를 위한 관리자 비밀번호", type="password", key="del_pw", placeholder="비밀번호 입력")
                 if st.button("🗑️ 해당 대회 데이터 영구 삭제", type="primary", use_container_width=True):
                     if del_pw == get_admin_pw():
@@ -668,8 +688,7 @@ elif ss.menu=="admin":
                             cg[gname]["matches"] = ms2
                             cg[gname]["player_with_number"] = pwn2
                         tour["players"] = parsed_p
-                        # ★ 핵심 수정: 그룹 text_input 세션 스테이트 초기화
-                        # st.rerun() 후 stale 값이 남아 A그룹 선수를 덮어쓰는 버그 방지
+                        # 그룹 text_input 세션 스테이트 초기화 (stale 값 방지)
                         for _gn in g_names:
                             ss.pop(f"grp_txt_{_gn}", None)
                         save_tours(ts)
@@ -678,7 +697,6 @@ elif ss.menu=="admin":
                 if st.button("💾 명단만 일단 저장 (대진 미생성)", use_container_width=True):
                     parsed_p = [n.strip() for n in raw_input_p.replace("\n",",").split(",") if n.strip()]
                     tour["players"] = list(dict.fromkeys(parsed_p))
-                    # ★ 그룹 text_input 세션 스테이트도 초기화
                     for _gn in list(cg.keys()):
                         ss.pop(f"grp_txt_{_gn}", None)
                     save_tours(ts); st.success("✅ 출전 인원 기본 저장이 완료되었습니다. 하단에서 수동 조율하세요.")
@@ -704,8 +722,7 @@ elif ss.menu=="admin":
             
             # 실시간 동적 반영 파서
             updated_grp_p = [n.strip() for n in grp_text_input.split(",") if n.strip()]
-            # ★ 핵심 수정: 입력값이 비어있는데 기존 선수가 있으면 덮어쓰지 않음
-            # (세션 스테이트 stale 값으로 인한 A그룹 선수 소멸 버그 방지)
+            # 입력값이 비어있는데 기존 선수가 있으면 덮어쓰지 않음 (stale 값 방지)
             is_genuine_clear = (grp_text_input.strip() == "" and cur_grp_players)
             if updated_grp_p != cur_grp_players and not is_genuine_clear:
                 gdata["players"] = updated_grp_p
