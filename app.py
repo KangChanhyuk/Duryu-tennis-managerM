@@ -165,8 +165,19 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{background:var(--g5)!
 RANK_FILE   = "ranking_master.csv"
 MEMBER_FILE = "member_roster.json"
 TOUR_FILE   = "tournaments.json"
-ADMIN_PW    = "0502"
+CONFIG_FILE = "config.json"
 COLS_RANK   = ["랭킹","이름","현재포인트","3월 포인트","결과","부과점","그룹","비고"]
+
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE,"r") as f: return json.load(f)
+    return {"admin_pw":"0502"}
+
+def save_config(cfg):
+    with open(CONFIG_FILE,"w") as f: json.dump(cfg,f,ensure_ascii=False,indent=2)
+
+def get_admin_pw():
+    return load_config().get("admin_pw","0502")
 
 GCLS  = ["mc0","mc1","mc2","mc3","mc4","mc5","mc6","mc7"]
 TBCLS = ["tb0","tb1","tb2","tb3","tb4","tb5","tb6","tb7"]
@@ -486,7 +497,7 @@ elif ss.menu=="archive":
 elif ss.menu=="admin":
     st.markdown("<div class='pg-title c4'>⚙️ 관리자 관제 센터</div>",unsafe_allow_html=True)
     pw=st.text_input("🔒 패스워드 인증",type="password",placeholder="암호코드 입력")
-    if pw==ADMIN_PW: ss.is_admin=True
+    if pw==get_admin_pw(): ss.is_admin=True
     if not ss.is_admin:
         if pw: st.error("❌ 패스워드가 올바르지 않습니다.")
         st.stop()
@@ -524,6 +535,30 @@ elif ss.menu=="admin":
                     if "이름" in du.columns: save_members(du["이름"].tolist())
                     st.success("✅ 저장 성공!"); st.rerun()
             except Exception as e: st.error(f"오류가 발생했습니다: {e}")
+
+        st.divider()
+        st.markdown('<div class="sec sec-t">🔑 관리자 비밀번호 변경</div>',unsafe_allow_html=True)
+        st.caption("새 비밀번호를 입력하고 저장하세요. 비밀번호를 잊었을 경우 'DR0502'를 입력하면 0502로 초기화됩니다.")
+        c_pw1, c_pw2 = st.columns(2)
+        with c_pw1:
+            new_pw_val = st.text_input("새 비밀번호", type="password", placeholder="새 비밀번호 입력", key="new_pw_field")
+        with c_pw2:
+            confirm_pw_val = st.text_input("비밀번호 확인", type="password", placeholder="한 번 더 입력", key="confirm_pw_field")
+        if st.button("💾 비밀번호 저장", use_container_width=True, key="save_pw_btn"):
+            if new_pw_val == "DR0502":
+                cfg = load_config(); cfg["admin_pw"] = "0502"; save_config(cfg)
+                ss.is_admin = False
+                st.success("✅ 비밀번호가 기본값 '0502'로 초기화되었습니다. 다시 로그인하세요."); st.rerun()
+            elif not new_pw_val:
+                st.warning("새 비밀번호를 입력하세요.")
+            elif len(new_pw_val) < 4:
+                st.warning("비밀번호는 4자 이상이어야 합니다.")
+            elif new_pw_val != confirm_pw_val:
+                st.error("❌ 비밀번호가 일치하지 않습니다.")
+            else:
+                cfg = load_config(); cfg["admin_pw"] = new_pw_val; save_config(cfg)
+                ss.is_admin = False
+                st.success("✅ 비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인하세요."); st.rerun()
 
     # 탭 [1] : 새 대회 생성 및 기본 구성 옵션
     with adm[1]:
@@ -603,12 +638,19 @@ elif ss.menu=="admin":
                             cg[gname]["matches"] = ms2
                             cg[gname]["player_with_number"] = pwn2
                         tour["players"] = parsed_p
+                        # ★ 핵심 수정: 그룹 text_input 세션 스테이트 초기화
+                        # st.rerun() 후 stale 값이 남아 A그룹 선수를 덮어쓰는 버그 방지
+                        for _gn in g_names:
+                            ss.pop(f"grp_txt_{_gn}", None)
                         save_tours(ts)
                         st.success("✅ 랭킹 순서에 의거해 그룹 배정 및 매치 테이블 편성이 자동 완료되었습니다."); st.rerun()
             with c_direct:
                 if st.button("💾 명단만 일단 저장 (대진 미생성)", use_container_width=True):
                     parsed_p = [n.strip() for n in raw_input_p.replace("\n",",").split(",") if n.strip()]
                     tour["players"] = list(dict.fromkeys(parsed_p))
+                    # ★ 그룹 text_input 세션 스테이트도 초기화
+                    for _gn in list(cg.keys()):
+                        ss.pop(f"grp_txt_{_gn}", None)
                     save_tours(ts); st.success("✅ 출전 인원 기본 저장이 완료되었습니다. 하단에서 수동 조율하세요.")
 
         st.divider()
@@ -632,7 +674,10 @@ elif ss.menu=="admin":
             
             # 실시간 동적 반영 파서
             updated_grp_p = [n.strip() for n in grp_text_input.split(",") if n.strip()]
-            if updated_grp_p != cur_grp_players:
+            # ★ 핵심 수정: 입력값이 비어있는데 기존 선수가 있으면 덮어쓰지 않음
+            # (세션 스테이트 stale 값으로 인한 A그룹 선수 소멸 버그 방지)
+            is_genuine_clear = (grp_text_input.strip() == "" and cur_grp_players)
+            if updated_grp_p != cur_grp_players and not is_genuine_clear:
                 gdata["players"] = updated_grp_p
                 # 인원 변동 시 매치 자동 조율 빌드 호출
                 ms3, pwn3 = build_matches(updated_grp_p, gdata["mode"], gdata["games"])
