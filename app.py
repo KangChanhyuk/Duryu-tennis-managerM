@@ -8,7 +8,7 @@ st.set_page_config(page_title="두류 테니스", page_icon="🎾",
                    layout="centered", initial_sidebar_state="collapsed")
 
 # ══════════════════════════════════════
-# CSS (아이콘 깨짐 방지 + 멀티셀렉트 스크롤 추가)
+# CSS (아이콘 깨짐 현상 완벽 방지 보강)
 # ══════════════════════════════════════
 st.markdown("""
 <style>
@@ -27,12 +27,12 @@ st.markdown("""
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 
-/* 일반 요소 폰트 */
+/* 1. 일반 요소에만 Noto Sans KR을 적용하고 Streamlit 아이콘 계열은 제외 */
 html, body, [data-testid="stAppViewContainer"] :not(i):not(svg):not([class*="material-icons"]) {
     font-family: 'Noto Sans KR', sans-serif;
 }
 
-/* 아이콘 폰트 보호 */
+/* 2. [arrow_right, chevron_down 해결] Streamlit 내장 아이콘 클래스의 폰트 패밀리를 절대 보호 */
 [data-testid="stExpander"] [data-testid="stIconVisibility"],
 [data-testid="stExpander"] svg,
 [data-testid="stExpander"] span[class*="st-"],
@@ -100,17 +100,6 @@ i {
 button[data-baseweb="tab"]{font-size:.65rem!important;font-weight:700!important;padding:7px 4px!important;border-radius:var(--r1) var(--r1) 0 0!important;min-height:38px!important;white-space:nowrap!important;}
 button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;}
 [data-baseweb="tab-list"]{background:#DDD!important;border-radius:var(--r1) var(--r1) 0 0!important;padding:3px 3px 0!important;gap:2px!important;flex-wrap:nowrap!important;overflow-x:auto!important;}
-
-/* 멀티셀렉트 선택 항목 영역 스크롤 (참가자 명단이 많을 때) */
-div[data-baseweb="select"] [role="listbox"] {
-    max-height: 200px !important;
-    overflow-y: auto !important;
-}
-/* 선택된 항목들이 표시되는 컨테이너에도 스크롤 적용 */
-div[data-baseweb="select"] [data-testid="stMultiSelect"] > div:first-child {
-    max-height: 150px !important;
-    overflow-y: auto !important;
-}
 
 /* HTML 표 */
 .mx-wrap{background:var(--card);border-radius:var(--r1);padding:8px;box-shadow:var(--sh);overflow-x:auto;margin:7px 0;border:1px solid var(--bd);}
@@ -262,7 +251,7 @@ def df_to_html(df):
             if isinstance(val,float) and not pd.isna(val) and val==int(val): val=int(val)
             cells+=f"<td>{val}</td>"
         body+=f"<tr>{cells}</tr>"
-    return f'<div class="mx-wrap"><table class="mx"><thead></table>{h}</thead><tbody>{body}</tbody></table></div>'
+    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</tr></thead><tbody>{body}</tbody></table></div>'
 
 # ══════════════════════════════════════
 # 대진 및 전적 관리 로직
@@ -341,7 +330,7 @@ def kdk_html(n,gperson,p2n):
         t1=f"{n2p.get(a,a)}({a}) &amp; {n2p.get(b,b)}({b})"
         t2=f"{n2p.get(c,c)}({c}) &amp; {n2p.get(d,d)}({d})"
         rows+=f"<tr><td style='text-align:center'><span style='background:#1B5E20;color:#fff;border-radius:20px;padding:2px 8px;font-size:.58rem;font-weight:700'>{i+1}</span></td><td style='text-align:left'>{t1} vs {t2}</td></tr>"
-    return f'<div class="kdk"><div style="font-size:.72rem;font-weight:800;color:#1B5E20;margin-bottom:5px">📋 KDK 1인 {gperson}게임 — {n}명</div><tr><thead><tr><th>순서</th><th>대진</th></tr></thead><tbody>{rows}</tbody></table></div>'
+    return f'<div class="kdk"><div style="font-size:.72rem;font-weight:800;color:#1B5E20;margin-bottom:5px">📋 KDK 1인 {gperson}게임 — {n}명</div><table><thead><tr><th>순서</th><th>대진</th></tr></thead><tbody>{rows}</tbody></table></div>'
 
 def matrix_html(matches,rank_items,is_fixed,p2n):
     if not matches or not rank_items: return ""
@@ -568,9 +557,10 @@ elif ss.menu=="admin":
                 if st.button("🗑️ 해당 대회 데이터 영구 삭제",type="primary",use_container_width=True):
                     if del_pw == get_admin_pw():
                         del ts[sel_t]; save_tours(ts); st.warning("대회가 삭제되었습니다."); st.rerun()
-                    else: st.error("❌ 삭제 비밀번호가 일치하지 않습니다.")
+                    else:
+                        st.error("❌ 삭제 비밀번호가 일치하지 않습니다.")
 
-    # 탭 [2] : 당일 참가자 텍스트 등록 및 그룹 자유 편집 시스템 (스크롤 적용)
+    # 탭 [2] : 당일 참가자 텍스트 등록 및 그룹 자유 편집 시스템
     with adm[2]:
         ts=load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
         if not act_tids: st.info("현재 진행 중인 대회가 존재하지 않습니다."); st.stop()
@@ -612,8 +602,7 @@ elif ss.menu=="admin":
             
         chosen_p = st.multiselect("출전 선수 직접 선택", options=all_m, default=def_players, key="multiselect_players_act")
         
-        # *** 수정: text_input → text_area (스크롤 가능) ***
-        text_p_input = st.text_area("✍️ 출전 선수 텍스트 직접 추가/편집 (이름을 쉼표로 구분)", value=", ".join(chosen_p), height=150)
+        text_p_input = st.text_input("✍️ 출전 선수 텍스트 직접 추가/편집 (이름을 쉼표로 구분)", value=", ".join(chosen_p))
         final_chosen_p = [n.strip() for n in text_p_input.split(",") if n.strip()]
         
         if st.button("💾 참가 명단 저장", use_container_width=True, type="primary"):
@@ -631,8 +620,7 @@ elif ss.menu=="admin":
             with c_z: gdata["size"] = st.number_input(f"정원 ({gname})", 2, 24, value=gdata.get("size",8), key=f"sz_edit_{gname}")
             
             cur_grp_players = gdata.get("players", [])
-            # *** 수정: text_input → text_area (스크롤 가능) ***
-            grp_text_input = st.text_area(f"✍️ {gname} 명단 직접 편집 (쉼표 구분)", value=", ".join(cur_grp_players), key=f"grp_txt_{gname}", height=120)
+            grp_text_input = st.text_input(f"✍️ {gname} 명단 직접 편집 (쉼표 구분)", value=", ".join(cur_grp_players), key=f"grp_txt_{gname}")
             gdata["players"] = [n.strip() for n in grp_text_input.split(",") if n.strip()]
             
         if st.button("💾 모든 그룹 셋팅값 & 소속 선수 백업", key="save_grp_configs_btn", type="primary", use_container_width=True):
