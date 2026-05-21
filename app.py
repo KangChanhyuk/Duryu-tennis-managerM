@@ -12,7 +12,7 @@ st.set_page_config(page_title="두류 테니스", page_icon="🎾",
 # ══════════════════════════════════════
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
 :root{
   --g0:#1B5E20;--g2:#388E3C;--g3:#66BB6A;--g5:#E8F5E9;
   --nav0:#2E7D32;--nav1:#1565C0;--nav2:#E65100;--nav3:#4A148C;--nav4:#00695C;
@@ -416,7 +416,9 @@ elif ss.menu=="schedule":
             
             st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
             st.markdown(matrix_html(ms,rit,fx,p2n),unsafe_allow_html=True)
-            if not fx and p2n: st.markdown(kdk_html(len(p2n),gi.get("games",4),p2n),unsafe_allow_html=True)
+            # 🔧 수정: KDK 대진표는 mode가 'KDK'일 때만 표시 (고정페어/단식 제외)
+            if mode == "KDK" and p2n:
+                st.markdown(kdk_html(len(p2n),gi.get("games",4),p2n),unsafe_allow_html=True)
             
             st.markdown("<div class='sec sec-b'>🏅 현재 그룹 순위</div>",unsafe_allow_html=True)
             if rit:
@@ -582,9 +584,27 @@ elif ss.menu=="admin":
         st.divider()
         ts=load_tours()
         if ts:
-            st.markdown('<div class="sec sec-t">🔧 진행 상황 변경 및 대회 삭제</div>',unsafe_allow_html=True)
+            st.markdown('<div class="sec sec-t">🔧 진행 상황 변경 및 대회 수정/삭제</div>',unsafe_allow_html=True)
             sel_t=st.selectbox("제어 대상 대회 선별",list(ts.keys()),format_func=lambda k:f"[{ts[k].get('status',' 진행중')}] {ts[k]['title']}")
             curr_t=ts[sel_t]
+            
+            # ---------- 대회 정보 수정 (추가) ----------
+            with st.expander("✏️ 대회 정보 수정 (제목/날짜/장소/코트)", expanded=False):
+                new_title = st.text_input("수정할 대회명", value=curr_t["title"], key="edit_title")
+                new_date = st.date_input("수정할 날짜", value=pd.to_datetime(curr_t.get("date", date.today())).date() if curr_t.get("date") else date.today(), key="edit_date")
+                new_place = st.text_input("수정할 장소", value=curr_t.get("place", "두류 테니스장"), key="edit_place")
+                new_courts = st.number_input("수정할 코트 수", min_value=1, max_value=5, value=curr_t.get("courts", 2), key="edit_courts", step=1)
+                if st.button("💾 수정 내용 저장", key="save_tour_edit", use_container_width=True):
+                    curr_t["title"] = new_title
+                    curr_t["date"] = str(new_date)
+                    curr_t["place"] = new_place
+                    curr_t["courts"] = new_courts
+                    # key는 그대로 유지 (제목 변경 시에도 기존 key 사용, 표시는 새 제목으로)
+                    save_tours(ts)
+                    st.success("✅ 대회 정보가 수정되었습니다.")
+                    st.rerun()
+            # -----------------------------------------
+            
             c5,c6=st.columns(2)
             with c5:
                 s_opts=["진행중","완료","예정"]
@@ -593,8 +613,13 @@ elif ss.menu=="admin":
                     curr_t["status"]=chg_s; save_tours(ts); st.success("변경 완료"); st.rerun()
             with c6:
                 st.markdown("<div style='height:28px'></div>",unsafe_allow_html=True)
-                if st.button("🗑️ 해당 대회 데이터 영구 삭제",type="primary",use_container_width=True):
-                    del ts[sel_t]; save_tours(ts); st.warning("대회가 삭제되었습니다."); st.rerun()
+                # 🔧 삭제 시 비밀번호 재확인
+                del_pw = st.text_input("🔒 삭제를 위한 관리자 비밀번호", type="password", key="del_pw", placeholder="비밀번호 입력")
+                if st.button("🗑️ 해당 대회 데이터 영구 삭제", type="primary", use_container_width=True):
+                    if del_pw == get_admin_pw():
+                        del ts[sel_t]; save_tours(ts); st.warning("대회가 삭제되었습니다."); st.rerun()
+                    else:
+                        st.error("❌ 비밀번호가 올바르지 않습니다. 삭제가 취소되었습니다.")
 
     # 탭 [2] : 당일 참가자 텍스트 등록 및 그룹 자유 편집 시스템 (완전 개편)
     with adm[2]:
