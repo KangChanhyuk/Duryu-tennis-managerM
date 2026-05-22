@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import random, os, json
@@ -137,7 +136,6 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{background:var(--g5)!
 
 .stTextInput>div>div>input,.stTextArea>div>div>textarea,.stSelectbox>div>div{min-height:46px!important;border-radius:var(--r1)!important;}
 
-/* 줄바꿈 textarea 스타일: 자동 높이 & 줄바꿈 허용 */
 .stTextArea>div>div>textarea {
     white-space: pre-wrap !important;
     word-break: break-all !important;
@@ -273,8 +271,24 @@ def stats_kdk(matches):
         for p in p2: s[p]["득실"]+=b-a
     return s
 
+def stats_team(matches):
+    s = {}
+    for m in matches:
+        team1, team2 = m.get("team1", "A팀"), m.get("team2", "B팀")
+        if team1 not in s: s[team1] = {"승":0, "패":0, "득실":0, "매치승":0, "매치패":0}
+        if team2 not in s: s[team2] = {"승":0, "패":0, "득실":0, "매치승":0, "매치패":0}
+        
+        a, b = int(m["s1"]), int(m["s2"])
+        if a > b:
+            s[team1]["매치승"] += 1; s[team2]["매치패"] += 1
+        elif b > a:
+            s[team2]["매치승"] += 1; s[team1]["매치패"] += 1
+        s[team1]["득실"] += a - b
+        s[team2]["득실"] += b - a
+    return s
+
 def rank_pts(rank,mode):
-    if mode=="고정페어": return {1:7,2:5,3:3}.get(rank,1)
+    if mode in ["고정페어", "팀전"]: return {1:7,2:5,3:3}.get(rank,1)
     return 7 if rank<=2 else (5 if rank<=4 else (3 if rank<=6 else 1))
 
 def grade_fixed(rank):
@@ -304,12 +318,6 @@ def make_singles(players):
     ms=[{"t1":[pl[i]],"t2":[pl[j]],"s1":0,"s2":0} for i in range(len(pl)) for j in range(i+1,len(pl))]
     random.shuffle(ms); return ms,{}
 
-def build_matches(players,mode,gc):
-    if not players or len(players) < 2: return [], {}
-    if mode=="고정페어": return make_fixed(players)
-    if mode=="KDK": return make_kdk(players,gc)
-    return make_singles(players)
-
 def kdk_html(n,gperson,p2n):
     bp=KDK_3G.get(n) if gperson==3 else KDK_4G.get(n)
     if not bp: return ""
@@ -320,8 +328,11 @@ def kdk_html(n,gperson,p2n):
         rows+=f"<tr><td style='text-align:center'><span style='background:#1B5E20;color:#fff;border-radius:20px;padding:2px 8px;font-size:.58rem;font-weight:700'>{i+1}</span></td><td style='text-align:left'>{t1} vs {t2}</td></tr>"
     return f'<div class="kdk"><div style="font-size:.72rem;font-weight:800;color:#1B5E20;margin-bottom:5px">📋 KDK 1인 {gperson}게임 — {n}명</div><table><thead><tr><th>순서</th><th>대진</th></tr></thead><tbody>{rows}</tbody></table></div>'
 
-def matrix_html(matches,rank_items,is_fixed,p2n):
+def matrix_html(matches,rank_items,mode,p2n):
     if not matches or not rank_items: return ""
+    is_fixed = (mode == "고정페어")
+    if mode == "팀전":
+        return ""
     lab={t:" &amp; ".join(list(t)) for t in rank_items} if is_fixed else {p:f"{p}({p2n.get(p,'?')})" for p in rank_items}
     mat={lab[t]:{lab[o]:("■" if t==o else "—") for o in lab} for t in lab}
     for m in matches:
@@ -370,21 +381,36 @@ elif ss.menu=="schedule":
     tabs=st.tabs([f"{GLBL[i%len(GLBL)]} {g}" for i,g in enumerate(gnames)])
     for ti,g in enumerate(gnames):
         with tabs[ti]:
-            gi=tour["groups"][g]; ms=gi["matches"]; mode=gi["mode"]; p2n=gi.get("player_with_number",{})
-            fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
-            st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
-            st.markdown(matrix_html(ms,rit,fx,p2n),unsafe_allow_html=True)
-            if not fx and p2n: st.markdown(kdk_html(len(p2n),gi.get("games",4),p2n),unsafe_allow_html=True)
-            st.markdown("<div class='sec sec-b'>🏅 현재 그룹 순위</div>",unsafe_allow_html=True)
-            if rit:
-                ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"])); rows=[]
-                for i,item in enumerate(ranked):
-                    if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade_fixed(i+1)})
-                    else: rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade_kdk(i+1)})
-                st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
+            gi=tour["groups"][g]; ms=gi["matches"]; mode=gi.get("mode","KDK"); p2n=gi.get("player_with_number",{})
+            fx=(mode=="고정페어"); tm=(mode=="팀전")
+            
+            if tm:
+                st.markdown("<div class='sec sec-b'>📋 팀전 종합 스코어 보드</div>",unsafe_allow_html=True)
+                tsv = stats_team(ms)
+                t_ranked = sorted(list(tsv.keys()))
+                t_rows = []
+                for i, t_nm in enumerate(t_ranked):
+                    t_rows.append({"팀명": t_nm, "매치 득실(승/패)": f"{tsv[t_nm]['mc_win'] if 'mc_win' in tsv[t_nm] else tsv[t_nm]['매치승']}승 / {tsv[t_nm]['mc_lose'] if 'mc_lose' in tsv[t_nm] else tsv[t_nm]['매치패']}패", "게임 득실차": f"{tsv[t_nm]['득실']:+d}"})
+                st.markdown(df_to_html(pd.DataFrame(t_rows)),unsafe_allow_html=True)
+            else:
+                sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
+                st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
+                st.markdown(matrix_html(ms,rit,mode,p2n),unsafe_allow_html=True)
+                if mode=="KDK" and p2n: st.markdown(kdk_html(len(p2n),gi.get("games",4),p2n),unsafe_allow_html=True)
+                st.markdown("<div class='sec sec-b'>🏅 현재 그룹 순위</div>",unsafe_allow_html=True)
+                if rit:
+                    ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"])); rows=[]
+                    for i,item in enumerate(ranked):
+                        if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade_fixed(i+1)})
+                        else: rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade_kdk(i+1)})
+                    st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
+            
             st.markdown("<div class='sec sec-b'>🎾 경기 스코어 입력</div>",unsafe_allow_html=True)
             for mi,m in enumerate(ms):
                 t1s=" & ".join(m["t1"]); t2s=" & ".join(m["t2"])
+                if tm:
+                    t1s = f"[{m.get('team1','A팀')}] {t1s}"
+                    t2s = f"[{m.get('team2','B팀')}] {t2s}"
                 mc=GCLS[mi%len(GCLS)]; tbc=TBCLS[mi%len(TBCLS)]; s1v=int(m["s1"]); s2v=int(m["s2"])
                 st.markdown(f'<div class="match-card"><span class="match-no {mc}">MATCH {mi+1}</span>',unsafe_allow_html=True)
                 nA,nVS,nB=st.columns([5,1,5])
@@ -430,16 +456,25 @@ elif ss.menu=="result":
     tour=tours[sel_tid]
     st.markdown(f"<div class='ic ic-o'><b>🏆 {tour['title']} 공식 결과 보고서</b><br>📍 일자: {tour.get('date','')} | 장소: {tour.get('place','')}</div>",unsafe_allow_html=True)
     for g,gi in tour.get("groups",{}).items():
-        ms=gi["matches"]; mode=gi["mode"]; fx=(mode=="고정페어"); sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
-        if rit:
-            ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
-            st.markdown(f'<div class="sec sec-p">Group {g} ({mode})</div>',unsafe_allow_html=True)
-            rows=[]
-            for i,item in enumerate(ranked):
-                pt=rank_pts(i+1,mode)
-                if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade_fixed(i+1)})
-                else: rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade_kdk(i+1)})
-            st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
+        ms=gi["matches"]; mode=gi.get("mode","KDK"); fx=(mode=="고정페어"); tm=(mode=="팀전")
+        st.markdown(f'<div class="sec sec-p">Group {g} ({mode})</div>',unsafe_allow_html=True)
+        if tm:
+            tsv = stats_team(ms)
+            t_ranked = sorted(list(tsv.keys()))
+            t_rows = []
+            for i, t_nm in enumerate(t_ranked):
+                t_rows.append({"팀명": t_nm, "최종 매치 전적": f"{tsv[t_nm]['매치승']}승 / {tsv[t_nm]['매치패']}패", "총 게임 득실": f"{tsv[t_nm]['득실']:+d}"})
+            st.markdown(df_to_html(pd.DataFrame(t_rows)),unsafe_allow_html=True)
+        else:
+            sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
+            if rit:
+                ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
+                rows=[]
+                for i,item in enumerate(ranked):
+                    pt=rank_pts(i+1,mode)
+                    if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade_fixed(i+1)})
+                    else: rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade_kdk(i+1)})
+                st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
 
 elif ss.menu=="config":
     st.markdown("<div class='pg-title c3'>🛠️ 시스템 설정 및 관리</div>",unsafe_allow_html=True)
@@ -558,7 +593,6 @@ elif ss.menu=="admin":
             def_players = [p for p in saved_p if p in all_m]
         chosen_p = st.multiselect("출전 선수 직접 선택", options=all_m, default=def_players, key="multiselect_players_act")
 
-        # ★ 변경: text_input → text_area (height=80) 로 줄바꿈 자동 적용
         text_p_input = st.text_area(
             "✍️ 출전 선수 텍스트 직접 추가/편집 (이름을 쉼표로 구분)",
             value=", ".join(chosen_p),
@@ -570,18 +604,21 @@ elif ss.menu=="admin":
         if st.button("💾 참가 명단 저장", use_container_width=True, type="primary"):
             tour["players"] = final_chosen_p; save_tours(ts); st.success(f"당일 명단 {len(final_chosen_p)}명 저장 완료! 아래에서 그룹 설정을 하세요.")
             st.divider()
+        
         st.markdown("#### [2단계] 그룹별 세부 배정")
         for gname, gdata in list(tour["groups"].items()):
             st.markdown(f"##### 🏷️ **{gname}** 설정")
             c_m, c_g, c_z = st.columns(3)
             with c_m:
-                m_opts=["KDK","고정페어","단식"]
+                m_opts=["KDK","고정페어","단식","팀전"]
                 gdata["mode"] = st.selectbox(f"방식 ({gname})", m_opts, index=m_opts.index(gdata.get("mode","KDK")), key=f"md_edit_{gname}")
             with c_g: gdata["games"] = st.selectbox(f"인당 게임 수 ({gname})", [3,4,5], index=[3,4,5].index(gdata.get("games",4)), key=f"gm_edit_{gname}")
-            with c_z: gdata["size"] = st.number_input(f"정원 ({gname})", 2, 24, value=gdata.get("size",8), key=f"sz_edit_{gname}")
+            with c_z: gdata["size"] = st.number_input(f"정원 ({gname})", 2, 50, value=gdata.get("size",8), key=f"sz_edit_{gname}")
             cur_grp_players = gdata.get("players", [])
 
-            # ★ 변경: text_input → text_area (height=80) 로 줄바꿈 자동 적용
+            if gdata["mode"] == "팀전":
+                st.info("💡 **팀전 안내**: 아래 텍스트박스에 양 팀의 소속 선수 명단 또는 팀 구성을 메모하고, [3단계]에서 대진을 직접 상세 설정하세요.")
+            
             grp_text_input = st.text_area(
                 f"✍️ {gname} 명단 직접 편집 (쉼표 구분)",
                 value=", ".join(cur_grp_players),
@@ -593,8 +630,45 @@ elif ss.menu=="admin":
         if st.button("💾 모든 그룹 셋팅값 & 소속 선수 백업", key="save_grp_configs_btn", type="primary", use_container_width=True):
             save_tours(ts); st.success("⚙️ 모든 그룹 설정과 배정 인원이 보관되었습니다."); st.rerun()
         st.divider()
+        
         st.markdown("#### [3단계] 대진표 최종 빌드")
-        if st.button("🔥 설정 맞춰 대진표 자동 매칭 실행", use_container_width=True, type="primary"):
+        
+        has_team_mode = any(gdata.get("mode") == "팀전" for gname, gdata in tour["groups"].items())
+        if has_team_mode:
+            st.markdown("<div class='sec sec-o'>📋 팀전(단체전) 대진 수동 상세 입력 세션</div>", unsafe_allow_html=True)
+            for gname, gdata in tour["groups"].items():
+                if gdata.get("mode") == "팀전":
+                    st.markdown(f"**[{gname} - 리그전 대진 설정]**")
+                    tm_num = st.number_input(f"{gname} 총 경기 매치 개수", 1, 30, value=len(gdata.get("matches", [])) if gdata.get("matches") else 3, key=f"tm_num_{gname}")
+                    
+                    custom_matches = []
+                    for mi in range(tm_num):
+                        st.markdown(f"**🔹 MATCH {mi+1}**")
+                        ex_m = gdata.get("matches", [])[mi] if (gdata.get("matches") and mi < len(gdata["matches"])) else {}
+                        
+                        col_t1, col_t2 = st.columns(2)
+                        with col_t1:
+                            t1_name = st.text_input(f"M{mi+1} 1팀명", value=ex_m.get("team1", "A팀"), key=f"t1_n_{gname}_{mi}")
+                            t1_p = st.text_input(f"M{mi+1} 1팀 주자 (000,000 형태로 복수 입력 가능)", value=",".join(ex_m.get("t1", ["선수1"])), key=f"t1_p_{gname}_{mi}")
+                        with col_t2:
+                            t2_name = st.text_input(f"M{mi+1} 2팀명", value=ex_m.get("team2", "B팀"), key=f"t2_n_{gname}_{mi}")
+                            t2_p = st.text_input(f"M{mi+1} 2팀 주자 (000,000 형태로 복수 입력 가능)", value=",".join(ex_m.get("t2", ["선수2"])), key=f"t2_p_{gname}_{mi}")
+                        
+                        custom_matches.append({
+                            "team1": t1_name.strip(),
+                            "t1": [p.strip() for p in t1_p.split(",") if p.strip()],
+                            "team2": t2_name.strip(),
+                            "t2": [p.strip() for p in t2_p.split(",") if p.strip()],
+                            "s1": ex_m.get("s1", 0),
+                            "s2": ex_m.get("s2", 0)
+                        })
+                    if st.button(f"💾 {gname} 팀전 대진 배치 저장", key=f"save_tm_m_{gname}"):
+                        gdata["matches"] = custom_matches
+                        save_tours(ts)
+                        st.success(f"✅ {gname} 팀전 빌드 완료!")
+            st.divider()
+
+        if st.button("🔥 설정 맞춰 대진표 자동 매칭 실행 (KDK/고정페어/단식 전용)", use_container_width=True, type="primary"):
             for gn, gd in tour["groups"].items():
                 pl = gd.get("players", [])
                 m = gd.get("mode", "KDK")
@@ -609,18 +683,31 @@ elif ss.menu=="admin":
                 elif m == "고정페어":
                     ms, p2n = make_fixed(pl)
                     gd["matches"] = ms; gd["player_with_number"] = p2n
-                else:
+                elif m == "단식":
                     ms, p2n = make_singles(pl)
                     gd["matches"] = ms; gd["player_with_number"] = p2n
-            save_tours(ts); st.success("🎉 모든 그룹의 대진표가 완벽하게 빌드되었습니다! 대진 메뉴를 확인하세요.")
+            save_tours(ts); st.success("🎉 대진표가 완벽하게 빌드되었습니다! 대진 메뉴를 확인하세요.")
 
     with adm[3]:
+        st.markdown('<div class="sec sec-t">🔧 마스터 랭킹 보드 수동 수정 및 부가점 편집</div>', unsafe_allow_html=True)
+        st.caption("외부 대회 참가 부가점이나 기본 데이터를 수정할 수 있습니다. 표 내부를 더블 클릭하여 편집한 후 하단의 저장 버튼을 누르세요.")
+        
+        r_master = load_rank()
+        if not r_master.empty:
+            edited_df = st.data_editor(r_master, num_rows="dynamic", use_container_width=True, key="master_data_editor")
+            if st.button("💾 편집된 마스터 랭킹 명부 영구 저장", type="primary", use_container_width=True):
+                save_rank(edited_df)
+                st.success("✅ 마스터 랭킹 테이블 데이터가 성공적으로 갱신 보관되었습니다.")
+        st.divider()
+
         ts=load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
         if not act_tids: st.warning("정산 대상 대회가 활성화되어 있지 않습니다."); st.stop()
         t_key=act_tids[-1]; t_obj=ts[t_key]
         earn={}
         for gname, gdata in t_obj.get("groups",{}).items():
-            mode, ms = gdata["mode"], gdata["matches"]
+            mode, ms = gdata.get("mode","KDK"), gdata.get("matches",[])
+            if mode == "팀전":
+                continue
             fx = (mode == "고정페어")
             sv = stats_fixed(ms) if fx else stats_kdk(ms)
             rit = list(sv.keys())
@@ -632,9 +719,10 @@ elif ss.menu=="admin":
                     for individual in list(p_item): earn[individual] = earn.get(individual,0) + pts
                 else: earn[p_item] = earn.get(p_item,0) + pts
         if earn:
-            st.markdown('<div class="sec sec-t">🏆 금일 누적 획득 예정 포인트</div>',unsafe_allow_html=True)
+            st.markdown('<div class="sec sec-t">🏆 금일 누적 획득 예정 대회 포인트</div>',unsafe_allow_html=True)
             res_df = pd.DataFrame(sorted(earn.items(),key=lambda x:-x[1]),columns=["선수명","지급포인트"])
             st.markdown(df_to_html(res_df),unsafe_allow_html=True)
+        
         c_fin, c_rst = st.columns(2)
         with c_fin:
             if st.button("🏆 계산된 포인트 마스터 랭킹에 영구 반영",type="primary",use_container_width=True):
