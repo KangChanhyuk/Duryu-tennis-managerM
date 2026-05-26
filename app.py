@@ -179,7 +179,7 @@ RANK_FILE   = "ranking_master.csv"
 TOUR_FILE   = "tournaments.json"
 MEMBER_FILE = "member_roster_backup.json"
 CONFIG_FILE = "config_backup.json"
-COLS_RANK   = ["랭킹","이름","현재포인트","지난 포인트","결과","부과점","그룹","비고"]
+COLS_RANK   = ["랭킹","이름","현재 포인트","지난 포인트","결과","부과점","그룹","비고"]
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
@@ -218,17 +218,17 @@ KDK_4G = {
 def load_rank():
     if os.path.exists(RANK_FILE):
         df = pd.read_csv(RANK_FILE).dropna(subset=["이름"])
-        for c in ["현재포인트","지난포인트","부과점"]:
+        for c in ["현재 포인트","지난 포인트","부과점"]:
             if c in df.columns: df[c]=pd.to_numeric(df[c],errors="coerce").fillna(0)
-        if "현재포인트" in df.columns:
-            df=df.sort_values("현재포인트",ascending=False).reset_index(drop=True)
+        if "현재 포인트" in df.columns:
+            df=df.sort_values("현재 포인트",ascending=False).reset_index(drop=True)
             df["랭킹"]=df.index+1
         return df.fillna("")
     return pd.DataFrame(columns=COLS_RANK)
 
 def save_rank(df):
-    if "현재포인트" in df.columns:
-        df=df.sort_values("현재포인트",ascending=False).reset_index(drop=True)
+    if "현재 포인트" in df.columns:
+        df=df.sort_values("현재 포인트",ascending=False).reset_index(drop=True)
         df["랭킹"]=df.index+1
     df.fillna("").to_csv(RANK_FILE, index=False, encoding="utf-8-sig")
     push_to_github(RANK_FILE, "Backup ranking master")
@@ -536,7 +536,7 @@ elif ss.menu=="admin":
             rk_df=load_rank()
             for p in parsed:
                 if rk_df.empty or p not in rk_df["이름"].values:
-                    nr={c:"" for c in COLS_RANK}; nr["이름"]=p; nr["현재포인트"]=0
+                    nr={c:"" for c in COLS_RANK}; nr["이름"]=p; nr["현재 포인트"]=0
                     rk_df=pd.concat([rk_df,pd.DataFrame([nr])],ignore_index=True)
             save_rank(rk_df)
             st.success("✅ 회원 데이터 셋이 성공적으로 갱신되었습니다."); st.rerun()
@@ -725,6 +725,6 @@ elif ss.menu=="admin":
             if st.button("🏆 계산된 포인트 마스터 랭킹에 영구 반영",type="primary",use_container_width=True):
                 r_master=load_rank()
                 for p,p_val in earn.items():
-                    if p in r_master["이름"].values: r_master.loc[r_master["이름"]==p,"현재포인트"]+=p_val
+                    if p in r_master["이름"].values: r_master.loc[r_master["이름"]==p,"현재 포인트"]+=p_val
                 save_rank(r_master); tour["status"]="완료"; save_tours(tours)
                 st.success("✅ 포인트 반영 및 대회가 최종 마감되었습니다!"); st.rerun()
