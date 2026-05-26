@@ -7,7 +7,7 @@ from io import BytesIO
 st.set_page_config(page_title="두류 테니스", page_icon="🎾",
                    layout="centered", initial_sidebar_state="collapsed")
 
-# 🎨 디자인 시스템 및 레이아웃 통합 스타일
+# 🎨 디자인 시스템 및 레이아웃 통합 스타일 (테이블 배열 보정 포함)
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700;900&display=swap');
@@ -91,6 +91,7 @@ button[data-baseweb="tab"]{font-size:.7rem!important;font-weight:700!important;p
 button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;}
 [data-baseweb="tab-list"]{background:#E0E4E8!important;border-radius:var(--r1) var(--r1) 0 0!important;padding:4px 4px 0!important;gap:3px!important;}
 
+/* 💡 첫번째 사진 피드백 반영: 표 안의 글자가 깨지거나 잘리지 않도록 레이아웃 정렬 최적화 */
 .mx-wrap{background:var(--card);border-radius:var(--r1);padding:6px;box-shadow:var(--sh);overflow-x:auto;margin:8px 0;border:1px solid var(--bd);width:100%;}
 .mx{border-collapse:collapse;white-space:nowrap;font-size:.72rem;width:100%;table-layout:auto;}
 .mx th,.mx td{padding:8px 8px;border:1px solid var(--bd);text-align:center!important;vertical-align:middle!important;}
@@ -119,7 +120,7 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .vs-badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FFB74D,#FB8C00);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.55rem;color:#fff;box-shadow:var(--sh);margin:0 auto;}
 
 .ctrl-num{display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #A5D6A7;border-radius:8px;font-size:clamp(1.1rem,5.5vw,1.5rem);font-weight:900;color:#1B5E20;height:42px;width:100%;}
-.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100%;}
+.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100 stroke!important;}
 
 .stButton>button{border-radius:var(--r2)!important;font-weight:700!important;font-size:.8rem!important;min-height:46px!important;padding:9px 12px!important;}
 .stButton>button[kind="primary"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;border:none!important;box-shadow:0 4px 12px rgba(46,125,50,.3)!important;}
@@ -515,12 +516,13 @@ elif ss.menu=="admin":
         if pw: st.error("❌ 패스워드가 올바르지 않습니다.")
         st.stop()
         
-    # 💡 두번째 사진 및 피드백 반영: 회원 명단 탭 뒤에 부가점수 관리 영역 구축
-    adm=st.tabs(["🏆 대회 관리","👥 참가자 명단 조율","💾 포인트 정산","📋 회원 및 부가점 관리"])
+    # 💡 두번째 사진 피드백 반영: 회원 명단을 [포인트 정산] 뒤로 재배치하여 4번째 순서로 할당
+    adm=st.tabs(["🏆 대회 관리","👥 참가자 명단 조율","💾 포인트 정산","📋 회원 명단"])
 
     with adm[0]:
         ts=load_tours()
         st.markdown('<div class="sec sec-t">✨ 새로운 신규 대회 개설 및 진행 대회 수정</div>',unsafe_allow_html=True)
+        
         active_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
         is_edit_mode = len(active_tids) > 0
         
@@ -658,6 +660,7 @@ elif ss.menu=="admin":
                     st.rerun()
 
             cur_grp_players = gdata.get("players", [])
+
             if gdata["mode"] == "팀전":
                 st.info("💡 **팀전 안내**: 아래 텍스트박스에 양 팀의 명단을 적고, [3단계]에서 대진을 상세 설정하세요.")
             
@@ -725,7 +728,6 @@ elif ss.menu=="admin":
             st.success("✅ 조건에 부합하는 모든 그룹의 대진표 빌드가 완료되었습니다!"); st.rerun()
 
     with adm[2]:
-        # 💡 피드백 반영: 외부 부과점 로직을 상시 회원 관리 탭으로 이관했으므로 대회 정산 기능은 깔끔하게 원상 복구
         st.markdown('<div class="sec sec-t">💾 마스터 포인트 최종 결산 및 정산</div>',unsafe_allow_html=True)
         tours=load_tours(); active=[k for k,v in tours.items() if v.get("status")=="진행중"]
         if not active: st.info("현재 진행 상태인 대회가 존재하지 않습니다."); st.stop()
@@ -744,89 +746,95 @@ elif ss.menu=="admin":
                 else: earn[p_item]=earn.get(p_item,0)+pts
                 
         if earn:
-            st.markdown('<div class="sec sec-t">🏆 금일 누적 획득 예정 대회 포인트</div>',unsafe_allow_html=True)
-            res_df = pd.DataFrame(sorted(earn.items(),key=lambda x:-x[1]),columns=["선수명","지급포인트"])
-            st.markdown(df_to_html(res_df),unsafe_allow_html=True)
+            st.markdown('<div class="sec sec-t">🏆 금일 누적 획득 예정 대회 포인트 및 외부대회 점수 부여</div>',unsafe_allow_html=True)
+            
+            # 💡 외부대회 부과점 및 비고 사유 입력을 위한 데이터 컨테이너 초기화
+            if "extra_pts" not in ss: ss.extra_pts = {}
+            if "extra_notes" not in ss: ss.extra_notes = {}
+            
+            summary_rows = []
+            sorted_players = sorted(earn.items(), key=lambda x:-x[1])
+            
+            for p, p_val in sorted_players:
+                st.markdown(f"**👤 {p} 선수 정산 데이터**")
+                col_p1, col_p2, col_p3 = st.columns([2, 2, 3])
+                with col_p1:
+                    st.caption(f"기본 대회점: {p_val}점")
+                with col_p2:
+                    # 외부대회 부과점 실시간 입력 컴포넌트
+                    ss.extra_pts[p] = st.number_input(f"부가점 ({p})", min_value=-50, max_value=100, value=ss.extra_pts.get(p, 0), step=1, key=f"pts_add_{p}")
+                with col_p3:
+                    # 부가점 부여 사유 입력 컴포넌트
+                    ss.extra_notes[p] = st.text_input(f"사유 ({p})", value=ss.extra_notes.get(p, ""), placeholder="예: 외부 대회 우승", key=f"note_add_{p}")
+                
+                tot_p = p_val + ss.extra_pts[p]
+                summary_rows.append({
+                    "선수명": p,
+                    "대회지급점": p_val,
+                    "외부부가점": ss.extra_pts[p],
+                    "합산 반영포인트": tot_p,
+                    "비고 사유": ss.extra_notes[p]
+                })
+                st.markdown("---")
+            
+            st.markdown("📊 **최종 정산 피드백 가이드 보드**")
+            st.markdown(df_to_html(pd.DataFrame(summary_rows)), unsafe_allow_html=True)
             
         c_fin,c_rst=st.columns(2)
         with c_fin:
             if st.button("🏆 계산된 포인트 마스터 랭킹에 영구 반영",type="primary",use_container_width=True):
                 r_master=load_rank()
                 for p,p_val in earn.items():
+                    add_val = ss.extra_pts.get(p, 0)
+                    note_val = ss.extra_notes.get(p, "").strip()
+                    total_to_add = p_val + add_val
+                    
                     if p in r_master["이름"].values:
-                        r_master.loc[r_master["이름"]==p, "현재포인트"] += p_val
+                        # 랭킹 포인트 합산 업데이트
+                        r_master.loc[r_master["이름"]==p, "현재포인트"] += total_to_add
+                        
+                        # 지난 포인트(부과점) 컬럼에 외부 점수 누적 처리
+                        current_extra = pd.to_numeric(r_master.loc[r_master["이름"]==p, "부과점"], errors="coerce").fillna(0).values[0]
+                        r_master.loc[r_master["이름"]==p, "부과점"] = current_extra + add_val
+                        
+                        # 비고 칸 정보 업데이트
+                        if note_val:
+                            existing_note = str(r_master.loc[r_master["이름"]==p, "비고"].values[0]).strip()
+                            if existing_note and existing_note != "nan" and existing_note != "":
+                                r_master.loc[r_master["이름"]==p, "비고"] = existing_note + f" / {note_val}"
+                            else:
+                                r_master.loc[r_master["이름"]==p, "비고"] = note_val
+                                
                 save_rank(r_master)
                 tour["status"]="완료"
                 save_tours(tours)
-                st.success("✅ 당일 대회 포인트가 마스터 랭킹에 성공적으로 누적 마감되었습니다!"); st.rerun()
+                
+                # 정산 완료 후 컨테이너 초기화
+                ss.extra_pts = {}
+                ss.extra_notes = {}
+                st.success("✅ 포인트 반환, 외부 부과점 합산 및 대회가 성공적으로 전산 마감되었습니다!"); st.rerun()
 
     with adm[3]:
-        # 💡 피드백 적극 반영: 전체 회원 명부 옆에서 '상시 부가점수'와 '비고 사유'를 편집 및 누적 합산하는 독립 탭 환경 구축
-        st.markdown('<div class="sec sec-t">⭐ 전체 회원 명부 및 상시 부가점수 / 비고 관리</div>', unsafe_allow_html=True)
-        
-        r_master = load_rank()
-        all_members = load_members()
-        
-        if not r_master.empty and len(all_members) > 0:
-            st.markdown("💡 각 회원별 외부대회 점수 부여 및 상세 설명 비고란을 입력한 후 아래 **[부가점수 데이터 최종 저장]** 버튼을 눌러주세요.")
-            
-            updated_rows = []
-            for idx, row in r_master.iterrows():
-                p_name = row["이름"]
-                if not p_name: continue
-                
-                # 기본 저장값 로딩
-                cur_extra_pts = int(pd.to_numeric(row.get("부과점", 0), errors="coerce")) if pd.notna(row.get("부과점", 0)) else 0
-                cur_note = str(row.get("비고", "")) if pd.notna(row.get("비고", "")) and str(row.get("비고", "")) != "nan" else ""
-                
-                st.markdown(f"👤 **{p_name}** 회원 설정")
-                c_edit1, c_edit2 = st.columns([1, 2])
-                with c_edit1:
-                    new_ex_pt = st.number_input(f"부가점수 ({p_name})", min_value=-100, max_value=200, value=cur_extra_pts, step=1, key=f"adm_pt_{p_name}_{idx}")
-                with c_edit2:
-                    new_ex_nt = st.text_input(f"설명 / 비고 사유 ({p_name})", value=cur_note, placeholder="예: 외부대회 입상 (+5)", key=f"adm_nt_{p_name}_{idx}")
-                
-                # 원본 기본 대회 누적점 계산 (현재포인트 - 기존부과점) 후 새 부과점 반영하여 최종 마스터 스코어 업데이트 준비
-                base_points = int(pd.to_numeric(row.get("현재포인트", 0), errors="coerce")) - cur_extra_pts
-                final_total_points = base_points + new_ex_pt
-                
-                updated_rows.append({
-                    "이름": p_name,
-                    "현재포인트": final_total_points,
-                    "부과점": new_ex_pt,
-                    "비고": new_ex_nt
-                })
-                st.markdown("<div style='margin-top:-10px;'></div>", unsafe_allow_html=True)
-                
-            if st.button("💾 부가점수 데이터 최종 저장 및 랭킹 합산 반영", type="primary", use_container_width=True):
-                for u_row in updated_rows:
-                    r_master.loc[r_master["이름"] == u_row["이름"], "현재포인트"] = u_row["현재포인트"]
-                    r_master.loc[r_master["이름"] == u_row["이름"], "부과점"] = u_row["부과점"]
-                    r_master.loc[r_master["이름"] == u_row["이름"], "비고"] = u_row["비고"]
-                save_rank(r_master)
-                st.success("✅ 회원 전체 부가점수 및 설명 비고란이 성공적으로 마스터 보드에 합산 연동되었습니다!"); st.rerun()
-                
+        st.markdown('<div class="sec sec-t">📝 전체 회원 명단 관리 (텍스트 등록)</div>',unsafe_allow_html=True)
+        cur_m=load_members()
+        txt_area=st.text_area("클럽 전체 회원 명단 (이름을 쉼표 또는 줄바꿈으로 구분해 적어주세요)", value=", ".join(cur_m), height=150)
+        if st.button("💾 회원 명단 갱신 및 저장", type="primary", use_container_width=True):
+            parsed=[n.strip() for n in txt_area.replace("\n",",").split(",") if n.strip()]
+            save_members(parsed)
+            rk_df=load_rank()
+            for p in parsed:
+                if rk_df.empty or p not in rk_df["이름"].values:
+                    nr={c:"" for c in COLS_RANK}; nr["이름"]=p; nr["현재포인트"]=0
+                    rk_df=pd.concat([rk_df,pd.DataFrame([nr])],ignore_index=True)
+            save_rank(rk_df)
+            st.success("✅ 회원 데이터 셋이 성공적으로 갱신되었습니다."); st.rerun()
         st.divider()
-        with st.expander("📝 전체 회원 텍스트 명단 직접 수정창"):
-            cur_m=load_members()
-            txt_area=st.text_area("클럽 전체 회원 명단 (이름을 쉼표 또는 줄바꿈으로 구분)", value=", ".join(cur_m), height=150)
-            if st.button("💾 회원 명단 갱신 및 동기화", use_container_width=True):
-                parsed=[n.strip() for n in txt_area.replace("\n",",").split(",") if n.strip()]
-                save_members(parsed)
-                rk_df=load_rank()
-                for p in parsed:
-                    if rk_df.empty or p not in rk_df["이름"].values:
-                        nr={c:"" for c in COLS_RANK}; nr["이름"]=p; nr["현재포인트"]=0; nr["부과점"]=0; nr["비고"]=""
-                        rk_df=pd.concat([rk_df,pd.DataFrame([nr])],ignore_index=True)
-                save_rank(rk_df)
-                st.success("✅ 회원 데이터 셋이 성공적으로 갱신되었습니다."); st.rerun()
-
-        with st.expander("📥 엑셀(XLSX/CSV) 파일 일괄 업로드 및 덮어쓰기"):
-            up=st.file_uploader("랭킹 마스터 데이터 파일 선택",type=["csv","xlsx"])
-            if up and st.button("🚀 마스터 랭킹 강제 파일 빌드 실행",use_container_width=True):
-                try:
-                    ndf=read_file(up)
-                    for c in COLS_RANK:
-                        if c not in ndf.columns: ndf[c]=""
-                    save_rank(ndf); st.success("✅ 데이터가 파일 시스템에 덮어쓰기 되었습니다."); st.rerun()
-                except Exception as e: st.error(f"오류: {e}")
+        st.markdown('<div class="sec sec-t">📥 엑셀(XLSX/CSV) 파일로 일괄 업로드 및 덮어쓰기</div>',unsafe_allow_html=True)
+        up=st.file_uploader("랭킹 마스터 데이터 파일 선택",type=["csv","xlsx"])
+        if up and st.button("🚀 마스터 랭킹 강제 파일 빌드 실행",use_container_width=True):
+            try:
+                ndf=read_file(up)
+                for c in COLS_RANK:
+                    if c not in ndf.columns: ndf[c]=""
+                save_rank(ndf); st.success("✅ 데이터가 파일 시스템에 덮어쓰기 되었습니다."); st.rerun()
+            except Exception as e: st.error(f"오류: {e}")
