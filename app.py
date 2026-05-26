@@ -663,6 +663,23 @@ elif ss.menu=="admin":
                         st.markdown(f"**🔹 MATCH {mi+1}**")
                         ex_m = gdata.get("matches", [])[mi] if (gdata.get("matches") and mi < len(gdata["matches"])) else {}
                         
-                        col_t1, col_t2 = st.columns(2)
+                       col_t1, col_t2 = st.columns(2)
                         with col_t1:
+                            t1_name = st.text_input(f"M{mi+1} 1팀명", value=ex_m.get("team1",""), key=f"tm_t1_{gname}_{mi}")
+                        with col_t2:
+                            t2_name = st.text_input(f"M{mi+1} 2팀명", value=ex_m.get("team2",""), key=f"tm_t2_{gname}_{mi}")
+                            
+                        sc1, sc2 = st.columns(2)
+                        with sc1:
+                            s1_val = st.number_input(f"M{mi+1} 1팀 점수", 0, 99, value=int(ex_m.get("s1",0)), key=f"tm_s1_{gname}_{mi}")
+                        with sc2:
+                            s2_val = st.number_input(f"M{mi+1} 2팀 점수", 0, 99, value=int(ex_m.get("s2",0)), key=f"tm_s2_{gname}_{mi}")
+                        
+                        custom_matches.append({"t1":[], "t2":[], "s1":s1_val, "s2":s2_val, "team1":t1_name, "team2":t2_name})
+                    
+                    if st.button(f"💾 {gname} 팀전 대진 생성 및 확정", key=f"btn_tm_{gname}"):
+                        gdata["matches"] = custom_matches
+                        save_tours(ts)
+                        st.success(f"✅ {gname} 팀전 대진표가 반영되었습니다.")
+                        st.rerun()
                             t1_name = st.text_input(f"M{mi+1} 1팀명
