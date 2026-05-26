@@ -268,8 +268,8 @@ def df_to_html(df):
         for val in row:
             if isinstance(val,float) and not pd.isna(val) and val==int(val): val=int(val)
             cells+=f"<td>{val}</td>"
-        body+=f"<td>{cells}</tr>"
-    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</table></thead><tbody>{body}</tbody></table></div>'
+        body+=f"<tr>{cells}</tr>"
+    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}<table></thead><tbody>{body}</tbody></table></div>'
 
 def stats_fixed(matches):
     s={}
@@ -357,28 +357,31 @@ def kdk_html(n,gperson,p2n):
         rows+=f"<tr><td style='text-align:center'><span style='background:#1B5E20;color:#fff;border-radius:20px;padding:2px 8px;font-size:.58rem;font-weight:700'>{i+1}</span></td><td style='text-align:left'>{t1} vs {t2}</td></tr>"
     return f'<div class="kdk"><div style="font-size:.72rem;font-weight:800;color:#1B5E20;margin-bottom:5px">📋 KDK 1인 {gperson}게임 — {n}명</div><tr><thead><tr><th>순서</th><th>대진</th></tr></thead><tbody>{rows}</tbody></table></div>'
 
+# ================== 수정된 매트릭스 함수 (구분 열 제거) ==================
 def matrix_html(matches, rank_items, mode, p2n):
-    # 수정: 데이터 없을 때 안내 메시지 반환
     if not matches or not rank_items:
         return '<div class="ic">📊 아직 기록된 경기 결과가 없습니다. 경기 스코어를 입력하면 매트릭스가 표시됩니다.</div>'
     is_fixed = (mode == "고정페어")
     if mode == "팀전": 
         return '<div class="ic">팀전 모드에서는 매트릭스 대신 팀별 전적을 제공합니다.</div>'
-    # 랭킹 항목 라벨 생성
+    
+    # 라벨 생성
     lab = {}
     for t in rank_items:
         if is_fixed:
-            lab[t] = " &amp; ".join(list(t))
+            lab[t] = " & ".join(list(t))
         else:
             lab[t] = f"{t}({p2n.get(t, '?')})"
+    
     # 매트릭스 초기화 (자기 대진은 ■, 나머지는 —)
     mat = {lab[t]: {lab[o]: ("■" if t==o else "—") for o in rank_items} for t in rank_items}
+    
     # 경기 결과 반영
     for m in matches:
-        a,b = int(m["s1"]), int(m["s2"])
+        a, b = int(m["s1"]), int(m["s2"])
         if a>0 or b>0:
             if is_fixed:
-                k1,k2 = tuple(m["t1"]), tuple(m["t2"])
+                k1, k2 = tuple(m["t1"]), tuple(m["t2"])
                 mat[lab[k1]][lab[k2]] = f"{a}:{b}"
                 mat[lab[k2]][lab[k1]] = f"{b}:{a}"
             else:
@@ -386,7 +389,9 @@ def matrix_html(matches, rank_items, mode, p2n):
                     for y in m["t2"]:
                         mat[lab[x]][lab[y]] = f"{a}:{b}"
                         mat[lab[y]][lab[x]] = f"{b}:{a}"
+    
     keys = list(lab.values())
+    # 헤더 생성 (구분 열 없음)
     header = "".join(f"<th style='white-space:nowrap'>{k}</th>" for k in keys)
     body = ""
     for r in keys:
@@ -399,17 +404,16 @@ def matrix_html(matches, rank_items, mode, p2n):
                 cells += '<td class="mx-grey">■</td>'
             else:
                 cells += '<td class="mx-dash">—</td>'
-        body += f"<td><th style='white-space:nowrap;background:#E8F5E9'>{r}</th>{cells}</tr>"
-    return f'<div class="mx-wrap"><table class="mx"><thead><tr><th>구분</th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
+        body += f"<tr><th style='white-space:nowrap'>{r}</th>{cells}</tr>"
+    
+    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{header}</tr></thead><tbody>{body}</tbody></table></div>'
 
 # ================== 자동 배정 함수 ==================
 def auto_assign_players_to_groups(tour, all_ranked_players):
-    """참가자 명단을 랭킹순으로 그룹 size에 맞춰 자동 분배"""
     groups = tour.get("groups", {})
     players_list = tour.get("players", [])
     if not players_list or not groups:
         return
-    # 랭킹순으로 참가자 정렬
     ranked_players = [p for p in all_ranked_players if p in players_list]
     ptr = 0
     for gname, gdata in groups.items():
@@ -418,9 +422,7 @@ def auto_assign_players_to_groups(tour, all_ranked_players):
         ptr += size
     tour["players"] = ranked_players
 
-# 자동 재배치 콜백 (그룹 인원 수 변경 시 호출)
 def auto_reassign_on_size_change(tour_id, group_name, new_size):
-    """그룹 size가 변경되면 현재 참가자 명단을 기준으로 다시 배정"""
     tours = load_tours()
     if tour_id not in tours:
         return
@@ -428,13 +430,10 @@ def auto_reassign_on_size_change(tour_id, group_name, new_size):
     groups = tour.get("groups", {})
     if group_name not in groups:
         return
-    # size 업데이트
     groups[group_name]["size"] = new_size
-    # 전체 참가자 명단 유지
     all_players = tour.get("players", [])
     if not all_players:
         return
-    # 랭킹순 정렬
     rank_df = load_rank()
     all_ranked = rank_df["이름"].tolist() if not rank_df.empty else load_members()
     ranked_players = [p for p in all_ranked if p in all_players]
@@ -445,7 +444,6 @@ def auto_reassign_on_size_change(tour_id, group_name, new_size):
         ptr += sz
     tour["groups"] = groups
     save_tours(tours)
-# =================================================
 
 ss=st.session_state
 if "menu" not in ss: ss.menu="ranking"
@@ -639,7 +637,7 @@ elif ss.menu=="admin":
             else: st.warning("대회 이름을 명확히 입력하십시오.")
         st.divider()
         
-        # 진행 중인 대회 수정 버튼 (상세 수정 바로 실행)
+        # 진행 중인 대회 수정 버튼
         ts = load_tours()
         active_tour_ids = [k for k,v in ts.items() if v.get("status")=="진행중"]
         if active_tour_ids:
@@ -650,7 +648,7 @@ elif ss.menu=="admin":
         else:
             st.info("현재 진행 중인 대회가 없습니다.")
         
-        # 기존 대회 목록 및 상세 수정 UI 유지
+        # 기존 대회 목록 및 상세 수정
         ts = load_tours()
         if ts:
             st.markdown('<div class="sec sec-t">🔧 진행 상황 변경 및 대회 삭제</div>',unsafe_allow_html=True)
@@ -689,7 +687,7 @@ elif ss.menu=="admin":
                     if st.button("취소", use_container_width=True, key="cce"):
                         ss.edit_tour_id = None; st.rerun()
                 st.divider()
-                # 그룹 설정 수정 (이미 존재, 생략 가능하나 일관성을 위해 포함)
+                # 그룹 설정 수정
                 st.markdown('<div class="sec sec-t">🎲 그룹 설정 수정</div>', unsafe_allow_html=True)
                 st.caption("※ 변경 시 기존 대진이 초기화됩니다.")
                 cg = et.get("groups", {})
@@ -759,7 +757,6 @@ elif ss.menu=="admin":
         )
         final_chosen_p = [n.strip() for n in text_p_input.replace("\n",",").split(",") if n.strip()]
 
-        # 랭킹순 정렬된 전체 회원 목록 준비
         rank_df = load_rank()
         all_ranked = rank_df["이름"].tolist() if not rank_df.empty else all_m
         
@@ -770,7 +767,6 @@ elif ss.menu=="admin":
             st.success(f"당일 명단 {len(final_chosen_p)}명 저장 및 그룹 자동 배정 완료!")
             st.rerun()
         
-        # 배정 완료 여부 체크
         total_needed = sum(gdata.get("size", 0) for gdata in tour["groups"].values())
         total_assigned = sum(len(gdata.get("players", [])) for gdata in tour["groups"].values())
         if total_needed == total_assigned:
@@ -781,18 +777,15 @@ elif ss.menu=="admin":
         st.divider()
         
         st.markdown("#### [2단계] 그룹별 세부 배정 (수동 조정 가능)")
-        # 그룹 설정 반복 (각 그룹에 삭제 버튼 포함)
         groups_to_delete = []
         for gname, gdata in list(tour["groups"].items()):
             st.markdown(f"##### 🏷️ **{gname}**")
-            # 그룹 삭제 버튼을 오른쪽 상단에 배치하기 위해 컬럼 분할
             col1, col2 = st.columns([4,1])
             with col1:
                 st.markdown(f"**설정**")
             with col2:
                 if st.button(f"🗑️ 삭제", key=f"del_grp_{gname}", use_container_width=True):
                     groups_to_delete.append(gname)
-            # 그룹 설정 UI
             c_m, c_g, c_z = st.columns(3)
             with c_m:
                 m_opts=["KDK","고정페어","단식","팀전"]
@@ -800,7 +793,6 @@ elif ss.menu=="admin":
             with c_g:
                 gdata["games"] = st.selectbox(f"인당 게임 수", [3,4,5], index=[3,4,5].index(gdata.get("games",4)), key=f"gm_edit_{gname}")
             with c_z:
-                # 자동 재배치를 위한 콜백이 있는 number_input
                 def on_size_change(group=gname):
                     new_sz = st.session_state[f"sz_edit_{gname}"]
                     auto_reassign_on_size_change(sel_tid, group, new_sz)
@@ -815,7 +807,6 @@ elif ss.menu=="admin":
             )
             gdata["players"] = [n.strip() for n in grp_text_input.replace("\n",",").split(",") if n.strip()]
             st.markdown("---")
-        # 삭제 처리
         if groups_to_delete:
             for gname in groups_to_delete:
                 del tour["groups"][gname]
@@ -835,26 +826,21 @@ elif ss.menu=="admin":
                 if gdata.get("mode") == "팀전":
                     st.markdown(f"**[{gname} - 리그전 대진 설정]**")
                     tm_num = st.number_input(f"{gname} 총 경기 매치 개수", 1, 30, value=len(gdata.get("matches", [])) if gdata.get("matches") else 3, key=f"tm_num_{gname}")
-                    
                     custom_matches = []
                     for mi in range(tm_num):
                         st.markdown(f"**🔹 MATCH {mi+1}**")
                         ex_m = gdata.get("matches", [])[mi] if (gdata.get("matches") and mi < len(gdata["matches"])) else {}
-                        
                         col_t1, col_t2 = st.columns(2)
                         with col_t1:
                             t1_name = st.text_input(f"M{mi+1} 1팀명", value=ex_m.get("team1",""), key=f"tm_t1_{gname}_{mi}")
                         with col_t2:
                             t2_name = st.text_input(f"M{mi+1} 2팀명", value=ex_m.get("team2",""), key=f"tm_t2_{gname}_{mi}")
-                            
                         sc1, sc2 = st.columns(2)
                         with sc1:
                             s1_val = st.number_input(f"M{mi+1} 1팀 점수", 0, 99, value=int(ex_m.get("s1",0)), key=f"tm_s1_{gname}_{mi}")
                         with sc2:
                             s2_val = st.number_input(f"M{mi+1} 2팀 점수", 0, 99, value=int(ex_m.get("s2",0)), key=f"tm_s2_{gname}_{mi}")
-                        
                         custom_matches.append({"t1":[], "t2":[], "s1":s1_val, "s2":s2_val, "team1":t1_name, "team2":t2_name})
-                    
                     if st.button(f"💾 {gname} 팀전 대진 생성 및 확정", key=f"btn_tm_{gname}"):
                         gdata["matches"] = custom_matches
                         save_tours(ts)
@@ -883,7 +869,7 @@ elif ss.menu=="admin":
     with adm[3]:
         st.markdown('<div class="sec sec-t">🏆 마스터 포인트 최종 결산 및 정산</div>',unsafe_allow_html=True)
         
-        # ========== 외부 대회 참가점수 부과 ==========
+        # 외부 대회 참가점수 부과
         st.markdown("<div class='sec sec-o'>➕ 외부 대회 참가점수 부과 (추가 포인트 지급)</div>", unsafe_allow_html=True)
         all_members = load_members()
         if all_members:
