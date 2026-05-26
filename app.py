@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import random, os, json, requests, base64
-from datetime import date
+from datetime import date, datetime
 from io import BytesIO
 
 st.set_page_config(page_title="두류 테니스", page_icon="🎾",
@@ -91,7 +91,6 @@ button[data-baseweb="tab"]{font-size:.7rem!important;font-weight:700!important;p
 button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;}
 [data-baseweb="tab-list"]{background:#E0E4E8!important;border-radius:var(--r1) var(--r1) 0 0!important;padding:4px 4px 0!important;gap:3px!important;}
 
-/* 📊 테이블 및 매트릭스 디자인 균형 정렬 조정 */
 .mx-wrap{background:var(--card);border-radius:var(--r1);padding:6px;box-shadow:var(--sh);overflow-x:auto;margin:8px 0;border:1px solid var(--bd);width:100%;}
 .mx{border-collapse:collapse;white-space:nowrap;font-size:.7rem;width:100%;table-layout:fixed;}
 .mx th,.mx td{padding:8px 6px;border:1px solid var(--bd);text-align:center!important;vertical-align:middle!important;text-overflow:ellipsis;overflow:hidden;}
@@ -120,7 +119,7 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .vs-badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FFB74D,#FB8C00);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.55rem;color:#fff;box-shadow:var(--sh);margin:0 auto;}
 
 .ctrl-num{display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #A5D6A7;border-radius:8px;font-size:clamp(1.1rem,5.5vw,1.5rem);font-weight:900;color:#1B5E20;height:42px;width:100%;}
-.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100%!important;}
+.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100 stroke!important;}
 
 .stButton>button{border-radius:var(--r2)!important;font-weight:700!important;font-size:.8rem!important;min-height:46px!important;padding:9px 12px!important;}
 .stButton>button[kind="primary"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;border:none!important;box-shadow:0 4px 12px rgba(46,125,50,.3)!important;}
@@ -231,7 +230,6 @@ def read_file(up):
     if name.endswith(("xlsx","xls")): return pd.read_excel(up)
     return pd.read_csv(up,encoding_errors="replace")
 
-# 🛠️ 제목과 내용 불일치 문제를 완벽 차단하는 렌더링 함수 개정
 def df_to_html(df):
     if df.empty: return "<div class='ic'>데이터가 없습니다.</div>"
     cols = df.columns.tolist()
@@ -331,7 +329,6 @@ def kdk_html(n,gperson,p2n):
         rows+=f"<tr><td><span style='background:#2E7D32;color:#fff;border-radius:12px;padding:2px 8px;font-size:.62rem;font-weight:700'>{i+1}</span></td><td style='text-align:left!important;'>{t1} <b>vs</b> {t2}</td></tr>"
     return f'<div class="kdk"><div style="font-size:.75rem;font-weight:800;color:#1B5E20;margin-bottom:6px">📋 KDK 대진 정보 (1인 {gperson}게임)</div><table><thead><tr><th style="width:50px;">순서</th><th>대진 매칭</th></tr></thead><tbody>{rows}</tbody></table></div>'
 
-# 📐 대진 매트릭스 레이아웃 균형 최적화 버전
 def matrix_html(matches,rank_items,mode,p2n):
     if not matches or not rank_items: return ""
     is_fixed = (mode == "고정페어")
@@ -359,6 +356,22 @@ def matrix_html(matches,rank_items,mode,p2n):
             else: cells += f"<td class='mx-dash'>{val}</td>"
         body+=f"<tr><td style='font-weight:700;background:#F1F8E9;color:#1B5E20;'>{r}</td>{cells}</tr>"
     return f'<div class="mx-wrap"><table class="mx"><thead><tr><th style="background:#1B5E20;">구분</th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
+
+# 🏆 랭킹에 따라 자동으로 그룹별 인원 분배하는 알고리즘 함수
+def redistribute_players_by_ranking(tour):
+    r_df = load_rank()
+    master_order = r_df["이름"].tolist() if not r_df.empty else []
+    chosen_p = tour.get("players", [])
+    # 현재 당일 출전 선수들을 마스터 랭킹 순서대로 정렬
+    chosen_p_sorted = [p for p in master_order if p in chosen_p]
+    chosen_p_sorted += [p for p in chosen_p if p not in chosen_p_sorted] # 혹시 마스터랭킹에 없는 캐주얼 유저 예외처리
+    
+    current_index = 0
+    for gname, gdata in tour.get("groups", {}).items():
+        size = gdata.get("size", 8)
+        # 해당 그룹의 정원만큼 순서대로 자동 할당
+        gdata["players"] = chosen_p_sorted[current_index : current_index + size]
+        current_index += size
 
 ss=st.session_state
 if "menu" not in ss: ss.menu="ranking"
@@ -526,28 +539,80 @@ elif ss.menu=="admin":
         if up and st.button("🚀 마스터 랭킹 강제 파일 빌드 실행",use_container_width=True):
             try:
                 ndf=read_file(up)
-                # 데이터 프레임에 필수 컬럼이 누락되어있으면 채워주되 강제 매칭 오류 방지
                 for c in COLS_RANK:
                     if c not in ndf.columns: ndf[c]=""
                 save_rank(ndf); st.success("✅ 데이터가 파일 시스템에 덮어쓰기 되었습니다."); st.rerun()
             except Exception as e: st.error(f"오류: {e}")
 
     with adm[1]:
-        st.markdown('<div class="sec sec-t">✨ 새로운 신규 대회 개설</div>',unsafe_allow_html=True)
-        tn=st.text_input("🏆 대회 명칭 명명",value=f"{date.today().strftime('%m월 %d일')} 두류 정기전")
-        td=st.date_input("📅 개최 일정 확정",date.today())
-        tp=st.text_input("📍 경기 장소 지정",value="두류 테니스장")
-        co=st.number_input("🎾 할당 코트 면적 수",1,20,value=3)
-        g_count=st.selectbox("👥 최초 대진 구성 그룹 총 수",["1","2","3","4","5","6","7","8"],index=1)
-        if st.button("🚀 새 대회 신설 공식 개막",use_container_width=True,type="primary"):
-            if tn.strip():
-                ts=load_tours(); t_key=f"{td}_{tn.strip()}"
-                ng={f"{chr(65+i)}그룹":{"players":[],"mode":"KDK","games":4,"matches":[],"player_with_number":{},"size":8} for i in range(int(g_count))}
-                ts[t_key]={"title":tn.strip(),"date":str(td),"place":tp,"courts":co,"status":"진행중","groups":ng,"players":[]}
-                save_tours(ts); st.success(f"✅ 대회 '{tn.strip()}'가 생성되었습니다."); st.rerun()
-            else: st.warning("대회 이름을 명확히 입력하십시오.")
-        st.divider()
         ts=load_tours()
+        st.markdown('<div class="sec sec-t">✨ 새로운 신규 대회 개설 및 진행 대회 수정</div>',unsafe_allow_html=True)
+        
+        # 진행중인 대회가 있는지 체크하여 에디터 상태 결정
+        active_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
+        is_edit_mode = len(active_tids) > 0
+        
+        if is_edit_mode:
+            target_tid = active_tids[-1]
+            edit_tour = ts[target_tid]
+            st.info(f"🔄 현재 진행 중인 대회가 존재하여 **[대회 정보 수정 모드]**로 자동 전환되었습니다.")
+            init_tn = edit_tour.get("title", "")
+            try: init_td = datetime.strptime(edit_tour.get("date", str(date.today())), "%Y-%m-%d").date()
+            except: init_td = date.today()
+            init_tp = edit_tour.get("place", "두류 테니스장")
+            init_co = int(edit_tour.get("courts", 3))
+            init_gc = str(len(edit_tour.get("groups", {})))
+        else:
+            st.success(f"✨ 진행 중인 대회가 없습니다. **[신규 대회 개설 모드]**")
+            init_tn = f"{date.today().strftime('%m월 %d일')} 두류 정기전"
+            init_td = date.today()
+            init_tp = "두류 테니스장"
+            init_co = 3
+            init_gc = "2"
+            
+        tn=st.text_input("🏆 대회 명칭 명명", value=init_tn)
+        td=st.date_input("📅 개최 일정 확정", value=init_td)
+        tp=st.text_input("📍 경기 장소 지정", value=init_tp)
+        co=st.number_input("🎾 할당 코트 면적 수", 1, 20, value=init_co)
+        g_count=st.selectbox("👥 대진 구성 그룹 총 수", ["1","2","3","4","5","6","7","8"], index=["1","2","3","4","5","6","7","8"].index(init_gc))
+        
+        if is_edit_mode:
+            if st.button("💾 진행중인 대회 정보 수정 및 그룹 재편성 적용", type="primary", use_container_width=True):
+                if tn.strip():
+                    target_tid = active_tids[-1]
+                    # 기본 메타 정보 업데이트
+                    ts[target_tid]["title"] = tn.strip()
+                    ts[target_tid]["date"] = str(td)
+                    ts[target_tid]["place"] = tp
+                    ts[target_tid]["courts"] = co
+                    
+                    # 그룹 수 변동 시 기존 그룹 데이터 유실 없이 구조 동기화
+                    new_g_count = int(g_count)
+                    existing_groups = ts[target_tid].get("groups", {})
+                    updated_groups = {}
+                    
+                    for i in range(new_g_count):
+                        g_letter = chr(64 + (i+1)) + "그룹"
+                        if g_letter in existing_groups:
+                            updated_groups[g_letter] = existing_groups[g_letter]
+                        else:
+                            updated_groups[g_letter] = {"players":[], "mode":"KDK", "games":4, "matches":[], "player_with_number":{}, "size":8}
+                    
+                    ts[target_tid]["groups"] = updated_groups
+                    # 그룹 수가 변동되었으므로 인원 및 서열 배치 로직 재연동
+                    redistribute_players_by_ranking(ts[target_tid])
+                    save_tours(ts)
+                    st.success("✅ 진행 중인 대회 정보 및 그룹 연동 체계가 실시간 업데이트되었습니다."); st.rerun()
+                else: st.warning("대회 이름을 명확히 입력하십시오.")
+        else:
+            if st.button("🚀 새 대회 신설 공식 개막", use_container_width=True, type="primary"):
+                if tn.strip():
+                    t_key=f"{td}_{tn.strip()}"
+                    ng={f"{chr(65+i)}그룹":{"players":[],"mode":"KDK","games":4,"matches":[],"player_with_number":{},"size":8} for i in range(int(g_count))}
+                    ts[t_key]={"title":tn.strip(),"date":str(td),"place":tp,"courts":co,"status":"진행중","groups":ng,"players":[]}
+                    save_tours(ts); st.success(f"✅ 대회 '{tn.strip()}'가 생성되었습니다."); st.rerun()
+                else: st.warning("대회 이름을 명확히 입력하십시오.")
+        st.divider()
         if ts:
             st.markdown('<div class="sec sec-t">🔧 진행 상황 변경 및 대회 삭제</div>',unsafe_allow_html=True)
             sel_t=st.selectbox("제어 대상 대회 선별",list(ts.keys()),format_func=lambda k:f"[{ts[k].get('status',' 진행중')}] {ts[k]['title']}")
@@ -600,8 +665,11 @@ elif ss.menu=="admin":
         )
         final_chosen_p = [n.strip() for n in text_p_input.replace("\n",",").split(",") if n.strip()]
 
-        if st.button("💾 참가 명단 저장", use_container_width=True, type="primary"):
-            tour["players"] = final_chosen_p; save_tours(ts); st.success(f"당일 명단 {len(final_chosen_p)}명 저장 완료!")
+        if st.button("💾 참가 명단 저장 및 랭킹정렬 분배", use_container_width=True, type="primary"):
+            tour["players"] = final_chosen_p
+            # 참가 인원을 기반으로 상위 랭커부터 실시간 조율 분배 실행
+            redistribute_players_by_ranking(tour)
+            save_tours(ts); st.success(f"당일 명단 {len(final_chosen_p)}명 저장 및 그룹별 자동 정렬 분배 완료!")
             st.divider()
         
         st.markdown("#### [2단계] 그룹별 세부 배정")
@@ -612,12 +680,23 @@ elif ss.menu=="admin":
                 m_opts=["KDK","고정페어","단식","팀전"]
                 gdata["mode"] = st.selectbox(f"방식 ({gname})", m_opts, index=m_opts.index(gdata.get("mode","KDK")), key=f"md_edit_{gname}")
             with c_g: gdata["games"] = st.selectbox(f"인당 게임 수 ({gname})", [3,4,5], index=[3,4,5].index(gdata.get("games",4)), key=f"gm_edit_{gname}")
-            with c_z: gdata["size"] = st.number_input(f"정원 ({gname})", 2, 50, value=gdata.get("size",8), key=f"sz_edit_{gname}")
+            with c_z: 
+                # 한 그룹의 인원을 조정하는 넘버 인풋 체인저 구현
+                old_size = gdata.get("size", 8)
+                new_size = st.number_input(f"정원 ({gname})", 2, 50, value=old_size, key=f"sz_edit_{gname}")
+                if new_size != old_size:
+                    gdata["size"] = new_size
+                    # 정원이 변동되면 자동으로 랭킹에 따라 실시간 정렬 변동 트리거 작동
+                    redistribute_players_by_ranking(tour)
+                    save_tours(ts)
+                    st.rerun()
+
             cur_grp_players = gdata.get("players", [])
 
             if gdata["mode"] == "팀전":
                 st.info("💡 **팀전 안내**: 아래 텍스트박스에 양 팀의 명단을 적고, [3단계]에서 대진을 상세 설정하세요.")
             
+            # 관리자가 텍스트에서 이름을 수동으로 임의 편집할 수 있는 인풋 구조 완벽 유지
             grp_text_input = st.text_area(
                 f"✍️ {gname} 명단 직접 편집 (쉼표 구분)",
                 value=", ".join(cur_grp_players), height=80, key=f"grp_txt_{gname}"
