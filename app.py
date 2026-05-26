@@ -218,7 +218,7 @@ KDK_4G = {
 def load_rank():
     if os.path.exists(RANK_FILE):
         df = pd.read_csv(RANK_FILE).dropna(subset=["이름"])
-        for c in ["현재포인트","3월 포인트","부과점"]:
+        for c in ["현재포인트","지난포인트","부과점"]:
             if c in df.columns: df[c]=pd.to_numeric(df[c],errors="coerce").fillna(0)
         if "현재포인트" in df.columns:
             df=df.sort_values("현재포인트",ascending=False).reset_index(drop=True)
