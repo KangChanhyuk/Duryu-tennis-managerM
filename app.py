@@ -268,7 +268,7 @@ def df_to_html(df):
         for val in row:
             if isinstance(val,float) and not pd.isna(val) and val==int(val): val=int(val)
             cells+=f"<td>{val}</td>"
-        body+=f"<tr>{cells}</td>"
+        body+=f"<tr>{cells}</tr>"
     return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</tr></thead><tbody>{body}</tbody></table></div>'
 
 def stats_fixed(matches):
@@ -354,8 +354,8 @@ def kdk_html(n,gperson,p2n):
     for i,(a,b,c,d) in enumerate(bp):
         t1=f"{n2p.get(a,a)}({a}) &amp; {n2p.get(b,b)}({b})"
         t2=f"{n2p.get(c,c)}({c}) &amp; {n2p.get(d,d)}({d})"
-        rows+=f"<td><td style='text-align:center'><span style='background:#1B5E20;color:#fff;border-radius:20px;padding:2px 8px;font-size:.58rem;font-weight:700'>{i+1}</span><td><td style='text-align:left'>{t1} vs {t2}</td></tr>"
-    return f'<div class="kdk"><div style="font-size:.72rem;font-weight:800;color:#1B5E20;margin-bottom:5px">📋 KDK 1인 {gperson}게임 — {n}명</div><table><thead><tr><th>순서</th><th>대진</th></tr></thead><tbody>{rows}</tbody></table></div>'
+        rows+=f"<tr><td style='text-align:center'><span style='background:#1B5E20;color:#fff;border-radius:20px;padding:2px 8px;font-size:.58rem;font-weight:700'>{i+1}</span></td><td style='text-align:left'>{t1} vs {t2}</td></tr>"
+    return f'<div class="kdk"><div style="font-size:.72rem;font-weight:800;color:#1B5E20;margin-bottom:5px">📋 KDK 1인 {gperson}게임 — {n}명</div></td><thead><tr><th>순서</th><th>대진</th></tr></thead><tbody>{rows}</tbody></td></div>'
 
 def matrix_html(matches,rank_items,mode,p2n):
     if not matches or not rank_items: return ""
@@ -376,9 +376,9 @@ def matrix_html(matches,rank_items,mode,p2n):
     header="".join(f"<th>{k}</th>" for k in keys)
     body=""
     for r in keys:
-        cells="".join(f"<td class='mx-sc'>{mat[r][c]}<td>" if ":" in mat[r][c] else (f"<td class='mx-grey'>{mat[r][c]}</td>" if "■" in mat[r][c] else f"<td class='mx-dash'>{mat[r][c]}<td>") for c in keys)
+        cells="".join(f"<td class='mx-sc'>{mat[r][c]}</td>" if ":" in mat[r][c] else (f"<td class='mx-grey'>{mat[r][c]}</td>" if "■" in mat[r][c] else f"<td class='mx-dash'>{mat[r][c]}</td>") for c in keys)
         body+=f"<tr><td style='font-weight:700;background:#E8F5E9'>{r}</td>{cells}</tr>"
-    return f'<div class="mx-wrap"><table class="mx"><thead><tr><th>구분</th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
+    return f'<div class="mx-wrap"><table class="mx"><thead><tr><th>구분</th>{header}</table></thead><tbody>{body}</tbody></table></div>'
 
 # ================== 자동 배정 함수 ==================
 def auto_assign_players_to_groups(tour, all_ranked_players):
@@ -617,6 +617,20 @@ elif ss.menu=="admin":
         st.markdown(f"### 👥 {tour['title']} 참가자 조율")
         all_m=load_members()
         if not all_m: st.warning("회원 명단이 비어 있습니다. 1탭에서 회원 명단을 먼저 등록하세요."); st.stop()
+        
+        # ========== 그룹 삭제 기능 ==========
+        st.markdown("#### 🗑️ 그룹 삭제")
+        group_names_for_delete = list(tour["groups"].keys())
+        if group_names_for_delete:
+            del_group = st.selectbox("삭제할 그룹 선택", group_names_for_delete, key="del_group_select")
+            if st.button("❗ 선택한 그룹 삭제 (복구 불가)", type="secondary", use_container_width=True):
+                del tour["groups"][del_group]
+                save_tours(ts)
+                st.success(f"그룹 '{del_group}'이(가) 삭제되었습니다.")
+                st.rerun()
+        else:
+            st.info("삭제할 그룹이 없습니다.")
+        st.divider()
         
         st.markdown("#### [1단계] 당일 참가자 선택")
         saved_p=tour.get("players", [])
