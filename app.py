@@ -906,3 +906,6 @@ elif ss.menu=="admin":
                 try:
                     ndf=read_file(up)
                     for c in COLS_RANK:
+                        if c not in ndf.columns: ndf[c]=""
+                    save_rank(ndf); st.success("✅ 데이터가 파일 시스템에 덮어쓰기 되었습니다."); st.rerun()
+                except Exception as e: st.error(f"오류: {e}")
