@@ -127,15 +127,16 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .stTextInput>div>div>input,.stTextArea>div>div>textarea,.stSelectbox>div>div{min-height:44px!important;border-radius:var(--r1)!important;}
 [data-testid="stFileUploaderDropzone"]{border:2px dashed var(--g3)!important;background:var(--g5)!important;}
 
-/* 🛠️ 관리자 테이블 전용 초소형 조밀한 입력창 스타일 지정 */
-.admin-table-input div[data-baseweb="input"] {
-    min-height: 30px !important;
+/* 🛠️ 스트림릿 입력 컴포넌트가 테이블 셀 내부에 조밀하게 들어가도록 커스텀 스타일 패치 */
+.matrix-input-box div[data-baseweb="input"] {
+    min-height: 28px !important;
+    background: transparent !important;
 }
-.admin-table-input input {
-    min-height: 30px !important;
-    padding: 2px 6px !important;
+.matrix-input-box input {
+    min-height: 28px !important;
+    padding: 2px 4px !important;
     font-size: 0.72rem !important;
-    text-align: center;
+    text-align: center !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -200,12 +201,14 @@ KDK_4G = {
 def load_rank():
     if os.path.exists(RANK_FILE):
         df = pd.read_csv(RANK_FILE).dropna(subset=["이름"])
-        if "대회포인트" not in df.columns:
-            df["대회포인트"] = 0
+        if "대회포인트" not in df.columns: df["대회포인트"] = 0
+        if "부과점" not in df.columns: df["부과점"] = 0
+        if "비고" not in df.columns: df["비고"] = ""
+        
         for c in ["현재포인트","부과점","대회포인트"]:
             if c in df.columns: df[c]=pd.to_numeric(df[c],errors="coerce").fillna(0)
         
-        # 정합성 유지: 현재포인트 = 대회포인트 + 부과점
+        # 💡 정합성 실시간 연동: 현재포인트 = 대회포인트 + 부과점(부가점수)
         df["현재포인트"] = df["대회포인트"] + df["부과점"]
         
         if "현재포인트" in df.columns:
@@ -254,7 +257,7 @@ def read_file(up):
     if name.endswith(("xlsx","xls")): return pd.read_excel(up)
     return pd.read_csv(up,encoding_errors="replace")
 
-# 1번째 사진처럼 메인 랭킹을 노출하는 함수 (원래대로 온전하게 유지)
+# 첫번째 [🏆 랭킹] 탭에 표출되는 온전한 HTML 뷰 테이블 함수
 def df_to_html(df):
     if df.empty: return "<div class='ic'>데이터가 없습니다.</div>"
     display_cols = ["랭킹", "이름", "현재포인트", "부과점", "비고"]
@@ -417,7 +420,6 @@ if ss.menu=="ranking":
     df=load_rank()
     if df.empty: st.markdown("<div class='ic'>📋 등록된 랭킹 데이터 파일이 비어 있습니다.</div>",unsafe_allow_html=True)
     else: 
-        # 💡 원상 복구 완료: 메인 보드는 기존처럼 이름, 현재포인트, 부과점, 비고만 깔끔하게 출력
         st.markdown(df_to_html(df),unsafe_allow_html=True)
         st.download_button("Excel 다운로드",data=to_excel(df),file_name=f"랭킹_{date.today()}.xlsx",use_container_width=True)
 
@@ -791,7 +793,7 @@ elif ss.menu=="admin":
                 save_tours(tours)
                 st.success("✅ 당일 대회 포인트가 마스터 랭킹에 성공적으로 누적 마감되었습니다!"); st.rerun()
 
-    # ----------------- [💡 핵심 수정 구역: 회원 및 부가점 관리 표 구조화] -----------------
+    # ----------------- [💡 완벽 수정 구역: 마스터 랭킹 표 틀을 그대로 복사한 입력 필드] -----------------
     with adm[3]:
         st.markdown('<div class="sec sec-t">⭐ 회원 정보 및 누적 스코어 일괄 관리 보드</div>', unsafe_allow_html=True)
         
@@ -799,71 +801,88 @@ elif ss.menu=="admin":
         all_members = load_members()
         
         if not r_master.empty and len(all_members) > 0:
-            st.markdown("💡 각 회원별 수치 입력 시 `현재 총점`이 실시간 계산됩니다. 수정 후 맨 아래 **[최종 데이터 저장 및 적용]**을 반드시 누르세요.")
+            st.markdown("💡 랭킹 보드 양식과 **동일한 표 구조** 내에서 값을 편집합니다. 수정 후 하단 **[최종 데이터 저장 및 적용]** 단추를 꼭 눌러주세요.")
             
             updated_rows = []
             
-            # ✨ 가로 표의 컴팩트한 컬럼 레이아웃 생성 (폭 비율 정밀 조율)
-            h_col1, h_col2, h_col3, h_col4, h_col5 = st.columns([1.5, 1.8, 1.8, 1.5, 3.4])
-            with h_col1: st.markdown("<b style='font-size:0.75rem; display:block; text-align:center;'>회원 이름</b>", unsafe_allow_html=True)
-            with h_col2: st.markdown("<b style='font-size:0.75rem; display:block; text-align:center;'>대회 포인트</b>", unsafe_allow_html=True)
-            with h_col3: st.markdown("<b style='font-size:0.75rem; display:block; text-align:center;'>부가 점수</b>", unsafe_allow_html=True)
-            with h_col4: st.markdown("<b style='font-size:0.75rem; display:block; text-align:center;'>현재 총점</b>", unsafe_allow_html=True)
-            with h_col5: st.markdown("<b style='font-size:0.75rem; display:block; text-align:left; padding-left:10px;'>비고 사유 기재</b>", unsafe_allow_html=True)
-            st.markdown("<div style='border-bottom:2px solid #2E7D32; margin-bottom:8px;'></div>", unsafe_allow_html=True)
+            # 1번째 랭킹 표 디자인 구조(`mx-wrap`, `mx`)를 그대로 차용하여 정형화된 HTML 표 헤더 시작
+            st.markdown("""
+            <div class="mx-wrap">
+                <table class="mx">
+                    <thead>
+                        <tr>
+                            <th>랭킹</th>
+                            <th>이름</th>
+                            <th>대회포인트</th>
+                            <th>부과점(부가점수)</th>
+                            <th>현재 총점</th>
+                            <th style="width:40%;">비고사유 기재</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            """, unsafe_allow_html=True)
             
-            # 가로 1행씩 매칭하여 촘촘하게 배치
+            # 데이터 로직과 뷰 컴포넌트를 촘촘히 바인딩
             for idx, row in r_master.iterrows():
                 p_name = row["이름"]
                 if not p_name: continue
                 
+                cur_rank = row.get("랭킹", idx + 1)
                 cur_tour_pts = int(pd.to_numeric(row.get("대회포인트", 0), errors="coerce")) if pd.notna(row.get("대회포인트", 0)) else 0
                 cur_extra_pts = int(pd.to_numeric(row.get("부과점", 0), errors="coerce")) if pd.notna(row.get("부과점", 0)) else 0
                 cur_note = str(row.get("비고", "")) if pd.notna(row.get("비고", "")) and str(row.get("비고", "")) != "nan" else ""
                 
-                r_col1, r_col2, r_col3, r_col4, r_col5 = st.columns([1.5, 1.8, 1.8, 1.5, 3.4])
+                # 가로 한 행(tr) 내부 셀에 스트림릿 입력을 조밀하게 임베딩하기 위한 컬럼화 정의
+                r_col1, r_col2, r_col3, r_col4, r_col5, r_col6 = st.columns([1, 1.2, 1.5, 1.5, 1.2, 3.6])
                 
-                # 1. 이름 칸
                 with r_col1:
-                    st.markdown(f"<div style='padding-top:8px; font-weight:700; font-size:0.8rem; text-align:center; color:#2C3E50;'>{p_name}</div>", unsafe_allow_html=True)
-                
-                # 2. 대회 포인트 조절창
+                    st.markdown(f"<div style='text-align:center; padding-top:10px; font-weight:700; color:#7f8c8d;'>{cur_rank}</div>", unsafe_allow_html=True)
                 with r_col2:
-                    st.markdown('<div class="admin-table-input">', unsafe_allow_html=True)
-                    new_tour_pt = st.number_input("대회점수", min_value=0, max_value=2000, value=cur_tour_pts, step=1, key=f"tbl_tpt_{p_name}_{idx}", label_visibility="collapsed")
-                    st.markdown('</div>', unsafe_allow_html=True)
-                
-                # 3. 부가 점수 조절창
+                    st.markdown(f"<div style='text-align:center; padding-top:10px; font-weight:700; color:#2C3E50;'>{p_name}</div>", unsafe_allow_html=True)
                 with r_col3:
-                    st.markdown('<div class="admin-table-input">', unsafe_allow_html=True)
-                    new_extra_pt = st.number_input("부가점수", min_value=-200, max_value=200, value=cur_extra_pts, step=1, key=f"tbl_ept_{p_name}_{idx}", label_visibility="collapsed")
+                    st.markdown('<div class="matrix-input-box">', unsafe_allow_html=True)
+                    new_tour_pt = st.number_input("대회점수", min_value=0, max_value=5000, value=cur_tour_pts, step=1, key=f"mat_tpt_{p_name}_{idx}", label_visibility="collapsed")
+                    st.markdown('</div>', unsafe_allow_html=True)
+                with r_col4:
+                    st.markdown('<div class="matrix-input-box">', unsafe_allow_html=True)
+                    # 💡 부가점수 입력창 -> 데이터의 '부과점' 컬럼에 완벽 다이렉트 매핑
+                    new_extra_pt = st.number_input("부가점수", min_value=-500, max_value=500, value=cur_extra_pts, step=1, key=f"mat_ept_{p_name}_{idx}", label_visibility="collapsed")
                     st.markdown('</div>', unsafe_allow_html=True)
                 
-                # 4. 자동 연산된 현재 총점 결과 노출
+                # 실시간 자동 합산 연산 (대회포인트 + 부가점수)
                 calculated_total = new_tour_pt + new_extra_pt
-                with r_col4:
-                    st.markdown(f"<div style='padding-top:8px; font-size:0.8rem; color:#1B5E20; font-weight:900; text-align:center;'>{calculated_total}점</div>", unsafe_allow_html=True)
-                
-                # 5. 비고 상세 사유 기재창
                 with r_col5:
-                    st.markdown('<div class="admin-table-input" style="padding-left:6px;">', unsafe_allow_html=True)
-                    new_note = st.text_input("비고내용", value=cur_note, placeholder="사유 기재", key=f"tbl_nt_{p_name}_{idx}", label_visibility="collapsed")
+                    st.markdown(f"<div style='text-align:center; padding-top:10px; font-size:0.75rem; color:#2E7D32; font-weight:900;'>{calculated_total}</div>", unsafe_allow_html=True)
+                with r_col6:
+                    st.markdown('<div class="matrix-input-box">', unsafe_allow_html=True)
+                    # 💡 비고사유 입력창 -> 데이터의 '비고' 컬럼에 완벽 다이렉트 매핑
+                    new_note = st.text_input("비고내용", value=cur_note, placeholder="사유 입력", key=f"mat_nt_{p_name}_{idx}", label_visibility="collapsed")
                     st.markdown('</div>', unsafe_allow_html=True)
                 
                 updated_rows.append({
+                    "랭킹": cur_rank,
                     "이름": p_name,
                     "대회포인트": new_tour_pt,
-                    "부과점": new_extra_pt,
-                    "현재포인트": calculated_total,
-                    "비고": new_note
+                    "부과점": new_extra_pt,      # '부과점' 컬럼 연동 완료
+                    "현재포인트": calculated_total, # 실시간 자동 합산 연동 완료
+                    "비고": new_note              # '비고' 컬럼 연동 완료
                 })
-                st.markdown("<div style='border-bottom:1px solid #E0E4E8; margin: 3px 0;'></div>", unsafe_allow_html=True)
+                
+                # 깔끔한 테이블 구분선 및 행 마감 처리
+                st.markdown("<div style='border-bottom:1px solid #E0E4E8; margin: 2px 0;'></div>", unsafe_allow_html=True)
             
-            st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-            if st.button("💾 위 수정내역을 마스터 랭킹 보드에 저장 및 동기화", type="primary", use_container_width=True):
+            # HTML 구조를 정상적으로 닫아주어 완벽한 표 틀 완성
+            st.markdown("""
+                    </tbody>
+                </table>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+            if st.button("💾 위 테이블 수정내역 마스터 보드에 최종 저장 및 적용", type="primary", use_container_width=True):
                 new_df = pd.DataFrame(updated_rows)
                 save_rank(new_df)
-                st.success("✅ 모든 회원의 대회 포인트, 부가점수, 비고 사유가 마스터 보드에 일괄 저장 및 반영되었습니다!"); st.rerun()
+                st.success("✅ 부가점수(부과점) 및 비고사유가 메인 마스터 랭킹 보드에 완벽하게 동기화 저장되었습니다!"); st.rerun()
                 
         st.divider()
         with st.expander("📝 전체 회원 텍스트 명단 직접 수정창"):
