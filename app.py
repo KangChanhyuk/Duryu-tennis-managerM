@@ -179,7 +179,7 @@ RANK_FILE   = "ranking_master.csv"
 TOUR_FILE   = "tournaments.json"
 MEMBER_FILE = "member_roster_backup.json"
 CONFIG_FILE = "config_backup.json"
-COLS_RANK   = ["랭킹","이름","현재포인트","3월 포인트","결과","부과점","그룹","비고"]
+COLS_RANK   = ["랭킹","이름","현재포인트","지난 포인트","결과","부과점","그룹","비고"]
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
