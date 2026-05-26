@@ -151,18 +151,16 @@ div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{background:var(--g5)!
 </style>
 """, unsafe_allow_html=True)
 
-# 💾 깃허브 백업용 핵심 자동화 시스템 함수
-REPO = "자신의_깃허브_아이디/레포지토리_이름" # 예: "chanhyuk/duryu-tennis" 형식 (실제 정보로 자동 매칭됨)
+# 💾 깃허브 백업용 시스템 함수
+REPO = "자신의_깃허브_아이디/레포지토리_이름"
 TOKEN = st.secrets.get("GITHUB_TOKEN", "")
 
 def push_to_github(filepath, commit_msg="Update data"):
-    """파일이 변경되면 자동으로 깃허브 저장소에 영구 박제하는 함수"""
     if not TOKEN: return False
     try:
         url = f"https://api.github.com/repos/{REPO}/contents/{filepath}"
         headers = {"Authorization": f"token {TOKEN}", "Accept": "application/vnd.github.v3+json"}
         
-        # 기존 파일의 SHA값 조회
         res = requests.get(url, headers=headers)
         sha = res.json().get("sha") if res.status_code == 200 else None
         
@@ -663,7 +661,7 @@ elif ss.menu=="admin":
                         st.markdown(f"**🔹 MATCH {mi+1}**")
                         ex_m = gdata.get("matches", [])[mi] if (gdata.get("matches") and mi < len(gdata["matches"])) else {}
                         
-                       col_t1, col_t2 = st.columns(2)
+                        col_t1, col_t2 = st.columns(2)
                         with col_t1:
                             t1_name = st.text_input(f"M{mi+1} 1팀명", value=ex_m.get("team1",""), key=f"tm_t1_{gname}_{mi}")
                         with col_t2:
@@ -682,4 +680,51 @@ elif ss.menu=="admin":
                         save_tours(ts)
                         st.success(f"✅ {gname} 팀전 대진표가 반영되었습니다.")
                         st.rerun()
-                            t1_name = st.text_input(f"M{mi+1} 1팀명
+
+        st.markdown("<div class='sec sec-t'>🎲 자동 대진표 일괄 생성기 (KDK/고정페어/단식 전용)</div>", unsafe_allow_html=True)
+        if st.button("🔥 대진표 자동 빌드 및 매칭 확정 (팀전 제외)", type="primary", use_container_width=True):
+            for gname, gdata in tour["groups"].items():
+                if gdata.get("mode") == "팀전": continue
+                pl = gdata.get("players", [])
+                if not pl: continue
+                mode = gdata.get("mode", "KDK")
+                if mode == "KDK":
+                    ms, p2n = make_kdk(pl, gdata.get("games", 4))
+                    gdata["matches"] = ms; gdata["player_with_number"] = p2n
+                elif mode == "고정페어":
+                    ms, _ = make_fixed(pl)
+                    gdata["matches"] = ms; gdata["player_with_number"] = {}
+                elif mode == "단식":
+                    ms, _ = make_singles(pl)
+                    gdata["matches"] = ms; gdata["player_with_number"] = {}
+            save_tours(ts)
+            st.success("✅ 조건에 부합하는 모든 그룹의 대진표 빌드가 완료되었습니다!"); st.rerun()
+
+    with adm[3]:
+        st.markdown('<div class="sec sec-t">🏆 마스터 포인트 최종 결산 및 정산</div>',unsafe_allow_html=True)
+        tours=load_tours(); active=[k for k,v in tours.items() if v.get("status")=="진행중"]
+        if not active: st.info("현재 진행 상태인 대회가 존재하지 않습니다."); st.stop()
+        tid=active[-1]; tour=tours[tid]; earn={}
+        for g,gi in tour.get("groups",{}).items():
+            ms=gi["matches"]; mode=gi.get("mode","KDK"); fx=(mode=="고정페어")
+            if mode == "팀전": continue
+            sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
+            if not rit: continue
+            ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
+            for idx,p_item in enumerate(ranked):
+                pts=rank_pts(idx+1,mode)
+                if fx:
+                    for individual in list(p_item): earn[individual]=earn.get(individual,0)+pts
+                else: earn[p_item]=earn.get(p_item,0)+pts
+        if earn:
+            st.markdown('<div class="sec sec-t">🏆 금일 누적 획득 예정 대회 포인트</div>',unsafe_allow_html=True)
+            res_df=pd.DataFrame(sorted(earn.items(),key=lambda x:-x[1]),columns=["선수명","지급포인트"])
+            st.markdown(df_to_html(res_df),unsafe_allow_html=True)
+        c_fin,c_rst=st.columns(2)
+        with c_fin:
+            if st.button("🏆 계산된 포인트 마스터 랭킹에 영구 반영",type="primary",use_container_width=True):
+                r_master=load_rank()
+                for p,p_val in earn.items():
+                    if p in r_master["이름"].values: r_master.loc[r_master["이름"]==p,"현재포인트"]+=p_val
+                save_rank(r_master); tour["status"]="완료"; save_tours(tours)
+                st.success("✅ 포인트 반영 및 대회가 최종 마감되었습니다!"); st.rerun()
