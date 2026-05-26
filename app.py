@@ -7,20 +7,21 @@ from io import BytesIO
 st.set_page_config(page_title="두류 테니스", page_icon="🎾",
                    layout="centered", initial_sidebar_state="collapsed")
 
+# 🎨 디자인 시스템 및 레이아웃 통합 스타일
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700;900&display=swap');
 :root{
-  --g0:#1B5E20;--g2:#388E3C;--g3:#66BB6A;--g5:#E8F5E9;
+  --g0:#1B5E20;--g2:#2E7D32;--g3:#4CAF50;--g5:#F1F8E9;
   --nav0:#2E7D32;--nav1:#1565C0;--nav2:#E65100;--nav3:#4A148C;--nav4:#00695C;
   --mc0:#1B5E20;--mc1:#0D47A1;--mc2:#BF360C;--mc3:#4A148C;
   --mc4:#006064;--mc5:#1A237E;--mc6:#880E4F;--mc7:#33691E;
   --tb0:#2E7D32;--tb1:#1565C0;--tb2:#D84315;--tb3:#6A1B9A;
   --tb4:#00695C;--tb5:#283593;--tb6:#AD1457;--tb7:#558B2F;
   --yel:#FFD600;--ora:#FB8C00;
-  --bg:#F4F6F9;--card:#fff;--bd:#E0E4EA;
-  --r1:10px;--r2:16px;
-  --sh:0 2px 10px rgba(0,0,0,.08);--sh2:0 4px 20px rgba(0,0,0,.13);
+  --bg:#F4F6F8;--card:#ffffff;--bd:#E0E4E8;
+  --r1:10px;--r2:14px;
+  --sh:0 2px 8px rgba(0,0,0,.06);--sh2:0 4px 16px rgba(0,0,0,.1);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 
@@ -55,17 +56,17 @@ i {
     min-width: 70px !important;
   }
   .stButton button {
-    font-size: 0.65rem !important;
+    font-size: 0.7rem !important;
     padding: 6px 4px !important;
     white-space: normal !important;
     word-break: keep-all !important;
   }
 }
 
-.hdr{background:linear-gradient(135deg,#1B5E20 0%,#2E7D32 60%,#388E3C 100%);margin:0 -0.6rem 0;padding:13px 16px 0;position:relative;overflow:hidden;box-shadow:var(--sh2);}
-.hdr::after{content:'🎾';position:absolute;right:12px;top:8px;font-size:2.4rem;opacity:.12;}
-.hdr-title{color:#fff;font-size:1rem;font-weight:900;margin:0 0 2px;}
-.hdr-sub{color:rgba(255,255,255,.5);font-size:.55rem;letter-spacing:2px;}
+.hdr{background:linear-gradient(135deg,#1B5E20 0%,#2E7D32 60%,#388E3C 100%);margin:0 -0.6rem 0;padding:15px 16px;position:relative;overflow:hidden;box-shadow:var(--sh2);border-bottom-left-radius:8px;border-bottom-right-radius:8px;}
+.hdr::after{content:'🎾';position:absolute;right:14px;top:10px;font-size:2.2rem;opacity:.15;}
+.hdr-title{color:#fff;font-size:1.15rem;font-weight:900;margin:0 0 2px;}
+.hdr-sub{color:rgba(255,255,255,.6);font-size:.58rem;letter-spacing:2px;}
 
 .pg-title{color:#fff;padding:11px 14px;border-radius:var(--r2);margin:0 0 12px;font-size:.95rem;font-weight:900;text-align:center;box-shadow:var(--sh2);}
 .c0{background:linear-gradient(135deg,var(--nav0),#43A047);}
@@ -74,102 +75,76 @@ i {
 .c3{background:linear-gradient(135deg,var(--nav3),#7B1FA2);}
 .c4{background:linear-gradient(135deg,var(--nav4),#00897B);}
 
-.sec{font-size:.82rem;font-weight:800;color:var(--g0);border-left:4px solid var(--g3);padding-left:8px;margin:14px 0 7px;}
+.sec{font-size:.85rem;font-weight:800;color:var(--g0);border-left:4px solid var(--g3);padding-left:8px;margin:18px 0 8px;}
 .sec-b{color:var(--nav1);border-left-color:var(--nav1);}
 .sec-o{color:var(--nav2);border-left-color:var(--nav2);}
 .sec-p{color:var(--nav3);border-left-color:var(--nav3);}
 .sec-t{color:var(--nav4);border-left-color:var(--nav4);}
 
-.ic{background:var(--card);border-left:4px solid var(--g3);border-radius:var(--r1);padding:9px 12px;margin:6px 0;box-shadow:var(--sh);font-size:.78rem;color:#3a3a5c;}
+.ic{background:var(--card);border-left:4px solid var(--g3);border-radius:var(--r1);padding:10px 14px;margin:8px 0;box-shadow:var(--sh);font-size:.8rem;color:#2C3E50;line-height:1.4;}
 .ic-b{border-left-color:var(--nav1);}
 .ic-o{border-left-color:var(--nav2);}
 .ic-p{border-left-color:var(--nav3);}
 .ic-t{border-left-color:var(--nav4);}
 
-button[data-baseweb="tab"]{font-size:.65rem!important;font-weight:700!important;padding:7px 4px!important;border-radius:var(--r1) var(--r1) 0 0!important;min-height:38px!important;white-space:nowrap!important;}
+button[data-baseweb="tab"]{font-size:.7rem!important;font-weight:700!important;padding:8px 6px!important;border-radius:var(--r1) var(--r1) 0 0!important;min-height:38px!important;}
 button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;}
-[data-baseweb="tab-list"]{background:#DDD!important;border-radius:var(--r1) var(--r1) 0 0!important;padding:3px 3px 0!important;gap:2px!important;flex-wrap:nowrap!important;overflow-x:auto!important;}
+[data-baseweb="tab-list"]{background:#E0E4E8!important;border-radius:var(--r1) var(--r1) 0 0!important;padding:4px 4px 0!important;gap:3px!important;}
 
-.mx-wrap{background:var(--card);border-radius:var(--r1);padding:8px;box-shadow:var(--sh);overflow-x:auto;margin:7px 0;border:1px solid var(--bd);}
-.mx{border-collapse:collapse;white-space:nowrap;font-size:.7rem;width:100%;}
-.mx th,.mx td{padding:7px 6px;border:1px solid var(--bd);text-align:center!important;vertical-align:middle!important;}
+/* 📊 테이블 및 매트릭스 디자인 균형 정렬 조정 */
+.mx-wrap{background:var(--card);border-radius:var(--r1);padding:6px;box-shadow:var(--sh);overflow-x:auto;margin:8px 0;border:1px solid var(--bd);width:100%;}
+.mx{border-collapse:collapse;white-space:nowrap;font-size:.7rem;width:100%;table-layout:fixed;}
+.mx th,.mx td{padding:8px 6px;border:1px solid var(--bd);text-align:center!important;vertical-align:middle!important;text-overflow:ellipsis;overflow:hidden;}
 .mx thead th{background:var(--g0);color:#fff;font-weight:700;}
 .mx tbody tr:nth-child(even) td{background:var(--g5);}
-.mx-grey{background:#D0D0D0!important;color:#D0D0D0!important;}
-.mx-dash{color:#CCC;}
-.mx-sc{font-weight:800;color:var(--g0);}
+.mx-grey{background:#ECEFF1!important;color:#B0BEC5!important;font-weight:normal;}
+.mx-dash{color:#CFD8DC;}
+.mx-sc{font-weight:800;color:#2E7D32;background:#F1F8E9;}
 
-.kdk{background:var(--card);border-radius:var(--r1);padding:8px;box-shadow:var(--sh);overflow-x:auto;margin:7px 0;border:1px solid var(--bd);}
-.kdk table{border-collapse:collapse;white-space:nowrap;font-size:.64rem;width:100%;}
-.kdk th,.kdk td{padding:5px 5px;border:1px solid var(--bd);text-align:center;vertical-align:middle;}
-.kdk thead th{background:var(--g0);color:#fff;font-weight:700;}
-.kdk td:first-child{width:50px;text-align:center;}
-.kdk td:last-child{text-align:left;}
+.kdk{background:var(--card);border-radius:var(--r1);padding:8px;box-shadow:var(--sh);overflow-x:auto;margin:8px 0;border:1px solid var(--bd);}
+.kdk table{border-collapse:collapse;white-space:nowrap;font-size:.68rem;width:100%;}
+.kdk th,.kdk td{padding:6px;border:1px solid var(--bd);text-align:center;vertical-align:middle;}
+.kdk thead th{background:var(--g2);color:#fff;font-weight:700;}
 
-div[data-testid="stDataFrame"]{border-radius:var(--r1)!important;overflow:hidden!important;box-shadow:var(--sh)!important;border:1px solid var(--bd)!important;}
-div[data-testid="stDataFrame"] table{width:100%!important;font-size:.7rem!important;border-collapse:collapse!important;}
-div[data-testid="stDataFrame"] table th,
-div[data-testid="stDataFrame"] table td{text-align:center!important;vertical-align:middle!important;padding:7px 4px!important;white-space:nowrap;}
-div[data-testid="stDataFrame"] thead tr th{background:var(--g0)!important;color:#fff!important;font-weight:700!important;}
-div[data-testid="stDataFrame"] tbody tr:nth-child(even) td{background:var(--g5)!important;}
-
-.match-card{background:var(--card);border-radius:var(--r2);padding:10px 8px 12px;margin:10px 0;box-shadow:var(--sh2);border:1px solid var(--bd);}
-.match-no{display:inline-block;border-radius:20px;padding:3px 12px;font-size:.58rem;font-weight:900;margin-bottom:8px;color:#fff;}
+.match-card{background:var(--card);border-radius:var(--r2);padding:12px 10px;margin:12px 0;box-shadow:var(--sh2);border:1px solid var(--bd);}
+.match-no{display:inline-block;border-radius:20px;padding:3px 12px;font-size:.6rem;font-weight:900;margin-bottom:10px;color:#fff;}
 .mc0{background:var(--mc0);}.mc1{background:var(--mc1);}.mc2{background:var(--mc2);}
 .mc3{background:var(--mc3);}.mc4{background:var(--mc4);}.mc5{background:var(--mc5);}
 .mc6{background:var(--mc6);}.mc7{background:var(--mc7);}
 
-.team-nm{border-radius:8px;padding:7px 3px;font-weight:900;font-size:clamp(.6rem,2.8vw,.85rem);text-align:center;color:#fff;box-shadow:var(--sh);min-height:40px;display:flex;align-items:center;justify-content:center;word-break:keep-all;line-height:1.2;}
+.team-nm{border-radius:8px;padding:8px 4px;font-weight:900;font-size:clamp(.65rem,2.8vw,.85rem);text-align:center;color:#fff;box-shadow:var(--sh);min-height:42px;display:flex;align-items:center;justify-content:center;word-break:keep-all;line-height:1.2;}
 .tb0{background:var(--tb0);}.tb1{background:var(--tb1);}.tb2{background:var(--tb2);}
 .tb3{background:var(--tb3);}.tb4{background:var(--tb4);}.tb5{background:var(--tb5);}
 .tb6{background:var(--tb6);}.tb7{background:var(--tb7);}
 
-.vs-badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FFB74D,#FB8C00);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.52rem;color:#fff;box-shadow:var(--sh);margin:0 auto;}
+.vs-badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FFB74D,#FB8C00);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.55rem;color:#fff;box-shadow:var(--sh);margin:0 auto;}
 
-.ctrl-num{display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #A5D6A7;border-radius:8px;font-size:clamp(1rem,5.5vw,1.5rem);font-weight:900;color:#1B5E20;height:42px;width:100%;}
-.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100%!important;line-height:1!important;}
-.ctrl-row .stButton>button:hover{background:#C8E6C9!important;}
-.ctrl-row .stButton>button:active{background:#81C784!important;transform:scale(.93)!important;}
+.ctrl-num{display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #A5D6A7;border-radius:8px;font-size:clamp(1.1rem,5.5vw,1.5rem);font-weight:900;color:#1B5E20;height:42px;width:100%;}
+.ctrl-row .stButton>button{height:42px!important;min-height:42px!important;max-height:42px!important;font-size:clamp(.9rem,4.5vw,1.3rem)!important;font-weight:900!important;padding:0!important;border-radius:8px!important;background:#E8F5E9!important;color:#1B5E20!important;border:2px solid #A5D6A7!important;box-shadow:none!important;width:100%!important;}
 
-.stButton>button{border-radius:var(--r2)!important;font-weight:700!important;font-size:.8rem!important;min-height:48px!important;padding:9px 12px!important;}
-.stButton>button[kind="primary"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;border:none!important;box-shadow:0 4px 14px rgba(46,125,50,.35)!important;}
+.stButton>button{border-radius:var(--r2)!important;font-weight:700!important;font-size:.8rem!important;min-height:46px!important;padding:9px 12px!important;}
+.stButton>button[kind="primary"]{background:linear-gradient(135deg,var(--g0),var(--g2))!important;color:#fff!important;border:none!important;box-shadow:0 4px 12px rgba(46,125,50,.3)!important;}
 
-.stTextInput>div>div>input,.stTextArea>div>div>textarea,.stSelectbox>div>div{min-height:46px!important;border-radius:var(--r1)!important;}
-
-.stTextArea>div>div>textarea {
-    white-space: pre-wrap !important;
-    word-break: break-all !important;
-    overflow-y: auto !important;
-    resize: vertical !important;
-}
-
-[data-testid="stFileUploader"] [data-testid="stFileUploaderDropzoneInstructions"]>div>span,
-[data-testid="stFileUploader"] [data-testid="stFileUploaderDropzoneInstructions"]>div>small{display:none!important;}
-[data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]::after{content:'📂 파일 선택 (xlsx/csv)';}
-[data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] span{display:none!important;}
+.stTextInput>div>div>input,.stTextArea>div>div>textarea,.stSelectbox>div>div{min-height:44px!important;border-radius:var(--r1)!important;}
 [data-testid="stFileUploaderDropzone"]{border:2px dashed var(--g3)!important;background:var(--g5)!important;}
 </style>
 """, unsafe_allow_html=True)
 
-# 💾 깃허브 백업용 시스템 함수
+# 💾 데이터 및 동기화 설정
 REPO = "자신의_깃허브_아이디/레포지토리_이름"
 TOKEN = st.secrets.get("GITHUB_TOKEN", "")
 
 def push_to_github(filepath, commit_msg="Update data"):
-    if not TOKEN: return False
+    if not TOKEN or "자신의_깃허브" in REPO: return False
     try:
         url = f"https://api.github.com/repos/{REPO}/contents/{filepath}"
         headers = {"Authorization": f"token {TOKEN}", "Accept": "application/vnd.github.v3+json"}
-        
         res = requests.get(url, headers=headers)
         sha = res.json().get("sha") if res.status_code == 200 else None
-        
         with open(filepath, "rb") as f:
             content = base64.b64encode(f.read()).decode("utf-8")
-            
         payload = {"message": commit_msg, "content": content}
         if sha: payload["sha"] = sha
-        
         requests.put(url, headers=headers, json=payload)
         return True
     except Exception:
@@ -179,7 +154,7 @@ RANK_FILE   = "ranking_master.csv"
 TOUR_FILE   = "tournaments.json"
 MEMBER_FILE = "member_roster_backup.json"
 CONFIG_FILE = "config_backup.json"
-COLS_RANK   = ["랭킹","이름","현재 포인트","지난 포인트","결과","부과점","그룹","비고"]
+COLS_RANK   = ["랭킹","이름","현재포인트","부과점","비고"]
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
@@ -200,8 +175,7 @@ GLBL  = ["🟢","🔵","🟠","🟣","🩵","🔴","🟡","⚪"]
 KDK_3G = {
     4:  [(1,4,2,3),(1,3,2,4),(1,2,3,4)],
     8:  [(1,2,3,4),(5,6,7,8),(1,8,2,7),(3,6,4,5),(1,4,5,8),(2,3,6,7)],
-    12: [(1,2,3,4),(5,6,7,8),(9,10,11,12),(1,3,5,7),(2,4,6,8),
-         (9,11,1,5),(4,8,9,12),(6,7,10,11),(10,12,2,3)],
+    12: [(1,2,3,4),(5,6,7,8),(9,10,11,12),(1,3,5,7),(2,4,6,8),(9,11,1,5),(4,8,9,12),(6,7,10,11),(10,12,2,3)],
 }
 KDK_4G = {
     5:  [(1,2,3,4),(1,3,2,5),(1,4,3,5),(1,5,2,4),(2,3,4,5)],
@@ -209,26 +183,24 @@ KDK_4G = {
     7:  [(1,2,3,4),(5,6,1,7),(2,3,5,7),(1,4,6,7),(3,5,2,4),(1,6,2,5),(4,6,3,7)],
     8:  [(1,2,3,4),(5,6,7,8),(1,3,5,7),(2,4,6,8),(1,5,2,6),(3,7,4,8),(1,6,3,8),(2,5,4,7)],
     9:  [(1,2,3,4),(5,6,7,8),(1,9,5,7),(2,3,6,8),(4,9,3,8),(1,5,2,6),(3,6,4,5),(1,7,8,9),(2,4,7,9)],
-    10: [(1,2,3,5),(6,7,8,10),(2,3,4,6),(7,8,1,9),(3,4,5,7),(8,9,2,10),
-         (4,5,6,8),(1,3,9,10),(5,6,7,9),(1,10,2,4)],
-    11: [(1,2,3,5),(6,7,8,10),(4,9,1,11),(2,3,6,8),(4,5,7,10),(9,11,2,6),
-         (1,3,7,11),(4,8,5,9),(1,10,2,8),(4,7,6,11),(3,9,5,10)],
+    10: [(1,2,3,5),(6,7,8,10),(2,3,4,6),(7,8,1,9),(3,4,5,7),(8,9,2,10),(4,5,6,8),(1,3,9,10),(5,6,7,9),(1,10,2,4)],
+    11: [(1,2,3,5),(6,7,8,10),(4,9,1,11),(2,3,6,8),(4,5,7,10),(9,11,2,6),(1,3,7,11),(4,8,5,9),(1,10,2,8),(4,7,6,11),(3,9,5,10)],
 }
 
 def load_rank():
     if os.path.exists(RANK_FILE):
         df = pd.read_csv(RANK_FILE).dropna(subset=["이름"])
-        for c in ["현재 포인트","지난 포인트","부과점"]:
+        for c in ["현재포인트","부과점"]:
             if c in df.columns: df[c]=pd.to_numeric(df[c],errors="coerce").fillna(0)
-        if "현재 포인트" in df.columns:
-            df=df.sort_values("현재 포인트",ascending=False).reset_index(drop=True)
+        if "현재포인트" in df.columns:
+            df=df.sort_values("현재포인트",ascending=False).reset_index(drop=True)
             df["랭킹"]=df.index+1
         return df.fillna("")
     return pd.DataFrame(columns=COLS_RANK)
 
 def save_rank(df):
-    if "현재 포인트" in df.columns:
-        df=df.sort_values("현재 포인트",ascending=False).reset_index(drop=True)
+    if "현재포인트" in df.columns:
+        df=df.sort_values("현재포인트",ascending=False).reset_index(drop=True)
         df["랭킹"]=df.index+1
     df.fillna("").to_csv(RANK_FILE, index=False, encoding="utf-8-sig")
     push_to_github(RANK_FILE, "Backup ranking master")
@@ -259,17 +231,20 @@ def read_file(up):
     if name.endswith(("xlsx","xls")): return pd.read_excel(up)
     return pd.read_csv(up,encoding_errors="replace")
 
+# 🛠️ 제목과 내용 불일치 문제를 완벽 차단하는 렌더링 함수 개정
 def df_to_html(df):
-    cols=df.columns.tolist()
-    h="".join(f"<th>{c}</th>" for c in cols)
-    body=""
-    for _,row in df.iterrows():
-        cells=""
-        for val in row:
-            if isinstance(val,float) and not pd.isna(val) and val==int(val): val=int(val)
-            cells+=f"<td>{val}</td>"
-        body+=f"<tr>{cells}</tr>"
-    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}<table></thead><tbody>{body}</tbody></table></div>'
+    if df.empty: return "<div class='ic'>데이터가 없습니다.</div>"
+    cols = df.columns.tolist()
+    h = "".join(f"<th>{c}</th>" for c in cols)
+    body = ""
+    for _, row in df.iterrows():
+        cells = ""
+        for c in cols:
+            val = row[c]
+            if isinstance(val, float) and not pd.isna(val) and val == int(val): val = int(val)
+            cells += f"<td>{val}</td>"
+        body += f"<tr>{cells}</tr>"
+    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</tr></thead><tbody>{body}</tbody></table></div>'
 
 def stats_fixed(matches):
     s={}
@@ -306,7 +281,6 @@ def stats_team(matches):
         team1, team2 = m.get("team1", "A팀"), m.get("team2", "B팀")
         if team1 not in s: s[team1] = {"승":0, "패":0, "득실":0, "매치승":0, "매치패":0}
         if team2 not in s: s[team2] = {"승":0, "패":0, "득실":0, "매치승":0, "매치패":0}
-        
         a, b = int(m["s1"]), int(m["s2"])
         if a > b:
             s[team1]["매치승"] += 1; s[team2]["매치패"] += 1
@@ -352,98 +326,39 @@ def kdk_html(n,gperson,p2n):
     if not bp: return ""
     n2p={v:k for k,v in p2n.items()}; rows=""
     for i,(a,b,c,d) in enumerate(bp):
-        t1=f"{n2p.get(a,a)}({a}) &amp; {n2p.get(b,b)}({b})"
-        t2=f"{n2p.get(c,c)}({c}) &amp; {n2p.get(d,d)}({d})"
-        rows+=f"<tr><td style='text-align:center'><span style='background:#1B5E20;color:#fff;border-radius:20px;padding:2px 8px;font-size:.58rem;font-weight:700'>{i+1}</span></td><td style='text-align:left'>{t1} vs {t2}</td></tr>"
-    return f'<div class="kdk"><div style="font-size:.72rem;font-weight:800;color:#1B5E20;margin-bottom:5px">📋 KDK 1인 {gperson}게임 — {n}명</div><tr><thead><tr><th>순서</th><th>대진</th></tr></thead><tbody>{rows}</tbody></table></div>'
+        t1=f"{n2p.get(a,a)}({a}) & {n2p.get(b,b)}({b})"
+        t2=f"{n2p.get(c,c)}({c}) & {n2p.get(d,d)}({d})"
+        rows+=f"<tr><td><span style='background:#2E7D32;color:#fff;border-radius:12px;padding:2px 8px;font-size:.62rem;font-weight:700'>{i+1}</span></td><td style='text-align:left!important;'>{t1} <b>vs</b> {t2}</td></tr>"
+    return f'<div class="kdk"><div style="font-size:.75rem;font-weight:800;color:#1B5E20;margin-bottom:6px">📋 KDK 대진 정보 (1인 {gperson}게임)</div><table><thead><tr><th style="width:50px;">순서</th><th>대진 매칭</th></tr></thead><tbody>{rows}</tbody></table></div>'
 
-# ================== 수정된 매트릭스 함수 (구분 열 제거) ==================
-def matrix_html(matches, rank_items, mode, p2n):
-    if not matches or not rank_items:
-        return '<div class="ic">📊 아직 기록된 경기 결과가 없습니다. 경기 스코어를 입력하면 매트릭스가 표시됩니다.</div>'
+# 📐 대진 매트릭스 레이아웃 균형 최적화 버전
+def matrix_html(matches,rank_items,mode,p2n):
+    if not matches or not rank_items: return ""
     is_fixed = (mode == "고정페어")
-    if mode == "팀전": 
-        return '<div class="ic">팀전 모드에서는 매트릭스 대신 팀별 전적을 제공합니다.</div>'
-    
-    # 라벨 생성
-    lab = {}
-    for t in rank_items:
-        if is_fixed:
-            lab[t] = " & ".join(list(t))
-        else:
-            lab[t] = f"{t}({p2n.get(t, '?')})"
-    
-    # 매트릭스 초기화 (자기 대진은 ■, 나머지는 —)
-    mat = {lab[t]: {lab[o]: ("■" if t==o else "—") for o in rank_items} for t in rank_items}
-    
-    # 경기 결과 반영
+    if mode == "팀전": return ""
+    lab={t:"&".join(list(t)) for t in rank_items} if is_fixed else {p:f"{p}({p2n.get(p,'?')})" for p in rank_items}
+    mat={lab[t]:{lab[o]:("■" if t==o else "—") for o in lab} for t in lab}
     for m in matches:
-        a, b = int(m["s1"]), int(m["s2"])
+        a,b=int(m["s1"]),int(m["s2"])
         if a>0 or b>0:
             if is_fixed:
-                k1, k2 = tuple(m["t1"]), tuple(m["t2"])
-                mat[lab[k1]][lab[k2]] = f"{a}:{b}"
-                mat[lab[k2]][lab[k1]] = f"{b}:{a}"
+                k1,k2=tuple(m["t1"]),tuple(m["t2"])
+                mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]]=f"{b}:{a}"
             else:
                 for x in m["t1"]:
-                    for y in m["t2"]:
-                        mat[lab[x]][lab[y]] = f"{a}:{b}"
-                        mat[lab[y]][lab[x]] = f"{b}:{a}"
-    
-    keys = list(lab.values())
-    # 헤더 생성 (구분 열 없음)
-    header = "".join(f"<th style='white-space:nowrap'>{k}</th>" for k in keys)
-    body = ""
+                    for y in m["t2"]: mat[lab[x]][lab[y]]=f"{a}:{b}";mat[lab[y]][lab[x]]=f"{b}:{a}"
+    keys=list(lab.values())
+    header="".join(f"<th>{k}</th>" for k in keys)
+    body=""
     for r in keys:
-        cells = ""
+        cells=""
         for c in keys:
             val = mat[r][c]
-            if ":" in val:
-                cells += f"<td class='mx-sc'>{val}</td>"
-            elif val == "■":
-                cells += '<td class="mx-grey">■</td>'
-            else:
-                cells += '<td class="mx-dash">—</td>'
-        body += f"<tr><th style='white-space:nowrap'>{r}</th>{cells}</tr>"
-    
-    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{header}</tr></thead><tbody>{body}</tbody></table></div>'
-
-# ================== 자동 배정 함수 ==================
-def auto_assign_players_to_groups(tour, all_ranked_players):
-    groups = tour.get("groups", {})
-    players_list = tour.get("players", [])
-    if not players_list or not groups:
-        return
-    ranked_players = [p for p in all_ranked_players if p in players_list]
-    ptr = 0
-    for gname, gdata in groups.items():
-        size = gdata.get("size", 8)
-        gdata["players"] = ranked_players[ptr:ptr+size]
-        ptr += size
-    tour["players"] = ranked_players
-
-def auto_reassign_on_size_change(tour_id, group_name, new_size):
-    tours = load_tours()
-    if tour_id not in tours:
-        return
-    tour = tours[tour_id]
-    groups = tour.get("groups", {})
-    if group_name not in groups:
-        return
-    groups[group_name]["size"] = new_size
-    all_players = tour.get("players", [])
-    if not all_players:
-        return
-    rank_df = load_rank()
-    all_ranked = rank_df["이름"].tolist() if not rank_df.empty else load_members()
-    ranked_players = [p for p in all_ranked if p in all_players]
-    ptr = 0
-    for gn, gd in groups.items():
-        sz = gd.get("size", 8)
-        gd["players"] = ranked_players[ptr:ptr+sz]
-        ptr += sz
-    tour["groups"] = groups
-    save_tours(tours)
+            if ":" in val: cells += f"<td class='mx-sc'>{val}</td>"
+            elif "■" in val: cells += f"<td class='mx-grey'>{val}</td>"
+            else: cells += f"<td class='mx-dash'>{val}</td>"
+        body+=f"<tr><td style='font-weight:700;background:#F1F8E9;color:#1B5E20;'>{r}</td>{cells}</tr>"
+    return f'<div class="mx-wrap"><table class="mx"><thead><tr><th style="background:#1B5E20;">구분</th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
 
 ss=st.session_state
 if "menu" not in ss: ss.menu="ranking"
@@ -458,14 +373,12 @@ for idx,(m_id,m_lb) in enumerate(m_items):
         if st.button(m_lb,key=f"m_btn_{m_id}",use_container_width=True,type="primary" if ss.menu==m_id else "secondary"):
             ss.menu=m_id; st.rerun()
 
-# ================== 랭킹 메뉴 ==================
 if ss.menu=="ranking":
     st.markdown("<div class='pg-title c0'>🏆 마스터 랭킹 보드</div>",unsafe_allow_html=True)
     df=load_rank()
     if df.empty: st.markdown("<div class='ic'>📋 등록된 랭킹 데이터 파일이 비어 있습니다.</div>",unsafe_allow_html=True)
     else: st.markdown(df_to_html(df),unsafe_allow_html=True); st.download_button("Excel 다운로드",data=to_excel(df),file_name=f"랭킹_{date.today()}.xlsx",use_container_width=True)
 
-# ================== 대진 메뉴 ==================
 elif ss.menu=="schedule":
     tours=load_tours(); active=[k for k,v in tours.items() if v.get("status")=="진행중"]
     if not active: st.markdown("<div class='pg-title c1'>📅 대진표</div><div class='ic ic-b'>⚠️ 진행 중인 대회가 없습니다.</div>",unsafe_allow_html=True); st.stop()
@@ -485,22 +398,22 @@ elif ss.menu=="schedule":
                 t_ranked = sorted(list(tsv.keys()))
                 t_rows = []
                 for i, t_nm in enumerate(t_ranked):
-                    t_rows.append({"팀명": t_nm, "매치 득실(승/패)": f"{tsv[t_nm]['매치승']}승 / {tsv[t_nm]['매치패']}패", "게임 득실차": f"{tsv[t_nm]['득실']:+d}"})
+                    t_rows.append({"팀명": t_nm, "매치 전적": f"{tsv[t_nm]['매치승']}승 / {tsv[t_nm]['매치패']}패", "게임 득실차": f"{tsv[t_nm]['득실']:+d}"})
                 st.markdown(df_to_html(pd.DataFrame(t_rows)),unsafe_allow_html=True)
             else:
                 sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
-                st.markdown("<div class='sec sec-b'>📋 전적 매트릭스</div>",unsafe_allow_html=True)
+                st.markdown("<div class='sec sec-b'>📋 대진 매트릭스 전적 현황</div>",unsafe_allow_html=True)
                 st.markdown(matrix_html(ms,rit,mode,p2n),unsafe_allow_html=True)
                 if mode=="KDK" and p2n: st.markdown(kdk_html(len(p2n),gi.get("games",4),p2n),unsafe_allow_html=True)
-                st.markdown("<div class='sec sec-b'>🏅 현재 그룹 순위</div>",unsafe_allow_html=True)
+                st.markdown("<div class='sec sec-b'>🏅 그룹 현재 실시간 순위</div>",unsafe_allow_html=True)
                 if rit:
                     ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"])); rows=[]
                     for i,item in enumerate(ranked):
-                        if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade_fixed(i+1)})
-                        else: rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"비고":grade_kdk(i+1)})
+                        if fx: rows.append({"순위":i+1,"팀명":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"결과":grade_fixed(i+1)})
+                        else: rows.append({"순위":i+1,"선수명":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"결과":grade_kdk(i+1)})
                     st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
             
-            st.markdown("<div class='sec sec-b'>🎾 경기 스코어 입력</div>",unsafe_allow_html=True)
+            st.markdown("<div class='sec sec-b'>🎾 경기 결과 스코어 입력</div>",unsafe_allow_html=True)
             for mi,m in enumerate(ms):
                 t1s=" & ".join(m["t1"]); t2s=" & ".join(m["t2"])
                 if tm:
@@ -540,14 +453,13 @@ elif ss.menu=="schedule":
                     st.markdown('</div>',unsafe_allow_html=True)
                 st.markdown('</div>',unsafe_allow_html=True)
 
-# ================== 결과 메뉴 ==================
 elif ss.menu=="result":
-    st.markdown("<div class='pg-title c2'>🎾 대회 종합 결과</div>",unsafe_allow_html=True)
+    st.markdown("<div class='pg-title c2'>🎾 대회 최종 결과 보고</div>",unsafe_allow_html=True)
     tours=load_tours(); t_done=[k for k,v in tours.items() if v.get("status")=="완료"]
     if not t_done: st.markdown("<div class='ic ic-o'>ℹ️ 마감 완료된 대회가 아직 존재하지 않습니다.</div>",unsafe_allow_html=True); st.stop()
     sel_tid=st.selectbox("🏆 지난 대회 아카이브 선택",t_done[::-1],format_func=lambda x: tours[x]["title"])
     tour=tours[sel_tid]
-    st.markdown(f"<div class='ic ic-o'><b>🏆 {tour['title']} 공식 결과 보고서</b><br>📍 일자: {tour.get('date','')} | 장소: {tour.get('place','')}</div>",unsafe_allow_html=True)
+    st.markdown(f"<div class='ic ic-o'><b>🏆 {tour['title']} 공식 결과</b><br>📍 일자: {tour.get('date','')} | 장소: {tour.get('place','')}</div>",unsafe_allow_html=True)
     for g,gi in tour.get("groups",{}).items():
         ms=gi["matches"]; mode=gi.get("mode","KDK"); fx=(mode=="고정페어"); tm=(mode=="팀전")
         st.markdown(f'<div class="sec sec-p">Group {g} ({mode})</div>',unsafe_allow_html=True)
@@ -565,11 +477,10 @@ elif ss.menu=="result":
                 rows=[]
                 for i,item in enumerate(ranked):
                     pt=rank_pts(i+1,mode)
-                    if fx: rows.append({"순위":i+1,"팀":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade_fixed(i+1)})
-                    else: rows.append({"순위":i+1,"선수":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"포인트":pt,"비고":grade_kdk(i+1)})
+                    if fx: rows.append({"순위":i+1,"팀명":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"획득포인트":pt,"비고":grade_fixed(i+1)})
+                    else: rows.append({"순위":i+1,"선수명":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"획득포인트":pt,"비고":grade_kdk(i+1)})
                 st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
 
-# ================== 설정 메뉴 ==================
 elif ss.menu=="config":
     st.markdown("<div class='pg-title c3'>🛠️ 시스템 설정 및 관리</div>",unsafe_allow_html=True)
     st.markdown("<div class='sec sec-p'>🔒 관리자 비밀번호 변경</div>",unsafe_allow_html=True)
@@ -586,7 +497,6 @@ elif ss.menu=="config":
         if init_pw=="duryu0502": cfg=load_config(); cfg["admin_pw"]="0502"; save_config(cfg); st.success("✅ 비밀번호가 '0502'로 완전히 초기화되었습니다."); st.rerun()
         else: st.error("❌ 마스터 암호키가 일치하지 않습니다.")
 
-# ================== 관리자 메뉴 ==================
 elif ss.menu=="admin":
     st.markdown("<div class='pg-title c4'>⚙️ 관리자 관제 센터</div>",unsafe_allow_html=True)
     pw=st.text_input("🔒 패스워드 인증",type="password",placeholder="암호코드 입력")
@@ -606,7 +516,7 @@ elif ss.menu=="admin":
             rk_df=load_rank()
             for p in parsed:
                 if rk_df.empty or p not in rk_df["이름"].values:
-                    nr={c:"" for c in COLS_RANK}; nr["이름"]=p; nr["현재 포인트"]=0
+                    nr={c:"" for c in COLS_RANK}; nr["이름"]=p; nr["현재포인트"]=0
                     rk_df=pd.concat([rk_df,pd.DataFrame([nr])],ignore_index=True)
             save_rank(rk_df)
             st.success("✅ 회원 데이터 셋이 성공적으로 갱신되었습니다."); st.rerun()
@@ -616,6 +526,7 @@ elif ss.menu=="admin":
         if up and st.button("🚀 마스터 랭킹 강제 파일 빌드 실행",use_container_width=True):
             try:
                 ndf=read_file(up)
+                # 데이터 프레임에 필수 컬럼이 누락되어있으면 채워주되 강제 매칭 오류 방지
                 for c in COLS_RANK:
                     if c not in ndf.columns: ndf[c]=""
                 save_rank(ndf); st.success("✅ 데이터가 파일 시스템에 덮어쓰기 되었습니다."); st.rerun()
@@ -636,20 +547,7 @@ elif ss.menu=="admin":
                 save_tours(ts); st.success(f"✅ 대회 '{tn.strip()}'가 생성되었습니다."); st.rerun()
             else: st.warning("대회 이름을 명확히 입력하십시오.")
         st.divider()
-        
-        # 진행 중인 대회 수정 버튼
-        ts = load_tours()
-        active_tour_ids = [k for k,v in ts.items() if v.get("status")=="진행중"]
-        if active_tour_ids:
-            selected_tid = active_tour_ids[0] if len(active_tour_ids)==1 else st.selectbox("수정할 진행 중인 대회 선택", active_tour_ids, format_func=lambda x: ts[x]['title'])
-            if st.button("✏️ 진행 중인 대회 수정 (상세 설정)", type="secondary", use_container_width=True):
-                ss.edit_tour_id = selected_tid
-                st.rerun()
-        else:
-            st.info("현재 진행 중인 대회가 없습니다.")
-        
-        # 기존 대회 목록 및 상세 수정
-        ts = load_tours()
+        ts=load_tours()
         if ts:
             st.markdown('<div class="sec sec-t">🔧 진행 상황 변경 및 대회 삭제</div>',unsafe_allow_html=True)
             sel_t=st.selectbox("제어 대상 대회 선별",list(ts.keys()),format_func=lambda k:f"[{ts[k].get('status',' 진행중')}] {ts[k]['title']}")
@@ -667,60 +565,6 @@ elif ss.menu=="admin":
                         del ts[sel_t]; save_tours(ts); st.warning("대회가 삭제되었습니다."); st.rerun()
                     else: st.error("❌ 삭제 비밀번호가 일치하지 않습니다.")
 
-        # 상세 수정 모드 (edit_tour_id 세션 변수 사용)
-        if eid := st.session_state.get("edit_tour_id"):
-            if eid in ts:
-                et = ts[eid]
-                st.markdown(f'<div class="sec sec-t">✏️ "{et["title"]}" 상세 수정</div>', unsafe_allow_html=True)
-                new_title = st.text_input("대회명", value=et["title"], key="edt")
-                try: dd = pd.to_datetime(et.get("date", str(date.today()))).date()
-                except: dd = date.today()
-                nd = st.date_input("날짜", value=dd, key="edd")
-                np2 = st.text_input("장소", value=et.get("place",""), key="edp")
-                nc = st.selectbox("코트 수", [1,2,3], index=max(0, et.get("courts",2)-1), key="edc")
-                cs1, cs2 = st.columns(2)
-                with cs1:
-                    if st.button("💾 기본 정보 저장", type="primary", use_container_width=True, key="sbi"):
-                        et.update({"title":new_title, "date":str(nd), "place":np2, "courts":nc})
-                        save_tours(ts); st.success("저장 완료!"); ss.edit_tour_id = None; st.rerun()
-                with cs2:
-                    if st.button("취소", use_container_width=True, key="cce"):
-                        ss.edit_tour_id = None; st.rerun()
-                st.divider()
-                # 그룹 설정 수정
-                st.markdown('<div class="sec sec-t">🎲 그룹 설정 수정</div>', unsafe_allow_html=True)
-                st.caption("※ 변경 시 기존 대진이 초기화됩니다.")
-                cg = et.get("groups", {})
-                ci1, ci2 = st.columns(2)
-                with ci1: gcnt = st.number_input("그룹 수", 1, 6, value=max(1,len(cg)), key="egc")
-                with ci2: st.write(f"현재 {len(cg)}개")
-                gcfg = {}
-                gnms = [f"{chr(65+i)}그룹" for i in range(int(gcnt))]
-                for i, gn in enumerate(gnms):
-                    ex = cg.get(gn, {})
-                    st.markdown(f"**{gn}**")
-                    a1,a2,a3,a4 = st.columns(4)
-                    with a1: default_sz = len(ex.get("players",[])) if ex else 8; sz = st.number_input("인원", 2, 30, value=default_sz, key=f"esz_{eid}_{i}")
-                    with a2: default_md = ex.get("mode","고정페어"); mdo = ["고정페어","KDK","단식"]; md = st.selectbox("방식", mdo, index=mdo.index(default_md), key=f"emd_{eid}_{i}")
-                    with a3: default_gc = ex.get("games",4); gco = [3,4,5]; gc = st.selectbox("게임수", gco, index=gco.index(default_gc), key=f"egc2_{eid}_{i}")
-                    with a4: st.write(f"{len(ex.get('players',[]))}명")
-                    gcfg[gn] = (sz, md, gc)
-                tot = sum(v[0] for v in gcfg.values())
-                apl = et.get("players", [])
-                if tot == len(apl): st.success(f"✅ 참가자 {len(apl)}명 / 배정 {tot}명")
-                else: st.warning(f"⚠️ 참가자 {len(apl)}명 / 배정 {tot}명 (차이 {len(apl)-tot:+d}명)")
-                if st.button("🎲 대진 재생성 (그룹 설정 적용)", type="primary", use_container_width=True, key="agc"):
-                    ptr=0; ng={}
-                    for gn,(sz,md,gc) in gcfg.items():
-                        gp = apl[ptr:ptr+sz]; ptr+=sz
-                        if md=="고정페어": ms2, pwn = make_fixed(gp)
-                        elif md=="KDK":
-                            ms2, pwn = make_kdk(gp, gc)
-                            if not ms2: ms2, pwn = make_singles(gp)
-                        else: ms2, pwn = make_singles(gp)
-                        ng[gn] = {"players":gp, "mode":md, "games":gc, "matches":ms2, "player_with_number":pwn}
-                    et["groups"] = ng; save_tours(ts); st.success("대진 재생성 완료!"); st.rerun()
-
     with adm[2]:
         ts=load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
         if not act_tids: st.info("현재 진행 중인 대회가 존재하지 않습니다."); st.stop()
@@ -732,7 +576,6 @@ elif ss.menu=="admin":
         st.markdown(f"### 👥 {tour['title']} 참가자 조율")
         all_m=load_members()
         if not all_m: st.warning("회원 명단이 비어 있습니다. 1탭에서 회원 명단을 먼저 등록하세요."); st.stop()
-        
         st.markdown("#### [1단계] 당일 참가자 선택")
         saved_p=tour.get("players", [])
         if "sel_all_trigger" not in ss: ss.sel_all_trigger = None
@@ -757,63 +600,30 @@ elif ss.menu=="admin":
         )
         final_chosen_p = [n.strip() for n in text_p_input.replace("\n",",").split(",") if n.strip()]
 
-        rank_df = load_rank()
-        all_ranked = rank_df["이름"].tolist() if not rank_df.empty else all_m
+        if st.button("💾 참가 명단 저장", use_container_width=True, type="primary"):
+            tour["players"] = final_chosen_p; save_tours(ts); st.success(f"당일 명단 {len(final_chosen_p)}명 저장 완료!")
+            st.divider()
         
-        if st.button("💾 참가 명단 저장 및 자동 배정", use_container_width=True, type="primary"):
-            tour["players"] = final_chosen_p
-            auto_assign_players_to_groups(tour, all_ranked)
-            save_tours(ts)
-            st.success(f"당일 명단 {len(final_chosen_p)}명 저장 및 그룹 자동 배정 완료!")
-            st.rerun()
-        
-        total_needed = sum(gdata.get("size", 0) for gdata in tour["groups"].values())
-        total_assigned = sum(len(gdata.get("players", [])) for gdata in tour["groups"].values())
-        if total_needed == total_assigned:
-            st.success(f"✅ 모든 그룹 인원 배정 완료! (총 {total_assigned}명 / 필요 {total_needed}명)")
-        else:
-            st.warning(f"⚠️ 배정 인원 부족: 현재 {total_assigned}명 / 필요 {total_needed}명")
-        
-        st.divider()
-        
-        st.markdown("#### [2단계] 그룹별 세부 배정 (수동 조정 가능)")
-        groups_to_delete = []
+        st.markdown("#### [2단계] 그룹별 세부 배정")
         for gname, gdata in list(tour["groups"].items()):
-            st.markdown(f"##### 🏷️ **{gname}**")
-            col1, col2 = st.columns([4,1])
-            with col1:
-                st.markdown(f"**설정**")
-            with col2:
-                if st.button(f"🗑️ 삭제", key=f"del_grp_{gname}", use_container_width=True):
-                    groups_to_delete.append(gname)
+            st.markdown(f"##### 🏷️ **{gname}** 설정")
             c_m, c_g, c_z = st.columns(3)
             with c_m:
                 m_opts=["KDK","고정페어","단식","팀전"]
-                gdata["mode"] = st.selectbox(f"방식", m_opts, index=m_opts.index(gdata.get("mode","KDK")), key=f"md_edit_{gname}")
-            with c_g:
-                gdata["games"] = st.selectbox(f"인당 게임 수", [3,4,5], index=[3,4,5].index(gdata.get("games",4)), key=f"gm_edit_{gname}")
-            with c_z:
-                def on_size_change(group=gname):
-                    new_sz = st.session_state[f"sz_edit_{gname}"]
-                    auto_reassign_on_size_change(sel_tid, group, new_sz)
-                current_size = gdata.get("size", 8)
-                st.number_input(f"정원", 2, 50, value=current_size, key=f"sz_edit_{gname}", on_change=on_size_change)
+                gdata["mode"] = st.selectbox(f"방식 ({gname})", m_opts, index=m_opts.index(gdata.get("mode","KDK")), key=f"md_edit_{gname}")
+            with c_g: gdata["games"] = st.selectbox(f"인당 게임 수 ({gname})", [3,4,5], index=[3,4,5].index(gdata.get("games",4)), key=f"gm_edit_{gname}")
+            with c_z: gdata["size"] = st.number_input(f"정원 ({gname})", 2, 50, value=gdata.get("size",8), key=f"sz_edit_{gname}")
             cur_grp_players = gdata.get("players", [])
+
             if gdata["mode"] == "팀전":
                 st.info("💡 **팀전 안내**: 아래 텍스트박스에 양 팀의 명단을 적고, [3단계]에서 대진을 상세 설정하세요.")
+            
             grp_text_input = st.text_area(
-                f"✍️ 명단 직접 편집 (쉼표 구분)",
+                f"✍️ {gname} 명단 직접 편집 (쉼표 구분)",
                 value=", ".join(cur_grp_players), height=80, key=f"grp_txt_{gname}"
             )
             gdata["players"] = [n.strip() for n in grp_text_input.replace("\n",",").split(",") if n.strip()]
-            st.markdown("---")
-        if groups_to_delete:
-            for gname in groups_to_delete:
-                del tour["groups"][gname]
-            save_tours(ts)
-            st.success(f"선택한 그룹이 삭제되었습니다.")
-            st.rerun()
-        
+
         if st.button("💾 모든 그룹 셋팅값 & 소속 선수 백업", key="save_grp_configs_btn", type="primary", use_container_width=True):
             save_tours(ts); st.success("⚙️ 모든 설정이 저장되었습니다."); st.rerun()
         st.divider()
@@ -826,21 +636,26 @@ elif ss.menu=="admin":
                 if gdata.get("mode") == "팀전":
                     st.markdown(f"**[{gname} - 리그전 대진 설정]**")
                     tm_num = st.number_input(f"{gname} 총 경기 매치 개수", 1, 30, value=len(gdata.get("matches", [])) if gdata.get("matches") else 3, key=f"tm_num_{gname}")
+                    
                     custom_matches = []
                     for mi in range(tm_num):
                         st.markdown(f"**🔹 MATCH {mi+1}**")
                         ex_m = gdata.get("matches", [])[mi] if (gdata.get("matches") and mi < len(gdata["matches"])) else {}
+                        
                         col_t1, col_t2 = st.columns(2)
                         with col_t1:
                             t1_name = st.text_input(f"M{mi+1} 1팀명", value=ex_m.get("team1",""), key=f"tm_t1_{gname}_{mi}")
                         with col_t2:
                             t2_name = st.text_input(f"M{mi+1} 2팀명", value=ex_m.get("team2",""), key=f"tm_t2_{gname}_{mi}")
+                            
                         sc1, sc2 = st.columns(2)
                         with sc1:
                             s1_val = st.number_input(f"M{mi+1} 1팀 점수", 0, 99, value=int(ex_m.get("s1",0)), key=f"tm_s1_{gname}_{mi}")
                         with sc2:
                             s2_val = st.number_input(f"M{mi+1} 2팀 점수", 0, 99, value=int(ex_m.get("s2",0)), key=f"tm_s2_{gname}_{mi}")
+                        
                         custom_matches.append({"t1":[], "t2":[], "s1":s1_val, "s2":s2_val, "team1":t1_name, "team2":t2_name})
+                    
                     if st.button(f"💾 {gname} 팀전 대진 생성 및 확정", key=f"btn_tm_{gname}"):
                         gdata["matches"] = custom_matches
                         save_tours(ts)
@@ -868,34 +683,6 @@ elif ss.menu=="admin":
 
     with adm[3]:
         st.markdown('<div class="sec sec-t">🏆 마스터 포인트 최종 결산 및 정산</div>',unsafe_allow_html=True)
-        
-        # 외부 대회 참가점수 부과
-        st.markdown("<div class='sec sec-o'>➕ 외부 대회 참가점수 부과 (추가 포인트 지급)</div>", unsafe_allow_html=True)
-        all_members = load_members()
-        if all_members:
-            selected_player = st.selectbox("포인트를 부여할 선수 선택", options=all_members, key="ext_point_player")
-            extra_points = st.number_input("추가할 포인트 (양수)", min_value=0, step=1, value=0, key="extra_points")
-            reason = st.text_input("비고 (예: 전국대회 참가, 우승 등)", placeholder="부여 사유", key="point_reason")
-            if st.button("➕ 포인트 부여 및 저장", type="primary", use_container_width=True):
-                if extra_points > 0:
-                    rank_df = load_rank()
-                    if selected_player in rank_df["이름"].values:
-                        current = rank_df.loc[rank_df["이름"]==selected_player, "현재 포인트"].values[0]
-                        rank_df.loc[rank_df["이름"]==selected_player, "현재 포인트"] = current + extra_points
-                        remark = rank_df.loc[rank_df["이름"]==selected_player, "비고"].values[0]
-                        new_remark = f"{remark} {reason}+{extra_points}".strip()
-                        rank_df.loc[rank_df["이름"]==selected_player, "비고"] = new_remark
-                        save_rank(rank_df)
-                        st.success(f"✅ {selected_player}에게 {extra_points} 포인트가 추가되었습니다.")
-                        st.rerun()
-                    else:
-                        st.error("선택한 선수가 랭킹 목록에 없습니다. 먼저 회원 명단을 갱신하세요.")
-                else:
-                    st.warning("추가할 포인트는 1 이상이어야 합니다.")
-        else:
-            st.info("회원 명단이 없습니다. 먼저 '회원 명단' 탭에서 명단을 등록하세요.")
-        st.divider()
-        
         tours=load_tours(); active=[k for k,v in tours.items() if v.get("status")=="진행중"]
         if not active: st.info("현재 진행 상태인 대회가 존재하지 않습니다."); st.stop()
         tid=active[-1]; tour=tours[tid]; earn={}
@@ -919,6 +706,6 @@ elif ss.menu=="admin":
             if st.button("🏆 계산된 포인트 마스터 랭킹에 영구 반영",type="primary",use_container_width=True):
                 r_master=load_rank()
                 for p,p_val in earn.items():
-                    if p in r_master["이름"].values: r_master.loc[r_master["이름"]==p,"현재 포인트"]+=p_val
+                    if p in r_master["이름"].values: r_master.loc[r_master["이름"]==p,"현재포인트"]+=p_val
                 save_rank(r_master); tour["status"]="완료"; save_tours(tours)
                 st.success("✅ 포인트 반영 및 대회가 최종 마감되었습니다!"); st.rerun()
