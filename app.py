@@ -352,12 +352,27 @@ def kdk_html(n,gperson,p2n):
         rows+=f"<tr><td><span style='background:#2E7D32;color:#fff;border-radius:12px;padding:2px 8px;font-size:.62rem;font-weight:700'>{i+1}</span></td><td style='text-align:left!important;'>{t1} <b>vs</b> {t2}</td></tr>"
     return f'<div class="kdk"><div style="font-size:.75rem;font-weight:800;color:#1B5E20;margin-bottom:6px">📋 KDK 대진 정보 (1인 {gperson}게임)</div><table><thead><tr><th style="width:50px;">순서</th><th>대진 매칭</th></tr></thead><tbody>{rows}</tbody></table></div>'
 
+# 🔄 [핵심 보완] 부여된 번호(1번~8번) 기준으로 가로/세로축이 엄격하게 자동 정렬되는 매트릭스 출력기
 def matrix_html(matches,rank_items,mode,p2n):
     if not matches or not rank_items: return ""
     is_fixed = (mode == "고정페어")
     if mode == "팀전": return ""
-    lab={t:"&".join(list(t)) for t in rank_items} if is_fixed else {p:f"{p}({p2n.get(p,'?')})" for p in rank_items}
-    mat={lab[t]:{lab[o]:("■" if t==o else "—") for o in lab} for t in lab}
+    
+    # 고정페어 방식일 때의 라벨 생성
+    if is_fixed:
+        lab={t:"&".join(list(t)) for t in rank_items}
+        keys=list(lab.values())
+    else:
+        # KDK/단식일 때, 부여된 번호(p2n) 순서대로(1, 2, 3...) 완벽 정렬 조치
+        if p2n:
+            sorted_players = sorted(rank_items, key=lambda p: p2n.get(p, 999))
+            lab = {p: f"{p}({p2n.get(p, '?')})" for p in sorted_players}
+        else:
+            lab = {p: p for p in rank_items}
+        keys=list(lab.values())
+        
+    mat={r:{c:("■" if r==c else "—") for c in keys} for r in keys}
+    
     for m in matches:
         a,b=int(m["s1"]),int(m["s2"])
         if a>0 or b>0:
@@ -366,8 +381,10 @@ def matrix_html(matches,rank_items,mode,p2n):
                 mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]]=f"{b}:{a}"
             else:
                 for x in m["t1"]:
-                    for y in m["t2"]: mat[lab[x]][lab[y]]=f"{a}:{b}";mat[lab[y]][lab[x]]=f"{b}:{a}"
-    keys=list(lab.values())
+                    for y in m["t2"]:
+                        if lab.get(x) in mat and lab.get(y) in mat:
+                            mat[lab[x]][lab[y]]=f"{a}:{b}";mat[lab[y]][lab[x]]=f"{b}:{a}"
+                            
     header="".join(f"<th>{k}</th>" for k in keys)
     body=""
     for r in keys:
@@ -380,20 +397,18 @@ def matrix_html(matches,rank_items,mode,p2n):
         body+=f"<tr><td style='font-weight:700;background:#F1F8E9;color:#1B5E20;'>{r}</td>{cells}</tr>"
     return f'<div class="mx-wrap"><table class="mx"><thead><tr><th style="background:#1B5E20;">구분</th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
 
-# 🔄 [핵심 로직 개선] 현재 마스터 랭킹 순서대로 선수를 정밀하게 등분 및 분배하는 함수
+# 🔄 현재 마스터 랭킹 순서대로 선수를 정밀하게 등분 및 분배하는 함수
 def redistribute_players_by_ranking(tour):
     r_df = load_rank()
     master_order = r_df["이름"].tolist() if not r_df.empty else []
     chosen_p = tour.get("players", [])
     
-    # 마스터 랭킹에 등록된 순서대로 정렬하되, 명단에 없으면 뒤로 보냄
     chosen_p_sorted = [p for p in master_order if p in chosen_p]
     chosen_p_sorted += [p for p in chosen_p if p not in chosen_p_sorted]
     
     current_index = 0
     for gname, gdata in tour.get("groups", {}).items():
         size = int(gdata.get("size", 8))
-        # 변경된 정원 크기만큼 정확하게 슬라이싱하여 재할당
         gdata["players"] = chosen_p_sorted[current_index : current_index + size]
         current_index += size
 
@@ -677,7 +692,6 @@ elif ss.menu=="admin":
         st.divider()
         st.markdown("#### [2단계] 그룹별 세부 배정")
         
-        # 📊 [추가 지표] 전체 출전 명단 수와 각 그룹별 정원 총합 검증 시스템 구현
         total_group_sizes = sum(int(gi.get("size", 8)) for gi in tour["groups"].values())
         
         if total_chosen_count == total_group_sizes:
@@ -691,7 +705,6 @@ elif ss.menu=="admin":
             
         for gname, gdata in list(tour["groups"].items()):
             cur_grp_players = gdata.get("players", [])
-            # 헤더 영역에 실시간 인원 현황 표시 (예: A그룹 (현재 배정: 8명))
             st.markdown(f"##### 🏷️ **{gname}** <span style='color:#1565C0; font-size:0.8rem;'>(현재 배정: {len(cur_grp_players)}명)</span>", unsafe_allow_html=True)
             
             c_m, c_g, c_z = st.columns(3)
@@ -701,11 +714,10 @@ elif ss.menu=="admin":
             with c_g: gdata["games"] = st.selectbox(f"인당 게임 수 ({gname})", [3,4,5], index=[3,4,5].index(gdata.get("games",4)), key=f"gm_edit_{gname}")
             with c_z: 
                 old_size = int(gdata.get("size", 8))
-                # 🔄 정원 변경 감지 시 즉시 실시간 랭킹 분배 로직이 가동되도록 전면 수정
                 new_size = st.number_input(f"정원 지정 ({gname})", 2, 50, value=old_size, key=f"sz_edit_{gname}")
                 if new_size != old_size:
                     gdata["size"] = int(new_size)
-                    redistribute_players_by_ranking(tour) # 정원이 바뀌는 즉시 랭킹대로 새로 자름
+                    redistribute_players_by_ranking(tour)
                     save_tours(ts)
                     st.rerun()
 
