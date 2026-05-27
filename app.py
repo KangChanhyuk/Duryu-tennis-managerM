@@ -208,7 +208,6 @@ def load_rank():
         for c in ["현재포인트","부과점","대회포인트"]:
             if c in df.columns: df[c]=pd.to_numeric(df[c],errors="coerce").fillna(0)
         
-        # 📈 부과점과 대회포인트를 합산한 현재포인트를 구한 뒤 내림차순 정렬
         df["현재포인트"] = df["대회포인트"] + df["부과점"]
         df = df.sort_values(by="현재포인트", ascending=False).reset_index(drop=True)
         df["랭킹"] = df.index + 1
@@ -220,7 +219,6 @@ def save_rank(df):
     df["부과점"] = pd.to_numeric(df["부과점"], errors="coerce").fillna(0)
     df["현재포인트"] = df["대회포인트"] + df["부과점"]
     
-    # 📈 저장하기 전 다시 한 번 확실하게 현재포인트 기준 내림차순 정렬 후 순위 재생성
     df = df.sort_values(by="현재포인트", ascending=False).reset_index(drop=True)
     df["랭킹"] = df.index + 1
     
@@ -260,7 +258,6 @@ def read_file(up):
 def df_to_html(df, is_master=False):
     if df.empty: return "<div class='ic'>데이터가 없습니다.</div>"
     
-    # 🛠️ 중요 고정: 메인 마스터 보드의 6개 항목 순서를 온전하게 강제 유지 및 설정
     if is_master:
         cols = ["랭킹", "이름", "현재포인트", "부과점", "비고", "대회포인트"]
     else:
@@ -423,7 +420,6 @@ if ss.menu=="ranking":
     df=load_rank()
     if df.empty: st.markdown("<div class='ic'>📋 등록된 랭킹 데이터 파일이 비어 있습니다.</div>",unsafe_allow_html=True)
     else: 
-        # 🛠️ 중요 고정: is_master=True 를 사용하여 6개 항목이 온전하게 노출되도록 강제 보정
         st.markdown(df_to_html(df, is_master=True),unsafe_allow_html=True)
         st.download_button("Excel 다운로드",data=to_excel(df),file_name=f"랭킹_{date.today()}.xlsx",use_container_width=True)
 
@@ -637,47 +633,54 @@ elif ss.menu=="admin":
                         del ts[sel_t]; save_tours(ts); st.warning("대회가 삭제되었습니다."); st.rerun()
                     else: st.error("❌ 삭제 비밀번호가 일치하지 않습니다.")
 
+    # ----------------- [👥 참가자 명단 조율 탭 수정] -----------------
     with adm[1]:
-        ts=load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
-        if not act_tids: st.info("현재 진행 중인 대회가 존재하지 않습니다."); st.stop()
-        sel_tid=act_tids[-1]; tour=ts[sel_tid]
+        ts = load_tours()
+        act_tids = [k for k,v in ts.items() if v.get("status") == "진행중"]
+        if not act_tids: 
+            st.info("현재 진행 중인 대회가 존재하지 않습니다.")
+            st.stop()
+            
+        sel_tid = act_tids[-1]
+        tour = ts[sel_tid]
         if "groups" not in tour:
             tour["groups"] = {"A그룹":{"players":[],"mode":"KDK","games":4,"matches":[],"player_with_number":{},"size":8}}
             save_tours(ts)
-        cg=tour["groups"]
+            
         st.markdown(f"### 👥 {tour['title']} 참가자 조율")
-        all_m=load_members()
-        if not all_m: st.warning("회원 명단이 비어 있습니다. 아래 탭에서 회원 명단을 먼저 등록하세요."); st.stop()
-        st.markdown("#### [1단계] 당일 참가자 선택")
-        saved_p=tour.get("players", [])
-        if "sel_all_trigger" not in ss: ss.sel_all_trigger = None
-        c_sel1, c_sel2 = st.columns(2)
-        with c_sel1:
-            if st.button("✅ 전체 회원 체크", use_container_width=True):
-                ss.sel_all_trigger = True; st.rerun()
-        with c_sel2:
-            if st.button("❌ 전체 체크 해제", use_container_width=True):
-                ss.sel_all_trigger = False; st.rerun()
-        if ss.sel_all_trigger is True:
-            def_players = all_m; ss.sel_all_trigger = None
-        elif ss.sel_all_trigger is False:
-            def_players = []; ss.sel_all_trigger = None
+        all_m = load_members()
+        if not all_m: 
+            st.warning("회원 명단이 비어 있습니다. 아래 탭에서 회원 명단을 먼저 등록하세요.")
+            st.stop()
+            
+        st.markdown("#### [1단계] 당일 출전 선수 명단 편집")
+        
+        # 기저장된 선수가 있으면 쉼표로 연결, 없으면 전체 회원 목록을 기본값으로 텍스트 상자에 노출
+        saved_p = tour.get("players", [])
+        if not saved_p:
+            default_text = ", ".join(all_m)
         else:
-            def_players = [p for p in saved_p if p in all_m]
-        chosen_p = st.multiselect("출전 선수 직접 선택", options=all_m, default=def_players, key="multiselect_players_act")
-
+            default_text = ", ".join(saved_p)
+            
+        # 📝 [수정] multiselect와 체크 버튼 일체 삭제 후, 오직 텍스트 창 하나로만 조작하도록 변경
         text_p_input = st.text_area(
-            "✍️ 출전 선수 텍스트 직접 추가/편집 (이름을 쉼표로 구분)",
-            value=", ".join(chosen_p), height=80, key="text_area_players_act"
+            "✍️ 출전 선수 텍스트 직접 추가/편집 (이름을 쉼표나 줄바꿈으로 구분)",
+            value=default_text, 
+            height=120, 
+            key="text_area_players_act"
         )
-        final_chosen_p = [n.strip() for n in text_p_input.replace("\n",",").split(",") if n.strip()]
+        
+        # 입력된 텍스트 파싱하여 최종 명단 확보
+        final_chosen_p = [n.strip() for n in text_p_input.replace("\n", ",").split(",") if n.strip()]
 
         if st.button("💾 참가 명단 저장 및 랭킹정렬 분배", use_container_width=True, type="primary"):
             tour["players"] = final_chosen_p
             redistribute_players_by_ranking(tour)
-            save_tours(ts); st.success(f"당일 명단 {len(final_chosen_p)}명 저장 및 그룹별 자동 정렬 분배 완료!")
-            st.divider()
+            save_tours(ts)
+            st.success(f"✅ 당일 출전 명단 {len(final_chosen_p)}명이 정상 저장되었으며, 랭킹 기준 정렬 분배가 완정 연동되었습니다.")
+            st.rerun()
         
+        st.divider()
         st.markdown("#### [2단계] 그룹별 세부 배정")
         for gname, gdata in list(tour["groups"].items()):
             st.markdown(f"##### 🏷️ **{gname}** 설정")
@@ -763,7 +766,6 @@ elif ss.menu=="admin":
             st.success("✅ 조건에 부합하는 모든 그룹의 대진표 빌드가 완료되었습니다!"); st.rerun()
 
     with adm[2]:
-        # 📥 엑셀 파일 업로드 및 회원 덮어쓰기 최상단 유지
         st.markdown('<div class="sec sec-t">📥 엑셀(XLSX/CSV) 회원 명단 일괄 업로드 및 덮어쓰기</div>', unsafe_allow_html=True)
         up=st.file_uploader("랭킹 마스터 데이터 파일 선택",type=["csv","xlsx"])
         if up and st.button("🚀 마스터 랭킹 강제 파일 빌드 실행",use_container_width=True):
@@ -808,7 +810,6 @@ elif ss.menu=="admin":
         else:
             st.info("현재 진행 중인 대진이 없어 당일 자동 정산 점수가 없습니다. 하단 명부 편집을 통해 직접 포인트 조율이 가능합니다.")
 
-        # 📋 회원 통합 조율 보드 (대회포인트, 부과점수, 비고사유 입력 테이블 구조 유지)
         st.markdown('<div class="sec sec-t">⭐ 전체 회원 정보 및 스코어·부가점·비고 통합 조율 보드</div>', unsafe_allow_html=True)
         r_master = load_rank()
         
@@ -832,7 +833,6 @@ elif ss.menu=="admin":
                     <tbody>
             """, unsafe_allow_html=True)
             
-            # 현재포인트 기준으로 다시 재정렬하여 표를 로드
             r_master = r_master.sort_values(by="현재포인트", ascending=False).reset_index(drop=True)
             
             for idx, row in r_master.iterrows():
