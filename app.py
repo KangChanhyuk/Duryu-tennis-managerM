@@ -165,7 +165,6 @@ TOUR_FILE   = "tournaments.json"
 MEMBER_FILE = "member_roster_backup.json"
 CONFIG_FILE = "config_backup.json"
 
-# ⭐ [복구] 사진과 완전히 일치하는 마스터 랭킹 8대 항목 컬럼 구성 고정
 COLS_RANK   = ["랭킹", "이름", "현재 포인트", "지난 포인트", "대회 결과", "부과점", "그룹", "비고"]
 
 def load_config():
@@ -202,16 +201,11 @@ KDK_4G = {
 def load_rank():
     if os.path.exists(RANK_FILE):
         df = pd.read_csv(RANK_FILE).dropna(subset=["이름"])
-        # 누락된 필수 컬럼들 자동 보정 및 기본값 채우기
         for col in COLS_RANK:
             if col not in df.columns:
                 df[col] = 0 if col in ["현재 포인트", "지난 포인트", "부과점"] else ""
-        
-        # 수치형 데이터 형변환 및 안전성 확보
         for c in ["현재 포인트","지난 포인트","부과점"]:
             df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
-        
-        # 정렬 후 순위 재생성
         df = df.sort_values(by="현재 포인트", ascending=False).reset_index(drop=True)
         df["랭킹"] = df.index + 1
         return df[COLS_RANK].fillna("")
@@ -221,14 +215,11 @@ def save_rank(df):
     for c in ["현재 포인트","지난 포인트","부과점"]:
         if c in df.columns:
             df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
-            
     df = df.sort_values(by="현재 포인트", ascending=False).reset_index(drop=True)
     df["랭킹"] = df.index + 1
-    
     for c in COLS_RANK:
         if c not in df.columns: df[c] = ""
     df = df[COLS_RANK]
-    
     df.fillna("").to_csv(RANK_FILE, index=False, encoding="utf-8-sig")
     push_to_github(RANK_FILE, "Backup ranking master")
 
@@ -260,13 +251,11 @@ def read_file(up):
 
 def df_to_html(df, is_master=False):
     if df.empty: return "<div class='ic'>데이터가 없습니다.</div>"
-    
     if is_master:
         cols = COLS_RANK
     else:
         cols = [c for c in COLS_RANK if c in df.columns]
         if not cols: cols = df.columns.tolist()
-    
     h = "".join(f"<th>{c}</th>" for c in cols)
     body = ""
     for _, row in df.iterrows():
@@ -391,16 +380,20 @@ def matrix_html(matches,rank_items,mode,p2n):
         body+=f"<tr><td style='font-weight:700;background:#F1F8E9;color:#1B5E20;'>{r}</td>{cells}</tr>"
     return f'<div class="mx-wrap"><table class="mx"><thead><tr><th style="background:#1B5E20;">구분</th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
 
+# 🔄 [핵심 로직 개선] 현재 마스터 랭킹 순서대로 선수를 정밀하게 등분 및 분배하는 함수
 def redistribute_players_by_ranking(tour):
     r_df = load_rank()
     master_order = r_df["이름"].tolist() if not r_df.empty else []
     chosen_p = tour.get("players", [])
+    
+    # 마스터 랭킹에 등록된 순서대로 정렬하되, 명단에 없으면 뒤로 보냄
     chosen_p_sorted = [p for p in master_order if p in chosen_p]
     chosen_p_sorted += [p for p in chosen_p if p not in chosen_p_sorted]
     
     current_index = 0
     for gname, gdata in tour.get("groups", {}).items():
-        size = gdata.get("size", 8)
+        size = int(gdata.get("size", 8))
+        # 변경된 정원 크기만큼 정확하게 슬라이싱하여 재할당
         gdata["players"] = chosen_p_sorted[current_index : current_index + size]
         current_index += size
 
@@ -664,7 +657,6 @@ elif ss.menu=="admin":
         else:
             default_text = ", ".join(saved_p)
             
-        # 📝 멀티셀렉트와 체크 단추 일절 없이 텍스트 영역 단독 운영
         text_p_input = st.text_area(
             "✍️ 출전 선수 텍스트 직접 추가/편집 (이름을 쉼표나 줄바꿈으로 구분)",
             value=default_text, 
@@ -673,38 +665,55 @@ elif ss.menu=="admin":
         )
         
         final_chosen_p = [n.strip() for n in text_p_input.replace("\n", ",").split(",") if n.strip()]
+        total_chosen_count = len(final_chosen_p)
 
         if st.button("💾 참가 명단 저장 및 랭킹정렬 분배", use_container_width=True, type="primary"):
             tour["players"] = final_chosen_p
             redistribute_players_by_ranking(tour)
             save_tours(ts)
-            st.success(f"✅ 당일 출전 명단 {len(final_chosen_p)}명이 정상 저장되었으며, 랭킹 기준 정렬 분배가 완료되었습니다.")
+            st.success(f"✅ 당일 출전 명단 {total_chosen_count}명이 정상 저장되었으며, 랭킹 기준 정렬 분배가 완료되었습니다.")
             st.rerun()
         
         st.divider()
         st.markdown("#### [2단계] 그룹별 세부 배정")
+        
+        # 📊 [추가 지표] 전체 출전 명단 수와 각 그룹별 정원 총합 검증 시스템 구현
+        total_group_sizes = sum(int(gi.get("size", 8)) for gi in tour["groups"].values())
+        
+        if total_chosen_count == total_group_sizes:
+            st.markdown(f"""<div style='background-color:#E8F5E9; border-left:5px solid #2E7D32; padding:10px; border-radius:6px; font-size:0.85rem; font-weight:700; color:#1B5E20; margin-bottom:15px;'>
+            🟢 인원 매칭 검증 성공: 당일 출전자({total_chosen_count}명)와 그룹별 정원 합계({total_group_sizes}명)가 정확히 일치합니다.
+            </div>""", unsafe_allow_html=True)
+        else:
+            st.markdown(f"""<div style='background-color:#FFEBEE; border-left:5px solid #C62828; padding:10px; border-radius:6px; font-size:0.85rem; font-weight:700; color:#C62828; margin-bottom:15px;'>
+            🚨 인원 매칭 불일치(확인 요망): 당일 출전자는 총 <b>{total_chosen_count}명</b>이나, 설정된 그룹별 정원의 총합은 <b>{total_group_sizes}명</b>입니다. 정원을 조절해 주세요.
+            </div>""", unsafe_allow_html=True)
+            
         for gname, gdata in list(tour["groups"].items()):
-            st.markdown(f"##### 🏷️ **{gname}** 설정")
+            cur_grp_players = gdata.get("players", [])
+            # 헤더 영역에 실시간 인원 현황 표시 (예: A그룹 (현재 배정: 8명))
+            st.markdown(f"##### 🏷️ **{gname}** <span style='color:#1565C0; font-size:0.8rem;'>(현재 배정: {len(cur_grp_players)}명)</span>", unsafe_allow_html=True)
+            
             c_m, c_g, c_z = st.columns(3)
             with c_m:
                 m_opts=["KDK","고정페어","단식","팀전"]
                 gdata["mode"] = st.selectbox(f"방식 ({gname})", m_opts, index=m_opts.index(gdata.get("mode","KDK")), key=f"md_edit_{gname}")
             with c_g: gdata["games"] = st.selectbox(f"인당 게임 수 ({gname})", [3,4,5], index=[3,4,5].index(gdata.get("games",4)), key=f"gm_edit_{gname}")
             with c_z: 
-                old_size = gdata.get("size", 8)
-                new_size = st.number_input(f"정원 ({gname})", 2, 50, value=old_size, key=f"sz_edit_{gname}")
+                old_size = int(gdata.get("size", 8))
+                # 🔄 정원 변경 감지 시 즉시 실시간 랭킹 분배 로직이 가동되도록 전면 수정
+                new_size = st.number_input(f"정원 지정 ({gname})", 2, 50, value=old_size, key=f"sz_edit_{gname}")
                 if new_size != old_size:
-                    gdata["size"] = new_size
-                    redistribute_players_by_ranking(tour)
+                    gdata["size"] = int(new_size)
+                    redistribute_players_by_ranking(tour) # 정원이 바뀌는 즉시 랭킹대로 새로 자름
                     save_tours(ts)
                     st.rerun()
 
-            cur_grp_players = gdata.get("players", [])
             if gdata["mode"] == "팀전":
                 st.info("💡 **팀전 안내**: 아래 텍스트박스에 양 팀의 명단을 적고, [3단계]에서 대진을 상세 설정하세요.")
             
             grp_text_input = st.text_area(
-                f"✍️ {gname} 명단 직접 편집 (쉼표 구분)",
+                f"✍️ {gname} 명단 확인 및 직접 편집 (쉼표 구분)",
                 value=", ".join(cur_grp_players), height=80, key=f"grp_txt_{gname}"
             )
             gdata["players"] = [n.strip() for n in grp_text_input.replace("\n",",").split(",") if n.strip()]
@@ -803,7 +812,6 @@ elif ss.menu=="admin":
                 st.markdown(df_to_html(res_df),unsafe_allow_html=True)
                 if st.button("☝️ 위 자동 계산된 당일 대회 점수를 아래 명부 편집창에 가산 적용", use_container_width=True):
                     r_temp = load_rank()
-                    # 요구사항에 맞게 '현재 포인트' 칸 등에 점수 가산 연동
                     for p, p_val in earn.items():
                         if p in r_temp["이름"].values:
                             r_temp.loc[r_temp["이름"]==p, "현재 포인트"] += p_val
@@ -834,7 +842,6 @@ elif ss.menu=="admin":
                 cur_group = str(row.get("그룹", "")) if pd.notna(row.get("그룹", "")) else ""
                 cur_note = str(row.get("비고", "")) if pd.notna(row.get("비고", "")) and str(row.get("비고", "")) != "nan" else ""
                 
-                # 8대 항목 편집 레이아웃 분할 구성
                 st.markdown(f"**[{cur_rank}위] {p_name}**")
                 c_pts1, c_pts2, c_res, c_ext, c_grp, c_nte = st.columns([1.5, 1.5, 1.8, 1.2, 1.2, 3.0])
                 
@@ -868,11 +875,9 @@ elif ss.menu=="admin":
             if st.button("💾 최종 데이터 마스터 보드에 반영 및 마감", type="primary", use_container_width=True):
                 new_df = pd.DataFrame(updated_rows)
                 save_rank(new_df)
-                
                 if active:
                     tours[active[-1]]["status"] = "완료"
                     save_tours(tours)
-                
                 st.success("✅ 정합성 확인 완료! 지정하신 8대 항목 컬럼 구조 그대로 마스터 랭킹 보드 정렬 동기화가 마감되었습니다."); st.rerun()
                 
         st.divider()
