@@ -257,18 +257,22 @@ def read_file(up):
     if name.endswith(("xlsx","xls")): return pd.read_excel(up)
     return pd.read_csv(up,encoding_errors="replace")
 
-def df_to_html(df):
+def df_to_html(df, is_master=False):
     if df.empty: return "<div class='ic'>데이터가 없습니다.</div>"
-    display_cols = ["랭킹", "이름", "현재포인트", "부과점", "비고", "대회포인트"]
-    cols = [c for c in display_cols if c in df.columns]
-    if not cols: cols = df.columns.tolist()
+    
+    # 🛠️ 중요 고정: 메인 마스터 보드의 6개 항목 순서를 온전하게 강제 유지 및 설정
+    if is_master:
+        cols = ["랭킹", "이름", "현재포인트", "부과점", "비고", "대회포인트"]
+    else:
+        cols = [c for c in ["랭킹", "이름", "현재포인트", "부과점", "비고", "대회포인트"] if c in df.columns]
+        if not cols: cols = df.columns.tolist()
     
     h = "".join(f"<th>{c}</th>" for c in cols)
     body = ""
     for _, row in df.iterrows():
         cells = ""
         for c in cols:
-            val = row[c]
+            val = row.get(c, "")
             if isinstance(val, float) and not pd.isna(val) and val == int(val): val = int(val)
             cells += f"<td>{val}</td>"
         body += f"<tr>{cells}</tr>"
@@ -419,7 +423,8 @@ if ss.menu=="ranking":
     df=load_rank()
     if df.empty: st.markdown("<div class='ic'>📋 등록된 랭킹 데이터 파일이 비어 있습니다.</div>",unsafe_allow_html=True)
     else: 
-        st.markdown(df_to_html(df),unsafe_allow_html=True)
+        # 🛠️ 중요 고정: is_master=True 를 사용하여 6개 항목이 온전하게 노출되도록 강제 보정
+        st.markdown(df_to_html(df, is_master=True),unsafe_allow_html=True)
         st.download_button("Excel 다운로드",data=to_excel(df),file_name=f"랭킹_{date.today()}.xlsx",use_container_width=True)
 
 elif ss.menu=="schedule":
@@ -620,7 +625,7 @@ elif ss.menu=="admin":
             sel_t=st.selectbox("제어 대상 대회 선별",list(ts.keys()),format_func=lambda k:f"[{ts[k].get('status',' 진행중')}] {ts[k]['title']}")
             curr_t=ts[sel_t]
             c5,c6=st.columns(2)
-            with r_col1 if 'r_col1' in locals() else c5: # 안전성 가드
+            with c5:
                 s_opts=["진행중","완료","예정"]
                 chg_s=st.selectbox("상태 변경",s_opts,index=s_opts.index(curr_t.get("status","진행중")))
                 if st.button("💾 상태 저장",use_container_width=True):
@@ -630,7 +635,7 @@ elif ss.menu=="admin":
                 if st.button("🗑️ 해당 대회 데이터 영구 삭제",type="primary",use_container_width=True):
                     if del_pw == get_admin_pw():
                         del ts[sel_t]; save_tours(ts); st.warning("대회가 삭제되었습니다."); st.rerun()
-                    else: f"❌ 삭제 비밀번호가 일치하지 않습니다."
+                    else: st.error("❌ 삭제 비밀번호가 일치하지 않습니다.")
 
     with adm[1]:
         ts=load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
@@ -758,7 +763,7 @@ elif ss.menu=="admin":
             st.success("✅ 조건에 부합하는 모든 그룹의 대진표 빌드가 완료되었습니다!"); st.rerun()
 
     with adm[2]:
-        # 📥 요청사항 반영: 엑셀 파일 업로드 및 회원 덮어쓰기 창을 최상단으로 이동 배치
+        # 📥 엑셀 파일 업로드 및 회원 덮어쓰기 최상단 유지
         st.markdown('<div class="sec sec-t">📥 엑셀(XLSX/CSV) 회원 명단 일괄 업로드 및 덮어쓰기</div>', unsafe_allow_html=True)
         up=st.file_uploader("랭킹 마스터 데이터 파일 선택",type=["csv","xlsx"])
         if up and st.button("🚀 마스터 랭킹 강제 파일 빌드 실행",use_container_width=True):
@@ -803,7 +808,7 @@ elif ss.menu=="admin":
         else:
             st.info("현재 진행 중인 대진이 없어 당일 자동 정산 점수가 없습니다. 하단 명부 편집을 통해 직접 포인트 조율이 가능합니다.")
 
-        # 📋 요청사항 반영: 대회포인트, 부과점수, 비고사유를 일괄 입력받는 단일 회원 관리 테이블 형태 UI
+        # 📋 회원 통합 조율 보드 (대회포인트, 부과점수, 비고사유 입력 테이블 구조 유지)
         st.markdown('<div class="sec sec-t">⭐ 전체 회원 정보 및 스코어·부가점·비고 통합 조율 보드</div>', unsafe_allow_html=True)
         r_master = load_rank()
         
@@ -880,7 +885,7 @@ elif ss.menu=="admin":
             
             if st.button("💾 최종 데이터 마스터 보드에 반영 및 마감", type="primary", use_container_width=True):
                 new_df = pd.DataFrame(updated_rows)
-                save_rank(new_df) # 여기서 다시 정렬이 수행되며 저장됩니다.
+                save_rank(new_df)
                 
                 if active:
                     tours[active[-1]]["status"] = "완료"
