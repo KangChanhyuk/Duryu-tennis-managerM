@@ -10,18 +10,18 @@ st.set_page_config(page_title="두류 테니스", page_icon="🎾",
 # 🎨 디자인 시스템 및 레이아웃 통합 스타일
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
-:root{
-  --g0:#1B5E20;--g2:#2E7D32;--g3:#4CAF50;--g5:#F1F8E9;
-  --nav0:#2E7D32;--nav1:#1565C0;--nav2:#E65100;--nav3:#4A148C;--nav4:#00695C;
-  --mc0:#1B5E20;--mc1:#0D47A1;--mc2:#BF360C;--mc3:#4A148C;
-  --mc4:#006064;--mc5:#1A237E;--mc6:#880E4F;--mc7:#33691E;
-  --tb0:#2E7D32;--tb1:#1565C0;--tb2:#D84315;--tb3:#6A1B9A;
-  --tb4:#00695C;--tb5:#283593;--tb6:#AD1457;--tb7:#558B2F;
-  --yel:#FFD600;--ora:#FB8C00;
-  --bg:#F4F6F8;--card:#ffffff;--bd:#E0E4E8;
-  --r1:10px;--r2:14px;
-  --sh:0 2px 8px rgba(0,0,0,.06);--sh2:0 4px 16px rgba(0,0,0,.1);
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700;900&display=swap');
+:root{\
+  --g0:#1B5E20;--g2:#2E7D32;--g3:#4CAF50;--g5:#F1F8E9;\
+  --nav0:#2E7D32;--nav1:#1565C0;--nav2:#E65100;--nav3:#4A148C;--nav4:#00695C;\
+  --mc0:#1B5E20;--mc1:#0D47A1;--mc2:#BF360C;--mc3:#4A148C;\
+  --mc4:#006064;--mc5:#1A237E;--mc6:#880E4F;--mc7:#33691E;\
+  --tb0:#2E7D32;--tb1:#1565C0;--tb2:#D84315;--tb3:#6A1B9A;\
+  --tb4:#00695C;--tb5:#283593;--tb6:#AD1457;--tb7:#558B2F;\
+  --yel:#FFD600;--ora:#FB8C00;\
+  --bg:#F4F6F8;--card:#ffffff;--bd:#E0E4E8;\
+  --r1:10px;--r2:14px;\
+  --sh:0 2px 8px rgba(0,0,0,.06);--sh2:0 4px 16px rgba(0,0,0,.1);\
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 
@@ -243,7 +243,6 @@ def load_tours():
         with open(TOUR_FILE,"r", encoding="utf-8") as f:
             try:
                 data = json.load(f)
-                # 🛡️ [강력한 보정 안전장치 추가] s1, s2 데이터가 유실되었거나 오타인 경우를 완벽하게 자동 보정합니다.
                 for t_id, t_val in data.items():
                     if "groups" in t_val:
                         for g_name, g_val in t_val["groups"].items():
@@ -285,8 +284,8 @@ def df_to_html(df, is_master=False):
             val = row.get(c, "")
             if isinstance(val, float) and not pd.isna(val) and val == int(val): val = int(val)
             cells += f"<td>{val}</td>"
-        body += f"<td>{cells}</tr>"
-    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</table></thead><tbody>{body}</tbody></table></div>'
+        body += f"<tr>{cells}</tr>"
+    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</tr></thead><tbody>{body}</tbody></table></div>'
 
 def stats_fixed(matches):
     s={}
@@ -372,7 +371,7 @@ def kdk_html(n,gperson,p2n):
         t1=f"{n2p.get(a,a)}({a}) & {n2p.get(b,b)}({b})"
         t2=f"{n2p.get(c,c)}({c}) & {n2p.get(d,d)}({d})"
         rows+=f"<tr><td><span style='background:#2E7D32;color:#fff;border-radius:12px;padding:2px 8px;font-size:.62rem;font-weight:700'>{i+1}</span></td><td style='text-align:left!important;'>{t1} <b>vs</b> {t2}</td></tr>"
-    return f'<div class="kdk"><div style="font-size:.75rem;font-weight:800;color:#1B5E20;margin-bottom:6px">📋 KDK 대진 정보 (1인 {gperson}게임)</div></table><thead><tr><th style="width:50px;">순서</th><th>대진 매칭</th></tr></thead><tbody>{rows}</tbody></table></div>'
+    return f'<div class="kdk"><div style="font-size:.75rem;font-weight:800;color:#1B5E20;margin-bottom:6px">📋 KDK 대진 정보 (1인 {gperson}게임)</div><table><thead><tr><th style="width:50px;">순서</th><th>대진 매칭</th></tr></thead><tbody>{rows}</tbody></table></div>'
 
 def matrix_html(matches,rank_items,mode,p2n):
     if not matches or not rank_items: return ""
@@ -397,7 +396,9 @@ def matrix_html(matches,rank_items,mode,p2n):
         if a>0 or b>0:
             if is_fixed:
                 k1,k2=tuple(m["t1"]),tuple(m["t2"])
-                mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]]=f"{b}:{a}"
+                # 🛡️ 매트릭스 KeyError 자동 방어구문 추가
+                if lab.get(k1) in mat and lab.get(k2) in mat:
+                    mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]]=f"{b}:{a}"
             else:
                 for x in m["t1"]:
                     for y in m["t2"]:
@@ -581,30 +582,17 @@ elif ss.menu=="admin":
                             if not p_name or p_name == "nan":
                                 continue
                             
-                            # 안전한 숫자 변환 함수 (스칼라 또는 시리즈 모두 처리)
-                            def to_int_safe(val):
-                                if pd.isna(val):
-                                    return 0
-                                try:
-                                    # pandas Series면 .iloc[0] 처리
-                                    if hasattr(val, 'iloc'):
-                                        val = val.iloc[0]
-                                    # 단일 숫자로 변환
-                                    return int(float(val))
-                                except:
-                                    return 0
-                            
-                            cur_pt = to_int_safe(r.get("현재 포인트", r.get("현재포인트", 0)))
-                            old_pt = to_int_safe(r.get("지난 포인트", r.get("지난포인트", 0)))
-                            bg_pt = to_int_safe(r.get("부과점", r.get("부과점수", 0)))
+                            cur_pt = r.get("현재 포인트", r.get("현재포인트", 0))
+                            old_pt = r.get("지난 포인트", r.get("지난포인트", 0))
+                            bg_pt = r.get("부과점", r.get("부과점수", 0))
                             
                             row_dict = {
                                 "랭킹": "",
                                 "이름": p_name,
-                                "현재 포인트": cur_pt,
-                                "지난 포인트": old_pt,
+                                "현재 포인트": int(pd.to_numeric(cur_pt, errors="coerce").fillna(0)),
+                                "지난 포인트": int(pd.to_numeric(old_pt, errors="coerce").fillna(0)),
                                 "대회 결과": str(r.get("대회 결과", r.get("대회결과", ""))).replace("nan", ""),
-                                "부과점": bg_pt,
+                                "부과점": int(pd.to_numeric(bg_pt, errors="coerce").fillna(0)),
                                 "그룹": str(r.get("그룹", "")).replace("nan", ""),
                                 "비고": str(r.get("비고", "")).replace("nan", "")
                             }
@@ -656,7 +644,7 @@ elif ss.menu=="admin":
                 save_rank(rk_df)
                 st.success("✅ 회원 텍스트 풀 명단 수정 및 랭킹 데이터 동기화 완료."); st.rerun()
 
-    # 🌱 4-2. 대회 대진 자동 생성 서브탭
+    # 🌱 4-2. 대회 대진 자동 생성 서브탭 (텍스트 입력 및 실시간 랭킹 순 배정 가이드 내장)
     with adm_tabs[1]:
         st.markdown("<div class='sec sec-p'>🌱 신규 토너먼트 대회 생성</div>",unsafe_allow_html=True)
         t_title=st.text_input("대회 이름", value=f"{date.today().strftime('%m월')} 정기 토너먼트")
@@ -665,68 +653,103 @@ elif ss.menu=="admin":
         t_courts=st.number_input("사용 코트 수", value=2, min_value=1)
         
         m_list=load_members()
-        if not m_list:
-            st.warning("⚠️ 등록된 회원이 없습니다. 상단의 회원 관리창이나 엑셀 업로드를 통해 명부를 먼저 마련해주세요.")
+        r_df = load_rank()
+        master_order = r_df["이름"].tolist() if not r_df.empty else []
+        
+        # 📝 [요구사항 1] 참가자 입력 방식을 선택할 수 있게 확장
+        input_mode = st.radio("참가 선수 선택 방식", options=["명단에서 다중 선택", "텍스트로 직접 타이핑/붙여넣기"], horizontal=True)
+        sel_players = []
+        
+        if input_mode == "명단에서 다중 선택":
+            if not m_list:
+                st.warning("⚠️ 등록된 회원이 없습니다. 회원 관리 창에서 명부를 마련해주세요.")
+            else:
+                sel_players = st.multiselect("대회에 출전할 선수를 선택하세요.", options=m_list, default=m_list)
         else:
-            st.markdown(f"**👥 참석 선수 선택 (전체 명단 풀: {len(m_list)}명)**")
-            sel_players=st.multiselect("대회에 출전할 선수를 전원 선택하세요.", options=m_list, default=m_list)
+            raw_input_text = st.text_area("참가 선수 명단 입력 (이름을 쉼표 `,` 나 줄바꿈으로 구분해서 넣어주세요)", value="", height=100, placeholder="홍길동, 임꺽정, 이순신, 강감찬")
+            if raw_input_text.strip():
+                sel_players = [n.strip() for n in raw_input_text.replace("\n", ",").split(",") if n.strip()]
+
+        # 🎯 [요구사항 2] 입력받은 명단을 마스터 랭킹 순서대로 완벽히 정렬 가공
+        chosen_p_sorted = [p for p in master_order if p in sel_players]
+        # 혹시 마스터 보드에 없는 임시 이름은 뒤쪽에 붙임
+        chosen_p_sorted += [p for p in sel_players if p not in chosen_p_sorted]
+        
+        if sel_players:
+            st.info(f"💡 현재 총 {len(chosen_p_sorted)}명 참가 확정 (실시간 마스터 랭킹 최상위 시드 순 정렬 완료)")
             
-            st.divider()
-            g_num=st.number_input("분할할 대진 그룹 수", value=1, min_value=1)
-            g_modes=["KDK","고정페어","단식","팀전"]
+        st.divider()
+        g_num=st.number_input("분할할 대진 그룹 수", value=1, min_value=1)
+        g_modes=["KDK","고정페어","단식","팀전"]
+        
+        g_cfgs={}
+        for i in range(int(g_num)):
+            with st.container(border=True):
+                st.markdown(f"**{GLBL[i%len(GLBL)]} {i+1}번째 그룹 세부 설정**")
+                g_name=st.text_input(f"그룹명##{i}", value=f"{chr(65+i)}그룹")
+                g_mode=st.selectbox(f"경기 방식##{i}", options=g_modes, index=0)
+                g_size=st.number_input(f"배정 인원수##{i}", value=min(8, len(chosen_p_sorted)) if chosen_p_sorted else 8, min_value=2)
+                
+                g_games=4
+                if g_mode=="KDK":
+                    g_games=st.selectbox(f"1인당 경기수##{i}", options=[3,4], index=1)
+                    
+                g_cfgs[g_name] = {"mode":g_mode, "size":g_size, "games":g_games}
+        
+        # 📊 [요구사항 3] 그룹 설정 값을 기반으로 한 '랭킹 순 배정 이름 실시간 미리보기'
+        if chosen_p_sorted and g_cfgs:
+            st.markdown("<div class='sec sec-o'>👁️ 그룹별 랭킹 순 배정 명단 시뮬레이션</div>", unsafe_allow_html=True)
+            curr_preview_idx = 0
+            for g_name, gc in g_cfgs.items():
+                sz = int(gc["size"])
+                preview_sub = chosen_p_sorted[curr_preview_idx : curr_preview_idx + sz]
+                curr_preview_idx += sz
+                
+                if preview_sub:
+                    st.write(f"**{g_name} ({gc['mode']}) 배정 예정 선수단 ({len(preview_sub)}명):**")
+                    # 랭킹 순위별로 가시성 좋게 배정 표시
+                    p_text_list = [f"⭐ {idx+1}시드: {name}" for idx, name in enumerate(preview_sub)]
+                    st.caption(" ,  ".join(p_text_list))
+                else:
+                    st.caption(f"ℹ️ {g_name}: 앞 조에서 명단이 모두 소진되어 배정될 선수가 없습니다.")
+            st.markdown("---")
+                    
+        if st.button("🎲 실시간 마스터 랭킹 시드 기반 대진 최종 자동 빌드", type="primary", use_container_width=True):
+            if not sel_players: st.error("❌ 선택되거나 입력된 출전 선수가 없습니다."); st.stop()
+            tours=load_tours()
+            tid=f"tour_{int(datetime.now().timestamp())}"
             
-            g_cfgs={}
-            for i in range(int(g_num)):
-                with st.container(border=True):
-                    st.markdown(f"**{GLBL[i%len(GLBL)]} {i+1}번째 그룹 세부 설정**")
-                    g_name=st.text_input(f"그룹명##{i}", value=f"{chr(65+i)}그룹")
-                    g_mode=st.selectbox(f"경기 방식##{i}", options=g_modes, index=0)
-                    g_size=st.number_input(f"배정 인원수##{i}", value=8, min_value=2)
-                    
-                    g_games=4
-                    if g_mode=="KDK":
-                        g_games=st.selectbox(f"1인당 경기수##{i}", options=[3,4], index=1)
-                        
-                    g_cfgs[g_name] = {"mode":g_mode, "size":g_size, "games":g_games}
-                    
-            if st.button("🎲 실시간 마스터 랭킹 시드 기반 대진 자동 빌드", type="primary", use_container_width=True):
-                if not sel_players: st.error("❌ 선택된 출전 선수가 없습니다."); st.stop()
-                tours=load_tours()
-                tid=f"tour_{int(datetime.now().timestamp())}"
+            new_tour = {
+                "title": t_title, "date": str(t_date), "place": t_place, "courts": int(t_courts),
+                "status": "진행중", "players": sel_players, "groups": {}
+            }
+            
+            curr_idx = 0
+            for g_name, gc in g_cfgs.items():
+                sz = int(gc["size"])
+                g_players = chosen_p_sorted[curr_idx : curr_idx + sz]
+                curr_idx += sz
                 
-                new_tour = {
-                    "title": t_title, "date": str(t_date), "place": t_place, "courts": int(t_courts),
-                    "status": "진행중", "players": sel_players, "groups": {}
-                }
+                if not g_players:
+                    continue
                 
-                r_df = load_rank()
-                master_order = r_df["이름"].tolist() if not r_df.empty else []
-                chosen_p_sorted = [p for p in master_order if p in sel_players]
-                chosen_p_sorted += [p for p in sel_players if p not in chosen_p_sorted]
+                md = gc["mode"]
+                if md=="KDK": ms, p2n = make_kdk(g_players, gc["games"])
+                elif md=="고정페어": ms, p2n = make_fixed(g_players)
+                elif md=="단식": ms, p2n = make_singles(g_players)
+                elif md=="팀전":
+                    half = len(g_players)//2
+                    tA, tB = g_players[:half], g_players[half:]
+                    ms = [{"t1":[tA[i%len(tA)]],"t2":[tB[i%len(tB)]],"s1":0,"s2":0,"team1":"A팀","team2":"B팀"} for i in range(max(len(tA),len(tB)))]
+                    p2n = {}
+                    new_tour["groups"][g_name] = {"mode":md, "players":g_players, "matches":ms, "player_with_number":p2n, "teamA":tA, "teamB":tB}
+                    continue
+                    
+                new_tour["groups"][g_name] = {"mode":md, "players":g_players, "matches":ms, "player_with_number":p2n, "games":gc["games"]}
                 
-                curr_idx = 0
-                for g_name, gc in g_cfgs.items():
-                    sz = int(gc["size"])
-                    g_players = chosen_p_sorted[curr_idx : curr_idx + sz]
-                    curr_idx += sz
-                    
-                    md = gc["mode"]
-                    if md=="KDK": ms, p2n = make_kdk(g_players, gc["games"])
-                    elif md=="고정페어": ms, p2n = make_fixed(g_players)
-                    elif md=="단식": ms, p2n = make_singles(g_players)
-                    elif md=="팀전":
-                        half = len(g_players)//2
-                        tA, tB = g_players[:half], g_players[half:]
-                        ms = [{"t1":[tA[i%len(tA)]],"t2":[tB[i%len(tB)]],"s1":0,"s2":0,"team1":"A팀","team2":"B팀"} for i in range(max(len(tA),len(tB)))]
-                        p2n = {}
-                        new_tour["groups"][g_name] = {"mode":md, "players":g_players, "matches":ms, "player_with_number":p2n, "teamA":tA, "teamB":tB}
-                        continue
-                        
-                    new_tour["groups"][g_name] = {"mode":md, "players":g_players, "matches":ms, "player_with_number":p2n, "games":gc["games"]}
-                    
-                tours[tid] = new_tour
-                save_tours(tours)
-                st.success("🎯 랭킹 연동 균등 시드 배정 및 대진표 매칭이 성공적으로 완료되었습니다!"); st.rerun()
+            tours[tid] = new_tour
+            save_tours(tours)
+            st.success("🎯 랭킹 연동 균등 시드 배정 및 대진표 매칭이 성공적으로 완료되었습니다!"); st.rerun()
 
     # 🗂️ 4-3. 대회 히스토리 서브탭
     with adm_tabs[2]:
