@@ -378,43 +378,51 @@ def matrix_html(matches,rank_items,mode,p2n):
     is_fixed = (mode == "고정페어")
     if mode == "팀전": return ""
     
+    # 1. 헤더 및 로우 구성을 위한 라벨과 키값 정렬 통일
     if is_fixed:
-        lab={t:"&".join(list(t)) for t in rank_items}
-        keys=list(lab.values())
+        lab = {t: "&".join(list(t)) for t in rank_items}
+        keys = list(lab.values())
     else:
         if p2n:
             sorted_players = sorted(rank_items, key=lambda p: p2n.get(p, 999))
             lab = {p: f"{p}({p2n.get(p, '?')})" for p in sorted_players}
         else:
             lab = {p: p for p in rank_items}
-        keys=list(lab.values())
+        keys = list(lab.values())
         
-    mat={r:{c:("■" if r==c else "—") for c in keys} for r in keys}
+    mat = {r: {c: ("■" if r == c else "—") for c in keys} for r in keys}
     
+    # 2. 매치 데이터 순회하며 스코어 맵핑
     for m in matches:
-        a,b=int(m.get("s1",0)),int(m.get("s2",0))
-        if a>0 or b>0:
+        a, b = int(m.get("s1", 0)), int(m.get("s2", 0))
+        if a > 0 or b > 0:
             if is_fixed:
-                k1,k2=tuple(m["t1"]),tuple(m["t2"])
-                # 🛡️ 매트릭스 KeyError 자동 방어구문 추가
-                if lab.get(k1) in mat and lab.get(k2) in mat:
-                    mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]]=f"{b}:{a}"
+                k1, k2 = tuple(m["t1"]), tuple(m["t2"])
+                if k1 in lab and k2 in lab:
+                    r_key, c_key = lab[k1], lab[k2]
+                    if r_key in mat and c_key in mat:
+                        mat[r_key][c_key] = f"{a}:{b}"
+                        mat[c_key][r_key] = f"{b}:{a}"
             else:
+                # 🛡️ 원본 플레이어 이름(x, y)이 lab에 정의되어 있는지 역추적하여 매핑 안정성 확보
                 for x in m["t1"]:
                     for y in m["t2"]:
-                        if lab.get(x) in mat and lab.get(y) in mat:
-                            mat[lab[x]][lab[y]]=f"{a}:{b}";mat[lab[y]][lab[x]]=f"{b}:{a}"
+                        if x in lab and y in lab:
+                            r_key, c_key = lab[x], lab[y]
+                            if r_key in mat and c_key in mat:
+                                mat[r_key][c_key] = f"{a}:{b}"
+                                mat[c_key][r_key] = f"{b}:{a}"
                             
-    header="".join(f"<th>{k}</th>" for k in keys)
-    body=""
+    header = "".join(f"<th>{k}</th>" for k in keys)
+    body = ""
     for r in keys:
-        cells=""
+        cells = ""
         for c in keys:
             val = mat[r][c]
             if ":" in val: cells += f"<td class='mx-sc'>{val}</td>"
             elif "■" in val: cells += f"<td class='mx-grey'>{val}</td>"
             else: cells += f"<td class='mx-dash'>{val}</td>"
-        body+=f"<tr><td style='font-weight:700;background:#F1F8E9;color:#1B5E20;'>{r}</td>{cells}</tr>"
+        body += f"<tr><td style='font-weight:700;background:#F1F8E9;color:#1B5E20;'>{r}</td>{cells}</tr>"
     return f'<div class="mx-wrap"><table class="mx"><thead><tr><th style="background:#1B5E20;">구분</th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
 
 ss=st.session_state
@@ -644,7 +652,7 @@ elif ss.menu=="admin":
                 save_rank(rk_df)
                 st.success("✅ 회원 텍스트 풀 명단 수정 및 랭킹 데이터 동기화 완료."); st.rerun()
 
-    # 🌱 4-2. 대회 대진 자동 생성 서브탭 (텍스트 입력 및 실시간 랭킹 순 배정 가이드 내장)
+    # 🌱 4-2. 대회 대진 자동 생성 서브탭
     with adm_tabs[1]:
         st.markdown("<div class='sec sec-p'>🌱 신규 토너먼트 대회 생성</div>",unsafe_allow_html=True)
         t_title=st.text_input("대회 이름", value=f"{date.today().strftime('%m월')} 정기 토너먼트")
@@ -656,7 +664,6 @@ elif ss.menu=="admin":
         r_df = load_rank()
         master_order = r_df["이름"].tolist() if not r_df.empty else []
         
-        # 📝 [요구사항 1] 참가자 입력 방식을 선택할 수 있게 확장
         input_mode = st.radio("참가 선수 선택 방식", options=["명단에서 다중 선택", "텍스트로 직접 타이핑/붙여넣기"], horizontal=True)
         sel_players = []
         
@@ -670,9 +677,7 @@ elif ss.menu=="admin":
             if raw_input_text.strip():
                 sel_players = [n.strip() for n in raw_input_text.replace("\n", ",").split(",") if n.strip()]
 
-        # 🎯 [요구사항 2] 입력받은 명단을 마스터 랭킹 순서대로 완벽히 정렬 가공
         chosen_p_sorted = [p for p in master_order if p in sel_players]
-        # 혹시 마스터 보드에 없는 임시 이름은 뒤쪽에 붙임
         chosen_p_sorted += [p for p in sel_players if p not in chosen_p_sorted]
         
         if sel_players:
@@ -696,7 +701,6 @@ elif ss.menu=="admin":
                     
                 g_cfgs[g_name] = {"mode":g_mode, "size":g_size, "games":g_games}
         
-        # 📊 [요구사항 3] 그룹 설정 값을 기반으로 한 '랭킹 순 배정 이름 실시간 미리보기'
         if chosen_p_sorted and g_cfgs:
             st.markdown("<div class='sec sec-o'>👁️ 그룹별 랭킹 순 배정 명단 시뮬레이션</div>", unsafe_allow_html=True)
             curr_preview_idx = 0
@@ -707,7 +711,6 @@ elif ss.menu=="admin":
                 
                 if preview_sub:
                     st.write(f"**{g_name} ({gc['mode']}) 배정 예정 선수단 ({len(preview_sub)}명):**")
-                    # 랭킹 순위별로 가시성 좋게 배정 표시
                     p_text_list = [f"⭐ {idx+1}시드: {name}" for idx, name in enumerate(preview_sub)]
                     st.caption(" ,  ".join(p_text_list))
                 else:
