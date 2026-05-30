@@ -160,7 +160,7 @@ def push_to_github(filepath, commit_msg="Update data"):
     except Exception:
         return False
 
-RANK_FILE   = "ranking_master.csv"
+RANK_FILE   = "tennis_members.csv"
 TOUR_FILE   = "tournaments.json"
 MEMBER_FILE = "member_roster_backup.json"
 CONFIG_FILE = "config_backup.json"
