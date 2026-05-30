@@ -10,7 +10,7 @@ st.set_page_config(page_title="두류 테니스", page_icon="🎾",
 # 🎨 디자인 시스템 및 레이아웃 통합 스타일
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
 :root{
   --g0:#1B5E20;--g2:#2E7D32;--g3:#4CAF50;--g5:#F1F8E9;
   --nav0:#2E7D32;--nav1:#1565C0;--nav2:#E65100;--nav3:#4A148C;--nav4:#00695C;
@@ -285,8 +285,8 @@ def df_to_html(df, is_master=False):
             val = row.get(c, "")
             if isinstance(val, float) and not pd.isna(val) and val == int(val): val = int(val)
             cells += f"<td>{val}</td>"
-        body += f"<tr>{cells}</tr>"
-    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</tr></thead><tbody>{body}</tbody></table></div>'
+        body += f"<td>{cells}</tr>"
+    return f'<div class="mx-wrap"><table class="mx"><thead><tr>{h}</table></thead><tbody>{body}</tbody></table></div>'
 
 def stats_fixed(matches):
     s={}
@@ -372,7 +372,7 @@ def kdk_html(n,gperson,p2n):
         t1=f"{n2p.get(a,a)}({a}) & {n2p.get(b,b)}({b})"
         t2=f"{n2p.get(c,c)}({c}) & {n2p.get(d,d)}({d})"
         rows+=f"<tr><td><span style='background:#2E7D32;color:#fff;border-radius:12px;padding:2px 8px;font-size:.62rem;font-weight:700'>{i+1}</span></td><td style='text-align:left!important;'>{t1} <b>vs</b> {t2}</td></tr>"
-    return f'<div class="kdk"><div style="font-size:.75rem;font-weight:800;color:#1B5E20;margin-bottom:6px">📋 KDK 대진 정보 (1인 {gperson}게임)</div><table><thead><tr><th style="width:50px;">순서</th><th>대진 매칭</th></tr></thead><tbody>{rows}</tbody></table></div>'
+    return f'<div class="kdk"><div style="font-size:.75rem;font-weight:800;color:#1B5E20;margin-bottom:6px">📋 KDK 대진 정보 (1인 {gperson}게임)</div></table><thead><tr><th style="width:50px;">순서</th><th>대진 매칭</th></tr></thead><tbody>{rows}</tbody></table></div>'
 
 def matrix_html(matches,rank_items,mode,p2n):
     if not matches or not rank_items: return ""
@@ -581,17 +581,30 @@ elif ss.menu=="admin":
                             if not p_name or p_name == "nan":
                                 continue
                             
-                            cur_pt = r.get("현재 포인트", r.get("현재포인트", 0))
-                            old_pt = r.get("지난 포인트", r.get("지난포인트", 0))
-                            bg_pt = r.get("부과점", r.get("부과점수", 0))
+                            # 안전한 숫자 변환 함수 (스칼라 또는 시리즈 모두 처리)
+                            def to_int_safe(val):
+                                if pd.isna(val):
+                                    return 0
+                                try:
+                                    # pandas Series면 .iloc[0] 처리
+                                    if hasattr(val, 'iloc'):
+                                        val = val.iloc[0]
+                                    # 단일 숫자로 변환
+                                    return int(float(val))
+                                except:
+                                    return 0
+                            
+                            cur_pt = to_int_safe(r.get("현재 포인트", r.get("현재포인트", 0)))
+                            old_pt = to_int_safe(r.get("지난 포인트", r.get("지난포인트", 0)))
+                            bg_pt = to_int_safe(r.get("부과점", r.get("부과점수", 0)))
                             
                             row_dict = {
                                 "랭킹": "",
                                 "이름": p_name,
-                                "현재 포인트": int(pd.to_numeric(cur_pt, errors="coerce").fillna(0)),
-                                "지난 포인트": int(pd.to_numeric(old_pt, errors="coerce").fillna(0)),
+                                "현재 포인트": cur_pt,
+                                "지난 포인트": old_pt,
                                 "대회 결과": str(r.get("대회 결과", r.get("대회결과", ""))).replace("nan", ""),
-                                "부과점": int(pd.to_numeric(bg_pt, errors="coerce").fillna(0)),
+                                "부과점": bg_pt,
                                 "그룹": str(r.get("그룹", "")).replace("nan", ""),
                                 "비고": str(r.get("비고", "")).replace("nan", "")
                             }
