@@ -92,13 +92,38 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 [data-baseweb="tab-list"]{background:#E0E4E8!important;border-radius:var(--r1) var(--r1) 0 0!important;padding:4px 4px 0!important;gap:3px!important;}
 
 .mx-wrap{background:var(--card);border-radius:var(--r1);padding:6px;box-shadow:var(--sh);overflow-x:auto;margin:8px 0;border:1px solid var(--bd);width:100%;}
-.mx{border-collapse:collapse;white-space:nowrap;font-size:.75rem;width:100%;table-layout:auto;}
-.mx th,.mx td{padding:9px 10px;border:1px solid var(--bd);text-align:center!important;vertical-align:middle!important;}
+.mx{border-collapse:collapse;white-space:nowrap;font-size:.72rem;width:100%;table-layout:auto;}
+.mx th,.mx td{padding:8px 8px;border:1px solid var(--bd);text-align:center!important;vertical-align:middle!important;}
 .mx thead th{background:var(--g0);color:#fff;font-weight:700;}
 .mx tbody tr:nth-child(even) td{background:var(--g5);}
 .mx-grey{background:#ECEFF1!important;color:#B0BEC5!important;font-weight:normal;}
 .mx-dash{color:#CFD8DC;}
 .mx-sc{font-weight:800;color:#2E7D32;background:#F1F8E9;}
+
+/* 관리자 입력용 간격 슬림화 테이블 스타일 추가 */
+.admin-edit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  margin: 10px 0;
+}
+.admin-edit-table th {
+  background-color: var(--g0);
+  color: white;
+  padding: 8px;
+  font-weight: 700;
+  text-align: center;
+  border: 1px solid var(--bd);
+}
+.admin-edit-table td {
+  padding: 4px 6px;
+  border: 1px solid var(--bd);
+  vertical-align: middle;
+  background-color: #fff;
+}
+.admin-edit-table tr:nth-child(even) td {
+  background-color: #FAFAFA;
+}
 
 .kdk{background:var(--card);border-radius:var(--r1);padding:8px;box-shadow:var(--sh);overflow-x:auto;margin:8px 0;border:1px solid var(--bd);}
 .kdk table{border-collapse:collapse;white-space:nowrap;font-size:.68rem;width:100%;}
@@ -127,15 +152,14 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 .stTextInput>div>div>input,.stTextArea>div>div>textarea,.stSelectbox>div>div{min-height:44px!important;border-radius:var(--r1)!important;}
 [data-testid="stFileUploaderDropzone"]{border:2px dashed var(--g3)!important;background:var(--g5)!important;}
 
-.matrix-input-box div[data-baseweb="input"] {
-    min-height: 28px !important;
-    background: transparent !important;
+/* 테이블 내부 조밀한 입력을 위한 스타일 조정 */
+.admin-table-input div[data-baseweb="input"] {
+    min-height: 32px !important;
 }
-.matrix-input-box input {
-    min-height: 28px !important;
-    padding: 2px 4px !important;
-    font-size: 0.72rem !important;
-    text-align: center !important;
+.admin-table-input input {
+    min-height: 32px !important;
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -160,12 +184,11 @@ def push_to_github(filepath, commit_msg="Update data"):
     except Exception:
         return False
 
-RANK_FILE   = "tennis_members.csv"
+RANK_FILE   = "ranking_master.csv"
 TOUR_FILE   = "tournaments.json"
 MEMBER_FILE = "member_roster_backup.json"
 CONFIG_FILE = "config_backup.json"
-
-COLS_RANK   = ["랭킹", "이름", "현재 포인트", "지난 포인트", "대회 결과", "부과점", "그룹", "비고"]
+COLS_RANK   = ["랭킹","이름","현재포인트","부과점","비고"]
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
@@ -201,25 +224,18 @@ KDK_4G = {
 def load_rank():
     if os.path.exists(RANK_FILE):
         df = pd.read_csv(RANK_FILE).dropna(subset=["이름"])
-        for col in COLS_RANK:
-            if col not in df.columns:
-                df[col] = 0 if col in ["현재 포인트", "지난 포인트", "부과점"] else ""
-        for c in ["현재 포인트","지난 포인트","부과점"]:
-            df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
-        df = df.sort_values(by="현재 포인트", ascending=False).reset_index(drop=True)
-        df["랭킹"] = df.index + 1
-        return df[COLS_RANK].fillna("")
+        for c in ["현재포인트","부과점"]:
+            if c in df.columns: df[c]=pd.to_numeric(df[c],errors="coerce").fillna(0)
+        if "현재포인트" in df.columns:
+            df=df.sort_values("현재포인트",ascending=False).reset_index(drop=True)
+            df["랭킹"]=df.index+1
+        return df.fillna("")
     return pd.DataFrame(columns=COLS_RANK)
 
 def save_rank(df):
-    for c in ["현재 포인트","지난 포인트","부과점"]:
-        if c in df.columns:
-            df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
-    df = df.sort_values(by="현재 포인트", ascending=False).reset_index(drop=True)
-    df["랭킹"] = df.index + 1
-    for c in COLS_RANK:
-        if c not in df.columns: df[c] = ""
-    df = df[COLS_RANK]
+    if "현재포인트" in df.columns:
+        df=df.sort_values("현재포인트",ascending=False).reset_index(drop=True)
+        df["랭킹"]=df.index+1
     df.fillna("").to_csv(RANK_FILE, index=False, encoding="utf-8-sig")
     push_to_github(RANK_FILE, "Backup ranking master")
 
@@ -249,19 +265,15 @@ def read_file(up):
     if name.endswith(("xlsx","xls")): return pd.read_excel(up)
     return pd.read_csv(up,encoding_errors="replace")
 
-def df_to_html(df, is_master=False):
+def df_to_html(df):
     if df.empty: return "<div class='ic'>데이터가 없습니다.</div>"
-    if is_master:
-        cols = COLS_RANK
-    else:
-        cols = [c for c in COLS_RANK if c in df.columns]
-        if not cols: cols = df.columns.tolist()
+    cols = df.columns.tolist()
     h = "".join(f"<th>{c}</th>" for c in cols)
     body = ""
     for _, row in df.iterrows():
         cells = ""
         for c in cols:
-            val = row.get(c, "")
+            val = row[c]
             if isinstance(val, float) and not pd.isna(val) and val == int(val): val = int(val)
             cells += f"<td>{val}</td>"
         body += f"<tr>{cells}</tr>"
@@ -352,39 +364,22 @@ def kdk_html(n,gperson,p2n):
         rows+=f"<tr><td><span style='background:#2E7D32;color:#fff;border-radius:12px;padding:2px 8px;font-size:.62rem;font-weight:700'>{i+1}</span></td><td style='text-align:left!important;'>{t1} <b>vs</b> {t2}</td></tr>"
     return f'<div class="kdk"><div style="font-size:.75rem;font-weight:800;color:#1B5E20;margin-bottom:6px">📋 KDK 대진 정보 (1인 {gperson}게임)</div><table><thead><tr><th style="width:50px;">순서</th><th>대진 매칭</th></tr></thead><tbody>{rows}</tbody></table></div>'
 
-# 🔄 [핵심 보완] 부여된 번호(1번~8번) 기준으로 가로/세로축이 엄격하게 자동 정렬되는 매트릭스 출력기
 def matrix_html(matches,rank_items,mode,p2n):
     if not matches or not rank_items: return ""
     is_fixed = (mode == "고정페어")
     if mode == "팀전": return ""
-    
-    # 고정페어 방식일 때의 라벨 생성
-    if is_fixed:
-        lab={t:"&".join(list(t)) for t in rank_items}
-        keys=list(lab.values())
-    else:
-        # KDK/단식일 때, 부여된 번호(p2n) 순서대로(1, 2, 3...) 완벽 정렬 조치
-        if p2n:
-            sorted_players = sorted(rank_items, key=lambda p: p2n.get(p, 999))
-            lab = {p: f"{p}({p2n.get(p, '?')})" for p in sorted_players}
-        else:
-            lab = {p: p for p in rank_items}
-        keys=list(lab.values())
-        
-    mat={r:{c:("■" if r==c else "—") for c in keys} for r in keys}
-    
+    lab={t:"&".join(list(t)) for t in rank_items} if is_fixed else {p:f"{p}({p2n.get(p,'?')})" for p in rank_items}
+    mat={lab[t]:{lab[o]:("■" if t==o else "—") for o in lab} for t in lab}
     for m in matches:
         a,b=int(m["s1"]),int(m["s2"])
         if a>0 or b>0:
             if is_fixed:
                 k1,k2=tuple(m["t1"]),tuple(m["t2"])
-                mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]]=f"{b}:{a}"
+                mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]][lab[k1]]=f"{b}:{a}"
             else:
                 for x in m["t1"]:
-                    for y in m["t2"]:
-                        if lab.get(x) in mat and lab.get(y) in mat:
-                            mat[lab[x]][lab[y]]=f"{a}:{b}";mat[lab[y]][lab[x]]=f"{b}:{a}"
-                            
+                    for y in m["t2"]: mat[lab[x]][lab[y]]=f"{a}:{b}";mat[lab[y]][lab[x]]=f"{b}:{a}"
+    keys=list(lab.values())
     header="".join(f"<th>{k}</th>" for k in keys)
     body=""
     for r in keys:
@@ -397,18 +392,16 @@ def matrix_html(matches,rank_items,mode,p2n):
         body+=f"<tr><td style='font-weight:700;background:#F1F8E9;color:#1B5E20;'>{r}</td>{cells}</tr>"
     return f'<div class="mx-wrap"><table class="mx"><thead><tr><th style="background:#1B5E20;">구분</th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
 
-# 🔄 현재 마스터 랭킹 순서대로 선수를 정밀하게 등분 및 분배하는 함수
 def redistribute_players_by_ranking(tour):
     r_df = load_rank()
     master_order = r_df["이름"].tolist() if not r_df.empty else []
     chosen_p = tour.get("players", [])
-    
     chosen_p_sorted = [p for p in master_order if p in chosen_p]
     chosen_p_sorted += [p for p in chosen_p if p not in chosen_p_sorted]
     
     current_index = 0
     for gname, gdata in tour.get("groups", {}).items():
-        size = int(gdata.get("size", 8))
+        size = gdata.get("size", 8)
         gdata["players"] = chosen_p_sorted[current_index : current_index + size]
         current_index += size
 
@@ -425,14 +418,11 @@ for idx,(m_id,m_lb) in enumerate(m_items):
         if st.button(m_lb,key=f"m_btn_{m_id}",use_container_width=True,type="primary" if ss.menu==m_id else "secondary"):
             ss.menu=m_id; st.rerun()
 
-# ----------------- [1. 🏆 메인 마스터 랭킹 탭] -----------------
 if ss.menu=="ranking":
     st.markdown("<div class='pg-title c0'>🏆 마스터 랭킹 보드</div>",unsafe_allow_html=True)
     df=load_rank()
     if df.empty: st.markdown("<div class='ic'>📋 등록된 랭킹 데이터 파일이 비어 있습니다.</div>",unsafe_allow_html=True)
-    else: 
-        st.markdown(df_to_html(df, is_master=True),unsafe_allow_html=True)
-        st.download_button("Excel 다운로드",data=to_excel(df),file_name=f"랭킹_{date.today()}.xlsx",use_container_width=True)
+    else: st.markdown(df_to_html(df),unsafe_allow_html=True); st.download_button("Excel 다운로드",data=to_excel(df),file_name=f"랭킹_{date.today()}.xlsx",use_container_width=True)
 
 elif ss.menu=="schedule":
     tours=load_tours(); active=[k for k,v in tours.items() if v.get("status")=="진행중"]
@@ -552,7 +542,6 @@ elif ss.menu=="config":
         if init_pw=="duryu0502": cfg=load_config(); cfg["admin_pw"]="0502"; save_config(cfg); st.success("✅ 비밀번호가 '0502'로 완전히 초기화되었습니다."); st.rerun()
         else: st.error("❌ 마스터 암호키가 일치하지 않습니다.")
 
-# ----------------- [4. ⚙️ 관리자 탭 통합 관제] -----------------
 elif ss.menu=="admin":
     st.markdown("<div class='pg-title c4'>⚙️ 관리자 관제 센터</div>",unsafe_allow_html=True)
     pw=st.text_input("🔒 패스워드 인증",type="password",placeholder="암호코드 입력")
@@ -561,7 +550,7 @@ elif ss.menu=="admin":
         if pw: st.error("❌ 패스워드가 올바르지 않습니다.")
         st.stop()
         
-    adm=st.tabs(["🏆 대회 관리","👥 참가자 명단 조율","💾 포인트 정산 & 명부 통합 수정"])
+    adm=st.tabs(["🏆 대회 관리","👥 참가자 명단 조율","💾 포인트 정산","📋 회원 및 부가점 관리"])
 
     with adm[0]:
         ts=load_tours()
@@ -644,88 +633,70 @@ elif ss.menu=="admin":
                         del ts[sel_t]; save_tours(ts); st.warning("대회가 삭제되었습니다."); st.rerun()
                     else: st.error("❌ 삭제 비밀번호가 일치하지 않습니다.")
 
-    # ----------------- [👥 참가자 명단 조율 탭] -----------------
     with adm[1]:
-        ts = load_tours()
-        act_tids = [k for k,v in ts.items() if v.get("status") == "진행중"]
-        if not act_tids: 
-            st.info("현재 진행 중인 대회가 존재하지 않습니다.")
-            st.stop()
-            
-        sel_tid = act_tids[-1]
-        tour = ts[sel_tid]
+        ts=load_tours(); act_tids=[k for k,v in ts.items() if v.get("status")=="진행중"]
+        if not act_tids: st.info("현재 진행 중인 대회가 존재하지 않습니다."); st.stop()
+        sel_tid=act_tids[-1]; tour=ts[sel_tid]
         if "groups" not in tour:
             tour["groups"] = {"A그룹":{"players":[],"mode":"KDK","games":4,"matches":[],"player_with_number":{},"size":8}}
             save_tours(ts)
-            
+        cg=tour["groups"]
         st.markdown(f"### 👥 {tour['title']} 참가자 조율")
-        all_m = load_members()
-        if not all_m: 
-            st.warning("회원 명단이 비어 있습니다. 아래 탭에서 회원 명단을 먼저 등록하세요.")
-            st.stop()
-            
-        st.markdown("#### [1단계] 당일 출전 선수 명단 편집")
-        
-        saved_p = tour.get("players", [])
-        if not saved_p:
-            default_text = ", ".join(all_m)
+        all_m=load_members()
+        if not all_m: st.warning("회원 명단이 비어 있습니다. 마지막 탭에서 회원 명단을 먼저 등록하세요."); st.stop()
+        st.markdown("#### [1단계] 당일 참가자 선택")
+        saved_p=tour.get("players", [])
+        if "sel_all_trigger" not in ss: ss.sel_all_trigger = None
+        c_sel1, c_sel2 = st.columns(2)
+        with c_sel1:
+            if st.button("✅ 전체 회원 체크", use_container_width=True):
+                ss.sel_all_trigger = True; st.rerun()
+        with c_sel2:
+            if st.button("❌ 전체 체크 해제", use_container_width=True):
+                ss.sel_all_trigger = False; st.rerun()
+        if ss.sel_all_trigger is True:
+            def_players = all_m; ss.sel_all_trigger = None
+        elif ss.sel_all_trigger is False:
+            def_players = []; ss.sel_all_trigger = None
         else:
-            default_text = ", ".join(saved_p)
-            
+            def_players = [p for p in saved_p if p in all_m]
+        chosen_p = st.multiselect("출전 선수 직접 선택", options=all_m, default=def_players, key="multiselect_players_act")
+
         text_p_input = st.text_area(
-            "✍️ 출전 선수 텍스트 직접 추가/편집 (이름을 쉼표나 줄바꿈으로 구분)",
-            value=default_text, 
-            height=120, 
-            key="text_area_players_act"
+            "✍️ 출전 선수 텍스트 직접 추가/편집 (이름을 쉼표로 구분)",
+            value=", ".join(chosen_p), height=80, key="text_area_players_act"
         )
-        
-        final_chosen_p = [n.strip() for n in text_p_input.replace("\n", ",").split(",") if n.strip()]
-        total_chosen_count = len(final_chosen_p)
+        final_chosen_p = [n.strip() for n in text_p_input.replace("\n",",").split(",") if n.strip()]
 
         if st.button("💾 참가 명단 저장 및 랭킹정렬 분배", use_container_width=True, type="primary"):
             tour["players"] = final_chosen_p
             redistribute_players_by_ranking(tour)
-            save_tours(ts)
-            st.success(f"✅ 당일 출전 명단 {total_chosen_count}명이 정상 저장되었으며, 랭킹 기준 정렬 분배가 완료되었습니다.")
-            st.rerun()
+            save_tours(ts); st.success(f"당일 명단 {len(final_chosen_p)}명 저장 및 그룹별 자동 정렬 분배 완료!")
+            st.divider()
         
-        st.divider()
         st.markdown("#### [2단계] 그룹별 세부 배정")
-        
-        total_group_sizes = sum(int(gi.get("size", 8)) for gi in tour["groups"].values())
-        
-        if total_chosen_count == total_group_sizes:
-            st.markdown(f"""<div style='background-color:#E8F5E9; border-left:5px solid #2E7D32; padding:10px; border-radius:6px; font-size:0.85rem; font-weight:700; color:#1B5E20; margin-bottom:15px;'>
-            🟢 인원 매칭 검증 성공: 당일 출전자({total_chosen_count}명)와 그룹별 정원 합계({total_group_sizes}명)가 정확히 일치합니다.
-            </div>""", unsafe_allow_html=True)
-        else:
-            st.markdown(f"""<div style='background-color:#FFEBEE; border-left:5px solid #C62828; padding:10px; border-radius:6px; font-size:0.85rem; font-weight:700; color:#C62828; margin-bottom:15px;'>
-            🚨 인원 매칭 불일치(확인 요망): 당일 출전자는 총 <b>{total_chosen_count}명</b>이나, 설정된 그룹별 정원의 총합은 <b>{total_group_sizes}명</b>입니다. 정원을 조절해 주세요.
-            </div>""", unsafe_allow_html=True)
-            
         for gname, gdata in list(tour["groups"].items()):
-            cur_grp_players = gdata.get("players", [])
-            st.markdown(f"##### 🏷️ **{gname}** <span style='color:#1565C0; font-size:0.8rem;'>(현재 배정: {len(cur_grp_players)}명)</span>", unsafe_allow_html=True)
-            
+            st.markdown(f"##### 🏷️ **{gname}** 설정")
             c_m, c_g, c_z = st.columns(3)
             with c_m:
                 m_opts=["KDK","고정페어","단식","팀전"]
                 gdata["mode"] = st.selectbox(f"방식 ({gname})", m_opts, index=m_opts.index(gdata.get("mode","KDK")), key=f"md_edit_{gname}")
             with c_g: gdata["games"] = st.selectbox(f"인당 게임 수 ({gname})", [3,4,5], index=[3,4,5].index(gdata.get("games",4)), key=f"gm_edit_{gname}")
             with c_z: 
-                old_size = int(gdata.get("size", 8))
-                new_size = st.number_input(f"정원 지정 ({gname})", 2, 50, value=old_size, key=f"sz_edit_{gname}")
+                old_size = gdata.get("size", 8)
+                new_size = st.number_input(f"정원 ({gname})", 2, 50, value=old_size, key=f"sz_edit_{gname}")
                 if new_size != old_size:
-                    gdata["size"] = int(new_size)
+                    gdata["size"] = new_size
                     redistribute_players_by_ranking(tour)
                     save_tours(ts)
                     st.rerun()
 
+            cur_grp_players = gdata.get("players", [])
             if gdata["mode"] == "팀전":
                 st.info("💡 **팀전 안내**: 아래 텍스트박스에 양 팀의 명단을 적고, [3단계]에서 대진을 상세 설정하세요.")
             
             grp_text_input = st.text_area(
-                f"✍️ {gname} 명단 확인 및 직접 편집 (쉼표 구분)",
+                f"✍️ {gname} 명단 직접 편집 (쉼표 구분)",
                 value=", ".join(cur_grp_players), height=80, key=f"grp_txt_{gname}"
             )
             gdata["players"] = [n.strip() for n in grp_text_input.replace("\n",",").split(",") if n.strip()]
@@ -787,124 +758,140 @@ elif ss.menu=="admin":
             save_tours(ts)
             st.success("✅ 조건에 부합하는 모든 그룹의 대진표 빌드가 완료되었습니다!"); st.rerun()
 
-    # ----------------- [💾 포인트 정산 및 편집 탭] -----------------
     with adm[2]:
-        st.markdown('<div class="sec sec-t">📥 엑셀(XLSX/CSV) 회원 명단 일괄 업로드 및 덮어쓰기</div>', unsafe_allow_html=True)
-        up=st.file_uploader("랭킹 마스터 데이터 파일 선택",type=["csv","xlsx"])
-        if up and st.button("🚀 마스터 랭킹 강제 파일 빌드 실행",use_container_width=True):
-            try:
-                ndf=read_file(up)
-                for c in COLS_RANK:
-                    if c not in ndf.columns: ndf[c]=""
-                save_rank(ndf); st.success("✅ 데이터가 파일 시스템에 성공적으로 업로드 및 덮어쓰기 되었습니다."); st.rerun()
-            except Exception as e: st.error(f"오류: {e}")
-            
-        st.divider()
-
-        st.markdown('<div class="sec sec-t">🏆 금일 대회 자동 획득 포인트 현황</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec sec-t">💾 마스터 포인트 최종 결산 및 정산</div>',unsafe_allow_html=True)
         tours=load_tours(); active=[k for k,v in tours.items() if v.get("status")=="진행중"]
+        if not active: st.info("현재 진행 상태인 대회가 존재하지 않습니다."); st.stop()
+        tid=active[-1]; tour=tours[tid]; earn={}
         
-        earn={}
-        if active:
-            tid=active[-1]; tour=tours[tid]
-            for g,gi in tour.get("groups",{}).items():
-                ms=gi["matches"]; mode=gi.get("mode","KDK"); fx=(mode=="고정페어")
-                if mode == "팀전": continue
-                sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
-                if not rit: continue
-                ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
-                for idx,p_item in enumerate(ranked):
-                    pts=rank_pts(idx+1,mode)
-                    if fx:
-                        for individual in list(p_item): earn[individual]=earn.get(individual,0)+pts
-                    else: earn[p_item]=earn.get(p_item,0)+pts
+        for g,gi in tour.get("groups",{}).items():
+            ms=gi["matches"]; mode=gi.get("mode","KDK"); fx=(mode=="고정페어")
+            if mode == "팀전": continue
+            sv=stats_fixed(ms) if fx else stats_kdk(ms); rit=list(sv.keys())
+            if not rit: continue
+            ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"]))
+            for idx,p_item in enumerate(ranked):
+                pts=rank_pts(idx+1,mode)
+                if fx:
+                    for individual in list(p_item): earn[individual]=earn.get(individual,0)+pts
+                else: earn[p_item]=earn.get(p_item,0)+pts
+                
+        if earn:
+            st.markdown('<div class="sec sec-t">🏆 금일 누적 획득 예정 대회 포인트</div>',unsafe_allow_html=True)
+            res_df = pd.DataFrame(sorted(earn.items(),key=lambda x:-x[1]),columns=["선수명","지급포인트"])
+            st.markdown(df_to_html(res_df),unsafe_allow_html=True)
             
-            if earn:
-                res_df = pd.DataFrame(sorted(earn.items(),key=lambda x:-x[1]),columns=["선수명","금일 획득포인트"])
-                st.markdown(df_to_html(res_df),unsafe_allow_html=True)
-                if st.button("☝️ 위 자동 계산된 당일 대회 점수를 아래 명부 편집창에 가산 적용", use_container_width=True):
-                    r_temp = load_rank()
-                    for p, p_val in earn.items():
-                        if p in r_temp["이름"].values:
-                            r_temp.loc[r_temp["이름"]==p, "현재 포인트"] += p_val
-                    save_rank(r_temp)
-                    st.success("✅ 금일 점수가 마스터 가산 버퍼에 임시 연동되었습니다. 최종 확인 후 아래 마감 버튼을 클릭하세요.")
-                    st.rerun()
-        else:
-            st.info("현재 진행 중인 대진이 없어 당일 자동 정산 점수가 없습니다.")
+        c_fin,c_rst=st.columns(2)
+        with c_fin:
+            if st.button("🏆 계산된 포인트 마스터 랭킹에 영구 반영",type="primary",use_container_width=True):
+                r_master=load_rank()
+                for p,p_val in earn.items():
+                    if p in r_master["이름"].values:
+                        r_master.loc[r_master["이름"]==p, "현재포인트"] += p_val
+                save_rank(r_master)
+                tour["status"]="완료"
+                save_tours(tours)
+                st.success("✅ 당일 대회 포인트가 마스터 랭킹에 성공적으로 누적 마감되었습니다!"); st.rerun()
 
-        st.markdown('<div class="sec sec-t">⭐ 전체 회원 정보 및 스코어 조율 통합 보드</div>', unsafe_allow_html=True)
-        r_master = load_rank()
+    with adm[3]:
+        # 💡 요청 주신 피드백 전면 반영: 회원 명부 입력을 한눈에 볼 수 있는 '가로형 스크롤 표(Table) 구조'로 전면 교체
+        st.markdown('<div class="sec sec-t">⭐ 전체 회원 명부 및 상시 부가점수 / 비고 관리</div>', unsafe_allow_html=True)
         
-        if not r_master.empty:
-            st.markdown("💡 점수나 사유를 수정한 뒤 하단의 **[💾 최종 데이터 마스터 보드에 반영 및 마감]** 단추를 누르셔야 최종 확정됩니다.")
+        r_master = load_rank()
+        all_members = load_members()
+        
+        if not r_master.empty and len(all_members) > 0:
+            st.markdown("💡 랭킹 화면과 동일한 표 구조입니다. 각 행에서 값을 수정한 후 제일 아래 **[부과점수 데이터 최종 저장]**을 누르세요.")
             
+            # HTML 표 구조 디자인 정의 (Streamlit 입력 컨트롤러를 셀 내부에 임베딩하는 방식)
             updated_rows = []
-            r_master = r_master.sort_values(by="현재 포인트", ascending=False).reset_index(drop=True)
             
+            # 레이아웃을 위한 컨테이너 생성 및 스타일 적용
+            st.markdown("""
+            <div style='margin-bottom: 5px; font-weight: bold; color: #1B5E20; font-size:0.8rem;'>
+                📊 회원 정보 일괄 수정 보드
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # 성능 상 루프를 돌며 가로형 컬럼(st.columns) 조합으로 실시간 입력 표 구현
+            # 헤더 렌더링
+            h_col1, h_col2, h_col3, h_col4 = st.columns([1.5, 1.5, 2, 4])
+            with h_col1: st.markdown("<b style='font-size:0.75rem;'>회원 이름</b>", unsafe_allow_html=True)
+            with h_col2: st.markdown("<b style='font-size:0.75rem;'>현재 총점</b>", unsafe_allow_html=True)
+            with h_col3: st.markdown("<b style='font-size:0.75rem;'>부가점수 수정</b>", unsafe_allow_html=True)
+            with h_col4: st.markdown("<b style='font-size:0.75rem;'>설명 / 비고 사유</b>", unsafe_allow_html=True)
+            st.markdown("<div style='border-bottom:2px solid #2E7D32; margin-bottom:8px;'></div>", unsafe_allow_html=True)
+            
+            # 데이터 행 렌더링
             for idx, row in r_master.iterrows():
                 p_name = row["이름"]
                 if not p_name: continue
                 
-                cur_rank = idx + 1
-                cur_total_pts = int(pd.to_numeric(row.get("현재 포인트", 0), errors="coerce")) if pd.notna(row.get("현재 포인트", 0)) else 0
-                cur_last_pts = int(pd.to_numeric(row.get("지난 포인트", 0), errors="coerce")) if pd.notna(row.get("지난 포인트", 0)) else 0
-                cur_result = str(row.get("대회 결과", "")) if pd.notna(row.get("대회 결과", "")) else ""
                 cur_extra_pts = int(pd.to_numeric(row.get("부과점", 0), errors="coerce")) if pd.notna(row.get("부과점", 0)) else 0
-                cur_group = str(row.get("그룹", "")) if pd.notna(row.get("그룹", "")) else ""
                 cur_note = str(row.get("비고", "")) if pd.notna(row.get("비고", "")) and str(row.get("비고", "")) != "nan" else ""
+                cur_total = int(pd.to_numeric(row.get("현재포인트", 0), errors="coerce")) if pd.notna(row.get("현재포인트", 0)) else 0
                 
-                st.markdown(f"**[{cur_rank}위] {p_name}**")
-                c_pts1, c_pts2, c_res, c_ext, c_grp, c_nte = st.columns([1.5, 1.5, 1.8, 1.2, 1.2, 3.0])
+                # 가로로 한 줄 배치
+                r_col1, r_col2, r_col3, r_col4 = st.columns([1.5, 1.5, 2, 4])
                 
-                with c_pts1:
-                    new_total_pt = st.number_input("현재 포인트", min_value=0, max_value=9999, value=cur_total_pts, step=1, key=f"mat_tot_{p_name}_{idx}")
-                with c_pts2:
-                    new_last_pt = st.number_input("지난 포인트", min_value=0, max_value=9999, value=cur_last_pts, step=1, key=f"mat_lst_{p_name}_{idx}")
-                with c_res:
-                    new_result = st.text_input("대회 결과", value=cur_result, key=f"mat_res_{p_name}_{idx}")
-                with c_ext:
-                    new_extra_pt = st.number_input("부과점", min_value=-500, max_value=500, value=cur_extra_pts, step=1, key=f"mat_ept_{p_name}_{idx}")
-                with c_grp:
-                    new_group = st.text_input("그룹", value=cur_group, key=f"mat_grp_{p_name}_{idx}")
-                with c_nte:
-                    new_note = st.text_input("비고 사유 기재", value=cur_note, key=f"mat_nt_{p_name}_{idx}")
+                with r_col1:
+                    st.markdown(f"<div style='padding-top:8px; font-weight:700; font-size:0.8rem; color:#2C3E50;'>{p_name}</div>", unsafe_allow_html=True)
+                
+                with r_col2:
+                    st.markdown(f"<div style='padding-top:8px; font-size:0.8rem; color:#2E7D32; font-weight:700;'>{cur_total} 점</div>", unsafe_allow_html=True)
+                
+                with r_col3:
+                    st.markdown('<div class="admin-table-input">', unsafe_allow_html=True)
+                    new_ex_pt = st.number_input("부가점", min_value=-100, max_value=200, value=cur_extra_pts, step=1, key=f"tbl_pt_{p_name}_{idx}", label_visibility="collapsed")
+                    st.markdown('</div>', unsafe_allow_html=True)
+                
+                with r_col4:
+                    st.markdown('<div class="admin-table-input">', unsafe_allow_html=True)
+                    new_ex_nt = st.text_input("비고", value=cur_note, placeholder="예: 외부대회 입상 (+5)", key=f"tbl_nt_{p_name}_{idx}", label_visibility="collapsed")
+                    st.markdown('</div>', unsafe_allow_html=True)
+                
+                # 기본 점수 역산 후 데이터 구성
+                base_points = cur_total - cur_extra_pts
+                final_total_points = base_points + new_ex_pt
                 
                 updated_rows.append({
-                    "랭킹": cur_rank,
                     "이름": p_name,
-                    "현재 포인트": new_total_pt,
-                    "지난 포인트": new_last_pt,
-                    "대회 결과": new_result,
-                    "부과점": new_extra_pt,
-                    "그룹": new_group,
-                    "비고": new_note
+                    "현재포인트": final_total_points,
+                    "부과점": new_ex_pt,
+                    "비고": new_ex_nt
                 })
-                st.markdown("<div style='border-bottom:1px dashed #E0E4E8; margin: 4px 0;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='border-bottom:1px solid #E0E4E8; margin: 3px 0;'></div>", unsafe_allow_html=True)
             
-            st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-            
-            if st.button("💾 최종 데이터 마스터 보드에 반영 및 마감", type="primary", use_container_width=True):
-                new_df = pd.DataFrame(updated_rows)
-                save_rank(new_df)
-                if active:
-                    tours[active[-1]]["status"] = "완료"
-                    save_tours(tours)
-                st.success("✅ 정합성 확인 완료! 지정하신 8대 항목 컬럼 구조 그대로 마스터 랭킹 보드 정렬 동기화가 마감되었습니다."); st.rerun()
+            st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+            if st.button("💾 부가점수 데이터 최종 저장 및 랭킹 합산 반영", type="primary", use_container_width=True):
+                for u_row in updated_rows:
+                    r_master.loc[r_master["이름"] == u_row["이름"], "현재포인트"] = u_row["현재포인트"]
+                    r_master.loc[r_master["이름"] == u_row["이름"], "부과점"] = u_row["부과점"]
+                    r_master.loc[r_master["이름"] == u_row["이름"], "비고"] = u_row["비고"]
+                save_rank(r_master)
+                st.success("✅ 회원 전체 부가점수와 비고 사유가 마스터 보드에 일괄 저장 및 합산되었습니다!"); st.rerun()
                 
         st.divider()
-        with st.expander("📝 [수동 관리용] 전체 회원 텍스트 명단 직접 조율"):
+        with st.expander("📝 전체 회원 텍스트 명단 직접 수정창"):
             cur_m=load_members()
-            txt_area=st.text_area("클럽 전체 회원 명단 (이름을 쉼표 또는 줄바꿈으로 구분)", value=", ".join(cur_m), height=120)
-            if st.button("💾 회원 명단 동기화", use_container_width=True):
+            txt_area=st.text_area("클럽 전체 회원 명단 (이름을 쉼표 또는 줄바꿈으로 구분)", value=", ".join(cur_m), height=150)
+            if st.button("💾 회원 명단 갱신 및 동기화", use_container_width=True):
                 parsed=[n.strip() for n in txt_area.replace("\n",",").split(",") if n.strip()]
                 save_members(parsed)
                 rk_df=load_rank()
                 for p in parsed:
                     if rk_df.empty or p not in rk_df["이름"].values:
-                        nr={c:"" for c in COLS_RANK}
-                        nr["이름"]=p; nr["현재 포인트"]=0; nr["지난 포인트"]=0; nr["부과점"]=0
+                        nr={c:"" for c in COLS_RANK}; nr["이름"]=p; nr["현재포인트"]=0; nr["부과점"]=0; nr["비고"]=""
                         rk_df=pd.concat([rk_df,pd.DataFrame([nr])],ignore_index=True)
-                rk_df = rk_df[rk_df["이름"].isin(parsed)].reset_index(drop=True)
                 save_rank(rk_df)
-                st.success("✅ 회원 명단이 성공적으로 갱신되었습니다."); st.rerun()
+                st.success("✅ 회원 데이터 셋이 성공적으로 갱신되었습니다."); st.rerun()
+
+        with st.expander("📥 엑셀(XLSX/CSV) 파일 일괄 업로드 및 덮어쓰기"):
+            up=st.file_uploader("랭킹 마스터 데이터 파일 선택",type=["csv","xlsx"])
+            if up and st.button("🚀 마스터 랭킹 강제 파일 빌드 실행",use_container_width=True):
+                try:
+                    ndf=read_file(up)
+                    for c in COLS_RANK:
+                        if c not in ndf.columns: ndf[c]=""
+                    save_rank(ndf); st.success("✅ 데이터가 파일 시스템에 덮어쓰기 되었습니다."); st.rerun()
+                except Exception as e: st.error(f"오류: {e}")
