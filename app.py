@@ -151,6 +151,7 @@ TOUR_FILE   = "tournaments.json"
 MEMBER_FILE = "member_roster_backup.json"
 CONFIG_FILE = "config_backup.json"
 
+# 💥 정합성 확보를 위한 마스터 보드 8대 핵심 컬럼 규칙 (공백 명확화)
 COLS_RANK   = ["랭킹", "이름", "현재 포인트", "지난 포인트", "대회 결과", "부과점", "그룹", "비고"]
 
 def load_config():
@@ -188,6 +189,10 @@ def load_rank():
     if os.path.exists(RANK_FILE):
         try:
             df = pd.read_csv(RANK_FILE, encoding="utf-8-sig").dropna(subset=["이름"])
+            # 공백 없는 구버전 컬럼명이 감지되면 강제로 표준명으로 교체
+            if "현재포인트" in df.columns: df.rename(columns={"현재포인트": "현재 포인트"}, inplace=True)
+            if "지난포인트" in df.columns: df.rename(columns={"지난포인트": "지난 포인트"}, inplace=True)
+            
             for col in COLS_RANK:
                 if col not in df.columns:
                     df[col] = 0 if col in ["현재 포인트", "지난 포인트", "부과점"] else ""
@@ -202,6 +207,10 @@ def load_rank():
 
 def save_rank(df):
     if df.empty: return
+    # 저장 전 다시 한번 강제 정형화
+    if "현재포인트" in df.columns: df.rename(columns={"현재포인트": "현재 포인트"}, inplace=True)
+    if "지난포인트" in df.columns: df.rename(columns={"지난포인트": "지난 포인트"}, inplace=True)
+    
     for c in ["현재 포인트","지난 포인트","부과점"]:
         if c in df.columns:
             df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
@@ -460,7 +469,7 @@ elif ss.menu=="schedule":
                         if fx: rows.append({"순위":i+1,"팀명":" & ".join(list(item)),"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"결과":grade_fixed(i+1)})
                         else: rows.append({"순위":i+1,"선수명":item,"승":sv[item]["승"],"패":sv[item]["패"],"득실":f'{sv[item]["득실"]:+d}',"결과":grade_kdk(i+1)})
                     st.markdown(df_to_html(pd.DataFrame(rows)),unsafe_allow_html=True)
-            st.markdown("<div class='sec sec-b'>🎾 경기 결과 스코어 입력</div>",unsafe_allow_html=True)
+            st.markdown("<div class='sec sec-b'>📋 경기 결과 스코어 입력</div>",unsafe_allow_html=True)
             for mi,m in enumerate(ms):
                 t1s=" & ".join(m["t1"]); t2s=" & ".join(m["t2"])
                 if tm: t1s = f"[{m.get('team1','A팀')}] {t1s}" ; t2s = f"[{m.get('team2','B팀')}] {t2s}"
@@ -555,6 +564,10 @@ elif ss.menu=="admin":
                     raw_df = read_file(up_file)
                     raw_df.columns = [str(c).strip() for c in raw_df.columns]
                     
+                    # 💥 파일 업로드 시 공백 없는 명칭 완벽 방어형 교정 로직
+                    if "현재포인트" in raw_df.columns: raw_df.rename(columns={"현재포인트": "현재 포인트"}, inplace=True)
+                    if "지난포인트" in raw_df.columns: raw_df.rename(columns={"지난포인트": "지난 포인트"}, inplace=True)
+                    
                     if "이름" not in raw_df.columns:
                         st.error("❌ 엑셀 파일 내에 '이름' 컬럼이 존재하지 않습니다. 파일을 확인해주세요.")
                     else:
@@ -563,8 +576,8 @@ elif ss.menu=="admin":
                             p_name = str(r["이름"]).strip()
                             if not p_name or p_name == "nan": continue
                             
-                            cur_pt = r.get("현재 포인트", r.get("현재포인트", 0))
-                            old_pt = r.get("지난 포인트", r.get("지난포인트", 0))
+                            cur_pt = r.get("현재 포인트", 0)
+                            old_pt = r.get("지난 포인트", 0)
                             bg_pt = r.get("부과점", r.get("부과점수", 0))
                             
                             row_dict = {
@@ -620,7 +633,7 @@ elif ss.menu=="admin":
                 save_rank(rk_df)
                 st.success("✅ 회원 텍스트 풀 명단 수정 및 랭킹 데이터 동기화 완료."); st.rerun()
 
-    # 🌱 4-2. 대회 대진 자동 생성 서브탭
+    # 🌱 대진 자동 생성 서브탭
     with adm_tabs[1]:
         st.markdown("<div class='sec sec-p'>🌱 신규 토너먼트 대회 생성</div>",unsafe_allow_html=True)
         t_title=st.text_input("대회 이름", value=f"{date.today().strftime('%m월')} 정기 토너먼트")
@@ -651,12 +664,10 @@ elif ss.menu=="admin":
         g_num=st.number_input("분할할 대진 그룹 수", value=1, min_value=1)
         g_modes=["KDK","고정페어","단식","팀전"]
         
-        # 🛡️ 사용자가 화면에서 직접 폼에 채워 넣는 동적 타겟 딕셔너리 생성
         g_cfgs=[]
         for i in range(int(g_num)):
             with st.container(border=True):
                 st.markdown(f"**{GLBL[i%len(GLBL)]} {i+1}번째 그룹 세부 설정**")
-                # 💥 조 이름 매칭 에러의 핵: key 값에 완전한 식별자 부여 및 기본값 제공
                 g_name_input = st.text_input(f"그룹명##{i}", value=f"{chr(65+i)}조", key=f"g_name_widget_{i}")
                 g_mode_input = st.selectbox(f"경기 방식##{i}", options=g_modes, index=0, key=f"g_mode_widget_{i}")
                 g_size_input = st.number_input(f"배정 인원수##{i}", value=min(8, len(chosen_p_sorted)) if chosen_p_sorted else 8, min_value=2, key=f"g_size_widget_{i}")
@@ -720,9 +731,9 @@ elif ss.menu=="admin":
                 
             tours[tid] = new_tour
             save_tours(tours)
-            st.success("🎯 사용자가 직접 지정한 조 이름으로 빌드가 완벽히 완료되었습니다!"); st.rerun()
+            st.success("🎯 시드 기반 대진 매칭 및 그룹 분할 생성이 완벽히 완료되었습니다!"); st.rerun()
 
-    # 🗂️ 4-3. 대회 히스토리 서브탭
+    # 🗂️ 대회 히스토리 서브탭
     with adm_tabs[2]:
         st.markdown("<div class='sec sec-p'>🗂️ 과거 대회 보관 관리 및 삭제</div>",unsafe_allow_html=True)
         tours=load_tours()
