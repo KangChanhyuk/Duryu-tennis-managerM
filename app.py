@@ -201,8 +201,7 @@ KDK_4G = {
 def load_rank():
     if os.path.exists(RANK_FILE):
         try:
-            df = pd.read_csv(RANK_FILE).dropna(subset=["이름"])
-            # 누락된 컬럼 자동 구조 정의 및 보정
+            df = pd.read_csv(RANK_FILE, encoding="utf-8-sig").dropna(subset=["이름"])
             for col in COLS_RANK:
                 if col not in df.columns:
                     df[col] = 0 if col in ["현재 포인트", "지난 포인트", "부과점"] else ""
@@ -221,7 +220,6 @@ def save_rank(df):
     for c in ["현재 포인트","지난 포인트","부과점"]:
         if c in df.columns:
             df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
-    # 필수 컬럼 구성 검증
     for c in COLS_RANK:
         if c not in df.columns: 
             df[c] = 0 if c in ["현재 포인트", "지난 포인트", "부과점"] else ""
@@ -233,20 +231,20 @@ def save_rank(df):
 
 def load_members():
     if os.path.exists(MEMBER_FILE):
-        with open(MEMBER_FILE,"r") as f: return json.load(f)
+        with open(MEMBER_FILE,"r", encoding="utf-8") as f: return json.load(f)
     df=load_rank(); return df["이름"].tolist() if not df.empty else []
 
 def save_members(names):
-    with open(MEMBER_FILE,"w") as f: json.dump(names,f,ensure_ascii=False,indent=2)
+    with open(MEMBER_FILE,"w", encoding="utf-8") as f: json.dump(names,f,ensure_ascii=False,indent=2)
     push_to_github(MEMBER_FILE, "Backup member roster")
 
 def load_tours():
     if os.path.exists(TOUR_FILE):
-        with open(TOUR_FILE,"r") as f: return json.load(f)
+        with open(TOUR_FILE,"r", encoding="utf-8") as f: return json.load(f)
     return {}
 
 def save_tours(d):
-    with open(TOUR_FILE,"w") as f: json.dump(d,f,ensure_ascii=False,indent=2)
+    with open(TOUR_FILE,"w", encoding="utf-8") as f: json.dump(d,f,ensure_ascii=False,indent=2)
     push_to_github(TOUR_FILE, "Backup tournament status")
 
 def to_excel(df):
@@ -255,7 +253,7 @@ def to_excel(df):
 def read_file(up):
     name=up.name.lower()
     if name.endswith(("xlsx","xls")): return pd.read_excel(up)
-    return pd.read_csv(up,encoding_errors="replace")
+    return pd.read_csv(up,encoding="utf-8-sig",encoding_errors="replace")
 
 def df_to_html(df, is_master=False):
     if df.empty: return "<div class='ic'>데이터가 없습니다.</div>"
@@ -492,7 +490,7 @@ elif ss.menu=="schedule":
                     with cc2:
                         new_s2=st.number_input(f"Score2##{g}_{mi}",value=int(m["s2"]),min_value=0,step=1,label_visibility="collapsed")
                     if new_s1!=m["s1"] or new_s2!=m["s2"]:
-                        ms[mi]["s1"]=new_s1; ms[mi]["s2 Pall"]=new_s2; ms[mi]["s2"]=new_s2
+                        ms[mi]["s1"]=new_s1; ms[mi]["s2"]=new_s2
                         save_tours(tours); st.rerun()
 
 # ----------------- [3. 🎾 최종 결과 반영 탭] -----------------
@@ -568,7 +566,6 @@ elif ss.menu=="admin":
             if st.button("💥 마스터 랭킹 파일 강제 반영 및 덮어쓰기", type="primary", use_container_width=True):
                 try:
                     raw_df = read_file(up_file)
-                    # 컬럼명 앞뒤 공백 제거
                     raw_df.columns = [str(c).strip() for c in raw_df.columns]
                     
                     if "이름" not in raw_df.columns:
@@ -580,7 +577,6 @@ elif ss.menu=="admin":
                             if not p_name or p_name == "nan":
                                 continue
                             
-                            # 기존 구조에 맞춰 데이터 형변환 및 안전화 보장
                             cur_pt = r.get("현재 포인트", r.get("현재포인트", 0))
                             old_pt = r.get("지난 포인트", r.get("지난포인트", 0))
                             bg_pt = r.get("부과점", r.get("부과점수", 0))
@@ -601,7 +597,6 @@ elif ss.menu=="admin":
                             new_master_df = pd.DataFrame(cleaned_rows)
                             save_rank(new_master_df)
                             
-                            # 회원 백업 명단 자동 연동 동기화
                             all_names = new_master_df["이름"].tolist()
                             save_members(all_names)
                             
@@ -687,7 +682,6 @@ elif ss.menu=="admin":
                     "status": "진행중", "players": sel_players, "groups": {}
                 }
                 
-                # 🔄 현재 랭킹 순 정밀 분배 실행
                 r_df = load_rank()
                 master_order = r_df["이름"].tolist() if not r_df.empty else []
                 chosen_p_sorted = [p for p in master_order if p in sel_players]
