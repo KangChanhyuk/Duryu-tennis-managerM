@@ -240,7 +240,20 @@ def save_members(names):
 
 def load_tours():
     if os.path.exists(TOUR_FILE):
-        with open(TOUR_FILE,"r", encoding="utf-8") as f: return json.load(f)
+        with open(TOUR_FILE,"r", encoding="utf-8") as f:
+            try:
+                data = json.load(f)
+                # 💥 [핵심 보정 안전장치] 파일 내부에 잘못 박혀있는 오타 키("s2 Pall")를 발견하면 즉시 정상 키("s2")로 자동 치료합니다.
+                for t_id, t_val in data.items():
+                    if "groups" in t_val:
+                        for g_name, g_val in t_val["groups"].items():
+                            if "matches" in g_val:
+                                for m in g_val["matches"]:
+                                    if "s2 Pall" in m:
+                                        m["s2"] = m.pop("s2 Pall")
+                return data
+            except Exception:
+                return {}
     return {}
 
 def save_tours(d):
@@ -317,8 +330,10 @@ def stats_team(matches):
         s[team2]["득실"] += b - a
     return s
 
-def rank_pts(rank,mode):
-    if mode in ["고정페어", "팀전"]: return {1:7,2:5,3:3}.get(rank,1)
+def rank_pts(rank, mode):
+    if mode in ["고정페어", "팀전"]: 
+        return {1:7, 2:5, 3:3}.get(rank, 1)
+    # KDK 방식 등수별 완벽 복원 포인트 (1~2위:7, 3~4위:5, 5~6위:3, 그 외:1)
     return 7 if rank<=2 else (5 if rank<=4 else (3 if rank<=6 else 1))
 
 def grade_fixed(rank):
@@ -328,6 +343,7 @@ def grade_fixed(rank):
     return "참가"
 
 def grade_kdk(rank):
+    # KDK 방식 텍스트 완벽 복원
     return "🥇 우승" if rank<=2 else ("🥈 준우승" if rank<=4 else ("🥉 3위" if rank<=6 else "참가"))
 
 def make_kdk(players,gperson):
@@ -381,7 +397,7 @@ def matrix_html(matches,rank_items,mode,p2n):
         if a>0 or b>0:
             if is_fixed:
                 k1,k2=tuple(m["t1"]),tuple(m["t2"])
-                mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]]=f"{b}:{a}"
+                mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]][f"{b}:{a}"]
             else:
                 for x in m["t1"]:
                     for y in m["t2"]:
@@ -399,20 +415,6 @@ def matrix_html(matches,rank_items,mode,p2n):
             else: cells += f"<td class='mx-dash'>{val}</td>"
         body+=f"<tr><td style='font-weight:700;background:#F1F8E9;color:#1B5E20;'>{r}</td>{cells}</tr>"
     return f'<div class="mx-wrap"><table class="mx"><thead><tr><th style="background:#1B5E20;">구분</th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
-
-def redistribute_players_by_ranking(tour):
-    r_df = load_rank()
-    master_order = r_df["이름"].tolist() if not r_df.empty else []
-    chosen_p = tour.get("players", [])
-    
-    chosen_p_sorted = [p for p in master_order if p in chosen_p]
-    chosen_p_sorted += [p for p in chosen_p if p not in chosen_p_sorted]
-    
-    current_index = 0
-    for gname, gdata in tour.get("groups", {}).items():
-        size = int(gdata.get("size", 8))
-        gdata["players"] = chosen_p_sorted[current_index : current_index + size]
-        current_index += size
 
 ss=st.session_state
 if "menu" not in ss: ss.menu="ranking"
@@ -527,7 +529,11 @@ elif ss.menu=="result":
                     if found:
                         rk=ranked.index(found[0])+1
                         p_add=rank_pts(rk,mode)
-                        d_res=f"{gname}({rk}위)"
+                        # KDK 방식 텍스트 완벽 매칭 조율 복원
+                        if mode == "KDK":
+                            d_res = f"{gname}({grade_kdk(rk)})"
+                        else:
+                            d_res = f"{gname}({rk}위)"
         new_pt=cur_pt+p_add+bg if d_res else cur_pt
         updated_rows.append({"랭킹":row["랭킹"],"이름":p,"현재 포인트":new_pt,"지난 포인트":cur_pt,"대회 결과":d_res if d_res else row["대회 결과"],"부과점":0,"그룹":row["그룹"],"비고":row["비고"]})
     
