@@ -243,7 +243,7 @@ def load_tours():
         with open(TOUR_FILE,"r", encoding="utf-8") as f:
             try:
                 data = json.load(f)
-                # 💥 [핵심 보정 안전장치] 파일 내부에 잘못 박혀있는 오타 키("s2 Pall")를 발견하면 즉시 정상 키("s2")로 자동 치료합니다.
+                # 🛡️ [강력한 보정 안전장치 추가] s1, s2 데이터가 유실되었거나 오타인 경우를 완벽하게 자동 보정합니다.
                 for t_id, t_val in data.items():
                     if "groups" in t_val:
                         for g_name, g_val in t_val["groups"].items():
@@ -251,6 +251,8 @@ def load_tours():
                                 for m in g_val["matches"]:
                                     if "s2 Pall" in m:
                                         m["s2"] = m.pop("s2 Pall")
+                                    if "s1" not in m: m["s1"] = 0
+                                    if "s2" not in m: m["s2"] = 0
                 return data
             except Exception:
                 return {}
@@ -292,7 +294,7 @@ def stats_fixed(matches):
         t1,t2=tuple(m["t1"]),tuple(m["t2"])
         for t in (t1,t2):
             if t not in s: s[t]={"승":0,"패":0,"득실":0}
-        a,b=int(m["s1"]),int(m["s2"])
+        a,b=int(m.get("s1",0)),int(m.get("s2",0))
         if a>b:   s[t1]["승"]+=1;s[t2]["패"]+=1
         elif b>a: s[t2]["승"]+=1;s[t1]["패"]+=1
         s[t1]["득실"]+=a-b;s[t2]["득실"]+=b-a
@@ -304,7 +306,7 @@ def stats_kdk(matches):
         p1,p2=m["t1"],m["t2"]
         for p in p1+p2:
             if p not in s: s[p]={"승":0,"패":0,"득실":0}
-        a,b=int(m["s1"]),int(m["s2"])
+        a,b=int(m.get("s1",0)),int(m.get("s2",0))
         if a>b:
             for p in p1: s[p]["승"]+=1
             for p in p2: s[p]["패"]+=1
@@ -321,7 +323,7 @@ def stats_team(matches):
         team1, team2 = m.get("team1", "A팀"), m.get("team2", "B팀")
         if team1 not in s: s[team1] = {"승":0, "패":0, "득실":0, "매치승":0, "매치패":0}
         if team2 not in s: s[team2] = {"승":0, "패":0, "득실":0, "매치승":0, "매치패":0}
-        a, b = int(m["s1"]), int(m["s2"])
+        a, b = int(m.get("s1",0)), int(m.get("s2",0))
         if a > b:
             s[team1]["매치승"] += 1; s[team2]["매치패"] += 1
         elif b > a:
@@ -333,7 +335,6 @@ def stats_team(matches):
 def rank_pts(rank, mode):
     if mode in ["고정페어", "팀전"]: 
         return {1:7, 2:5, 3:3}.get(rank, 1)
-    # KDK 방식 등수별 완벽 복원 포인트 (1~2위:7, 3~4위:5, 5~6위:3, 그 외:1)
     return 7 if rank<=2 else (5 if rank<=4 else (3 if rank<=6 else 1))
 
 def grade_fixed(rank):
@@ -343,7 +344,6 @@ def grade_fixed(rank):
     return "참가"
 
 def grade_kdk(rank):
-    # KDK 방식 텍스트 완벽 복원
     return "🥇 우승" if rank<=2 else ("🥈 준우승" if rank<=4 else ("🥉 3위" if rank<=6 else "참가"))
 
 def make_kdk(players,gperson):
@@ -393,11 +393,11 @@ def matrix_html(matches,rank_items,mode,p2n):
     mat={r:{c:("■" if r==c else "—") for c in keys} for r in keys}
     
     for m in matches:
-        a,b=int(m["s1"]),int(m["s2"])
+        a,b=int(m.get("s1",0)),int(m.get("s2",0))
         if a>0 or b>0:
             if is_fixed:
                 k1,k2=tuple(m["t1"]),tuple(m["t2"])
-                mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]][f"{b}:{a}"]
+                mat[lab[k1]][lab[k2]]=f"{a}:{b}";mat[lab[k2]][lab[k1]]=f"{b}:{a}"
             else:
                 for x in m["t1"]:
                     for y in m["t2"]:
@@ -468,7 +468,7 @@ elif ss.menu=="schedule":
                 st.markdown(matrix_html(ms,rit,mode,p2n),unsafe_allow_html=True)
                 if mode=="KDK" and p2n:
                     st.markdown(kdk_html(len(p2n),gi.get("games",4),p2n),unsafe_allow_html=True)
-                st.markdown("<div class='sec sec-b'>🏅 그룹 현재 실시간 순위</div>",unsafe_allow_html=True)
+                st.markdown("<div class='sec sec-b'>📋 그룹 현재 실시간 순위</div>",unsafe_allow_html=True)
                 if rit:
                     ranked=sorted(rit,key=lambda x:(-sv[x]["승"],-sv[x]["득실"])); rows=[]
                     for i,item in enumerate(ranked):
@@ -488,10 +488,10 @@ elif ss.menu=="schedule":
                     st.markdown("<div style='height:8px'></div>",unsafe_allow_html=True)
                     cc1,cc2=st.columns(2)
                     with cc1:
-                        new_s1=st.number_input(f"Score1##{g}_{mi}",value=int(m["s1"]),min_value=0,step=1,label_visibility="collapsed")
+                        new_s1=st.number_input(f"Score1##{g}_{mi}",value=int(m.get("s1",0)),min_value=0,step=1,label_visibility="collapsed")
                     with cc2:
-                        new_s2=st.number_input(f"Score2##{g}_{mi}",value=int(m["s2"]),min_value=0,step=1,label_visibility="collapsed")
-                    if new_s1!=m["s1"] or new_s2!=m["s2"]:
+                        new_s2=st.number_input(f"Score2##{g}_{mi}",value=int(m.get("s2",0)),min_value=0,step=1,label_visibility="collapsed")
+                    if new_s1!=m.get("s1",0) or new_s2!=m.get("s2",0):
                         ms[mi]["s1"]=new_s1; ms[mi]["s2"]=new_s2
                         save_tours(tours); st.rerun()
 
@@ -529,7 +529,6 @@ elif ss.menu=="result":
                     if found:
                         rk=ranked.index(found[0])+1
                         p_add=rank_pts(rk,mode)
-                        # KDK 방식 텍스트 완벽 매칭 조율 복원
                         if mode == "KDK":
                             d_res = f"{gname}({grade_kdk(rk)})"
                         else:
@@ -564,7 +563,6 @@ elif ss.menu=="admin":
         
     adm_tabs=st.tabs(["👥 회원 및 파일 관리", "🌱 대회 대진 생성", "🗂️ 대회 히스토리"])
     
-    # 👥 4-1. 회원 및 파일 일괄 관리 서브탭
     with adm_tabs[0]:
         st.markdown("<div class='sec sec-p'>📥 엑셀(XLSX/CSV) 파일 일괄 업로드 및 덮어쓰기</div>",unsafe_allow_html=True)
         up_file=st.file_uploader("회원 명단 및 랭킹 통합 엑셀 파일 선택", type=["xlsx","xls","csv"])
