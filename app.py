@@ -11,18 +11,7 @@ st.set_page_config(page_title="두류 테니스", page_icon="🎾",
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700;900&display=swap');
-:root{
-  --g0:#1B5E20;--g2:#2E7D32;--g3:#4CAF50;--g5:#F1F8E9;
-  --nav0:#2E7D32;--nav1:#1565C0;--nav2:#E65100;--nav3:#4A148C;--nav4:#00695C;
-  --mc0:#1B5E20;--mc1:#0D47A1;--mc2:#BF360C;--mc3:#4A148C;
-  --mc4:#006064;--mc5:#1A237E;--mc6:#880E4F;--mc7:#33691E;
-  --tb0:#2E7D32;--tb1:#1565C0;--tb2:#D84315;--tb3:#6A1B9A;
-  --tb4:#00695C;--tb5:#283593;--tb6:#AD1457;--tb7:#558B2F;
-  --yel:#FFD600;--ora:#FB8C00;
-  --bg:#F4F6F8;--card:#ffffff;--bd:#E0E4E8;
-  --r1:10px;--r2:14px;
-  --sh:0 2px 8px rgba(0,0,0,.06);--sh2:0 4px 16px rgba(0,0,0,.1);
-}
+:root{\n  --g0:#1B5E20;--g2:#2E7D32;--g3:#4CAF50;--g5:#F1F8E9;\n  --nav0:#2E7D32;--nav1:#1565C0;--nav2:#E65100;--nav3:#4A148C;--nav4:#00695C;\n  --mc0:#1B5E20;--mc1:#0D47A1;--mc2:#BF360C;--mc3:#4A148C;\n  --mc4:#006064;--mc5:#1A237E;--mc6:#880E4F;--mc7:#33691E;\n  --tb0:#2E7D32;--tb1:#1565C0;--tb2:#D84315;--tb3:#6A1B9A;\n  --tb4:#00695C;--tb5:#283593;--tb6:#AD1457;--tb7:#558B2F;\n  --yel:#FFD600;--ora:#FB8C00;\n  --bg:#F4F6F8;--card:#ffffff;--bd:#E0E4E8;\n  --r1:10px;--r2:14px;\n  --sh:0 2px 8px rgba(0,0,0,.06);--sh2:0 4px 16px rgba(0,0,0,.1);\n}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 
 html, body, [data-testid="stAppViewContainer"] :not(i):not(svg):not([class*="material-icons"]) {
@@ -140,12 +129,36 @@ button[data-baseweb="tab"][aria-selected="true"]{background:linear-gradient(135d
 </style>
 """, unsafe_allow_html=True)
 
-# 💾 데이터 및 동기화 설정
-REPO = "자신의_깃허브_아이디/레포지토리_이름"
+# 💾 깃허브 설정 (★본인의 정보에 맞게 반드시 수정해야 합니다)
+REPO = "본인의_깃허브_아이디/레포지토리_이름"
 TOKEN = st.secrets.get("GITHUB_TOKEN", "")
 
+RANK_FILE   = "ranking_master.csv"
+TOUR_FILE   = "tournaments.json"
+MEMBER_FILE = "member_roster_backup.json"
+CONFIG_FILE = "config_backup.json"
+COLS_RANK   = ["랭킹", "이름", "현재 포인트", "지난 포인트", "대회 결과", "부과점", "그룹", "비고"]
+
+# [추가] 서버 리셋 시 깃허브 원격 저장소에서 파일을 내려받아 초기화를 방지하는 동기화 함수
+def pull_from_github(filepath):
+    if not TOKEN or "본인의_깃허브" in REPO: return False
+    try:
+        url = f"https://api.github.com/repos/{REPO}/contents/{filepath}"
+        headers = {"Authorization": f"token {TOKEN}", "Accept": "application/vnd.github.v3+json"}
+        res = requests.get(url, headers=headers)
+        if res.status_code == 200:
+            content_b64 = res.json().get("content", "")
+            if content_b64:
+                file_data = base64.b64decode(content_b64)
+                with open(filepath, "wb") as f:
+                    f.write(file_data)
+                return True
+        return False
+    except Exception:
+        return False
+
 def push_to_github(filepath, commit_msg="Update data"):
-    if not TOKEN or "자신의_깃허브" in REPO: return False
+    if not TOKEN or "본인의_깃허브" in REPO: return False
     try:
         url = f"https://api.github.com/repos/{REPO}/contents/{filepath}"
         headers = {"Authorization": f"token {TOKEN}", "Accept": "application/vnd.github.v3+json"}
@@ -160,12 +173,11 @@ def push_to_github(filepath, commit_msg="Update data"):
     except Exception:
         return False
 
-RANK_FILE   = "ranking_master.csv"
-TOUR_FILE   = "tournaments.json"
-MEMBER_FILE = "member_roster_backup.json"
-CONFIG_FILE = "config_backup.json"
-
-COLS_RANK   = ["랭킹", "이름", "현재 포인트", "지난 포인트", "대회 결과", "부과점", "그룹", "비고"]
+# 최초 앱 구동 시 로컬에 파일이 없으면 깃허브에서 땡겨와 복구 세팅
+if "downloaded_backup" not in st.session_state:
+    for f_path in [RANK_FILE, TOUR_FILE, MEMBER_FILE, CONFIG_FILE]:
+        pull_from_github(f_path)
+    st.session_state["downloaded_backup"] = True
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
@@ -352,18 +364,15 @@ def kdk_html(n,gperson,p2n):
         rows+=f"<tr><td><span style='background:#2E7D32;color:#fff;border-radius:12px;padding:2px 8px;font-size:.62rem;font-weight:700'>{i+1}</span></td><td style='text-align:left!important;'>{t1} <b>vs</b> {t2}</td></tr>"
     return f'<div class="kdk"><div style="font-size:.75rem;font-weight:800;color:#1B5E20;margin-bottom:6px">📋 KDK 대진 정보 (1인 {gperson}게임)</div><table><thead><tr><th style="width:50px;">순서</th><th>대진 매칭</th></tr></thead><tbody>{rows}</tbody></table></div>'
 
-# 🔄 [핵심 보완] 부여된 번호(1번~8번) 기준으로 가로/세로축이 엄격하게 자동 정렬되는 매트릭스 출력기
 def matrix_html(matches,rank_items,mode,p2n):
     if not matches or not rank_items: return ""
     is_fixed = (mode == "고정페어")
     if mode == "팀전": return ""
     
-    # 고정페어 방식일 때의 라벨 생성
     if is_fixed:
         lab={t:"&".join(list(t)) for t in rank_items}
         keys=list(lab.values())
     else:
-        # KDK/단식일 때, 부여된 번호(p2n) 순서대로(1, 2, 3...) 완벽 정렬 조치
         if p2n:
             sorted_players = sorted(rank_items, key=lambda p: p2n.get(p, 999))
             lab = {p: f"{p}({p2n.get(p, '?')})" for p in sorted_players}
@@ -397,7 +406,6 @@ def matrix_html(matches,rank_items,mode,p2n):
         body+=f"<tr><td style='font-weight:700;background:#F1F8E9;color:#1B5E20;'>{r}</td>{cells}</tr>"
     return f'<div class="mx-wrap"><table class="mx"><thead><tr><th style="background:#1B5E20;">구분</th>{header}</tr></thead><tbody>{body}</tbody></table></div>'
 
-# 🔄 현재 마스터 랭킹 순서대로 선수를 정밀하게 등분 및 분배하는 함수
 def redistribute_players_by_ranking(tour):
     r_df = load_rank()
     master_order = r_df["이름"].tolist() if not r_df.empty else []
@@ -658,7 +666,7 @@ elif ss.menu=="admin":
             tour["groups"] = {"A그룹":{"players":[],"mode":"KDK","games":4,"matches":[],"player_with_number":{},"size":8}}
             save_tours(ts)
             
-        st.markdown(f"### 👥 {tour['title']} 참가자 조율")
+        st.markdown("### 👥 {tour['title']} 참가자 조율")
         all_m = load_members()
         if not all_m: 
             st.warning("회원 명단이 비어 있습니다. 아래 탭에서 회원 명단을 먼저 등록하세요.")
