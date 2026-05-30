@@ -4,15 +4,10 @@ import random, os, json, requests, base64
 from datetime import date, datetime
 from io import BytesIO
 
-# ─── 1. 웹페이지 기본 설정 ───
-st.set_page_config(
-    page_title="두류 테니스", 
-    page_icon="🎾",
-    layout="centered", 
-    initial_sidebar_state="collapsed"
-)
+st.set_page_config(page_title="두류 테니스", page_icon="🎾",
+                   layout="centered", initial_sidebar_state="collapsed")
 
-# ─── 2. 디자인 시스템 및 레이아웃 스타일 ───
+# 🎨 디자인 시스템 및 레이아웃 통합 스타일
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700;900&display=swap');
@@ -53,22 +48,21 @@ div.stButton > button {
 </style>
 """, unsafe_allow_html=True)
 
-# ─── 3. 깃허브 영구 백업 연동 설정 ───
+# ─── 깃허브 환경 변수 및 설정 ───
 GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", "")
-REPO = "sk98118/duryu_tennis"  # 사용자 레포지토리 정보 고정
+REPO = "sk98118/duryu_tennis"
 
-# 현재 존재하는 마스터 파일명 매칭
-RANK_FILE   = "tennis_members.csv"  
+# 깃허브 저장소 내 실제 존재하는 파일명으로 동기화
+RANK_FILE   = "tennis_members.csv"
 TOUR_FILE   = "tournaments.json"
 MEMBER_FILE = "member_roster_backup.json"
 CONFIG_FILE = "config_backup.json"
 
-# 표준 8대 항목 컬럼 지정
+# 마스터 8대 항목 표준 구조 정의
 COLS_RANK = ["랭킹", "이름", "현재 포인트", "지난 포인트", "대회 결과", "부과점", "그룹", "비고"]
 
 def github_api(path, method="GET", data=None):
-    if not GITHUB_TOKEN:
-        return None
+    if not GITHUB_TOKEN: return None
     url = f"https://api.github.com/repos/{REPO}/contents/{path}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
     if method == "GET":
@@ -87,35 +81,32 @@ def load_file(path, default_content, is_json=False):
         try:
             raw = base64.b64decode(res["content"])
             return json.loads(raw) if is_json else raw
-        except:
-            pass
+        except: pass
     if os.path.exists(path):
         if is_json:
             with open(path, "r", encoding="utf-8") as f: return json.load(f)
         else:
             with open(path, "rb") as f: return f.read()
-    if is_json:
-        return default_content
-    else:
-        return default_content if isinstance(default_content, bytes) else default_content.encode("utf-8")
+    if is_json: return default_content
+    else: return default_content if isinstance(default_content, bytes) else default_content.encode("utf-8")
 
 def save_file(path, data, is_json=False):
     raw_bytes = json.dumps(data, ensure_ascii=False, indent=4).encode("utf-8") if is_json else data
-    with open(path, "wb") as f:
-        f.write(raw_bytes)
+    with open(path, "wb") as f: f.write(raw_bytes)
     github_api(path, "PUT", raw_bytes)
 
-# ─── 4. 데이터 로드/저장 안전성 최적화 ───
+# 에러 없는 철통 보안 데이터 로드 시스템
 def load_rank():
     csv_bytes = load_file(RANK_FILE, b"")
     if not csv_bytes or csv_bytes.strip() == b"":
         return pd.DataFrame(columns=COLS_RANK)
     try:
         df = pd.read_csv(BytesIO(csv_bytes), encoding="utf-8")
-        # 어떤 상황에서도 KeyError가 나지 않도록 빈 컬럼 자동 채우기 방어막
+        # 띄어쓰기 등 구형 컬럼명이 들어와도 유연하게 보정하여 KeyError 완벽 제거
+        rename_map = {"현재포인트": "현재 포인트", "지난포인트": "지난 포인트", "대회결과": "대회 결과"}
+        df = df.rename(columns=rename_map)
         for c in COLS_RANK:
-            if c not in df.columns: 
-                df[c] = 0 if "포인트" in c or c == "랭킹" else ""
+            if c not in df.columns: df[c] = 0 if "포인트" in c or c == "랭킹" else ""
         return df[COLS_RANK]
     except:
         return pd.DataFrame(columns=COLS_RANK)
@@ -135,7 +126,22 @@ def save_config(c): save_file(CONFIG_FILE, c, is_json=True)
 def get_active_tournament(tours):
     return [k for k, v in tours.items() if v.get("status") == "진행중"]
 
-# ─── 5. 메인 레이아웃 및 탭 구성 ───
+def get_kdk_matches(n):
+    if n == 4: return [(0,1,2,3), (0,2,1,3), (0,3,1,2)]
+    elif n == 5: return [(0,1,2,3), (0,4,1,2), (1,3,2,4), (0,2,3,4), (0,3,1,4)]
+    elif n == 6: return [(0,1,2,3), (4,5,0,2), (1,3,4,5), (0,4,1,5), (2,3,0,5), (1,2,3,4)]
+    elif n == 7: return [(0,1,2,3), (4,5,0,6), (1,2,3,4), (5,6,0,1), (2,4,3,5), (0,3,1,6), (2,5,4,6)]
+    elif n == 8: return [(0,1,2,3), (4,5,6,7), (0,4,1,5), (2,6,3,7), (0,2,4,6), (1,3,5,7), (0,5,2,7), (1,4,3,6)]
+    matches = []
+    for i in range(n):
+        for j in range(i+1, n):
+            rem = [k for k in range(n) if k != i and k != j]
+            if len(rem) >= 2:
+                for idx in range(len(rem)-1):
+                    matches.append((i, j, rem[idx], rem[idx+1]))
+    return random.sample(matches, min(len(matches), n*2))
+
+# ─── 메인 UI 그리기 ───
 st.markdown('<div class="main-title">🎾 두류 테니스 클럽 랭킹 시스템</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">데이터 자동 백업 & 랭킹/대진 올인원 관리자 마스터 보드</div>', unsafe_allow_html=True)
 
@@ -145,7 +151,7 @@ tours = load_tours()
 active = get_active_tournament(tours)
 
 # ==========================================
-# TAB 1: 랭킹 마스터 보드 (조회 전용)
+# TAB 1: 클럽 랭킹 마스터 보드
 # ==========================================
 with tabs[0]:
     st.markdown("### 🏆 실시간 클럽 랭킹")
@@ -170,10 +176,8 @@ with tabs[1]:
         with col1: pt_w = col1.number_input("승리 포인트", value=cfg["pt_win"])
         with col2: pt_l = col2.number_input("패배 / 경기 포인트", value=cfg["pt_lose"])
         if st.form_submit_button("🚀 대회 공식 개설 및 활성화"):
-            if not t_name.strip():
-                st.error("대회 명칭을 입력하세요.")
-            elif active:
-                st.error("이미 진행 중인 대회가 있습니다. 마감 후 새 대회를 열어주세요.")
+            if not t_name.strip(): st.error("대회 명칭을 입력하세요.")
+            elif active: st.error("이미 진행 중인 대회가 있습니다. 마감 후 새 대회를 열어주세요.")
             else:
                 tid = datetime.now().strftime("%Y%m%d_%H%M%S")
                 tours[tid] = {"name": t_name, "status": "진행중", "pt_win": pt_w, "pt_lose": pt_l, "players": [], "matches": []}
@@ -182,96 +186,135 @@ with tabs[1]:
                 save_config(cfg)
                 st.success(f"✅ [{t_name}] 대회가 성공적으로 개설되었습니다!"); st.rerun()
 
+    st.divider()
+    st.markdown("### 🎲 랜덤 / KDK 대진 매칭 실행")
+    if not active:
+        st.info("💡 진행 중인 대회가 없습니다. 대회를 먼저 생성해 주세요.")
+    else:
+        tid = active[-1]
+        t_data = tours[tid]
+        players = t_data.get("players", [])
+        st.write(f"**현재 대회 인원:** {len(players)}명 선발됨")
+        
+        m_type = st.radio("매칭 방식 선택", ["KDK 복식 매칭 (추천)", "완전 랜덤 복식 조편성"])
+        if st.button("🔥 공식 대진표 자동 제너레이팅 실행", type="primary"):
+            if len(players) < 4:
+                st.error("최소 4명 이상의 참가자가 확정되어야 대진을 짤 수 있습니다.")
+            else:
+                generated = []
+                if m_type == "KDK 복식 매칭 (추천)":
+                    k_mat = get_kdk_matches(len(players))
+                    for idx, m in enumerate(k_mat):
+                        generated.append({"round": idx+1, "t1_p1": players[m[0]], "t1_p2": players[m[1]], "t2_p1": players[m[2]], "t2_p2": players[m[3]], "score1": 0, "score2": 0, "winner": ""})
+                else:
+                    pool = list(players)
+                    random.shuffle(pool)
+                    r_idx = 1
+                    while len(pool) >= 4:
+                        p1, p2, p3, p4 = pool.pop(0), pool.pop(0), pool.pop(0), pool.pop(0)
+                        generated.append({"round": r_idx, "t1_p1": p1, "t1_p2": p2, "t2_p1": p3, "t2_p2": p4, "score1": 0, "score2": 0, "winner": ""})
+                        r_idx += 1
+                tours[tid]["matches"] = generated
+                save_tours(tours)
+                st.success(f"✅ 총 {len(generated)}개의 매치 대진표 작성이 완료되었습니다!"); st.rerun()
+
+        if t_data.get("matches"):
+            st.markdown("#### 📝 실시간 경기 결과 기록 보드")
+            for idx, m in enumerate(t_data["matches"]):
+                with st.expander(f"➔ [Round {m['round']}] {m['t1_p1']}+{m['t1_p2']} VS {m['t2_p1']}+{m['t2_p2']}"):
+                    c1, c2, c3 = st.columns(3)
+                    with c1: s1 = st.number_input(f"팀1 스코어", value=int(m.get("score1",0)), key=f"s1_{idx}")
+                    with c2: s2 = st.number_input(f"팀2 스코어", value=int(m.get("score2",0)), key=f"s2_{idx}")
+                    with c3:
+                        w_opts = ["진행중", f"{m['t1_p1']}+{m['t1_p2']} 승리", f"{m['t2_p1']}+{m['t2_p2']} 승리"]
+                        cur_w = m.get("winner","")
+                        sel_idx = 0
+                        if cur_w == "team1": sel_idx = 1
+                        elif cur_w == "team2": sel_idx = 2
+                        w_sel = st.selectbox("결과 확정", w_opts, index=sel_idx, key=f"w_{idx}")
+                    if st.button("💾 매치 결과 저장", key=f"save_m_{idx}"):
+                        tours[tid]["matches"][idx]["score1"] = s1
+                        tours[tid]["matches"][idx]["score2"] = s2
+                        if "팀1" in w_sel: tours[tid]["matches"][idx]["winner"] = "team1"
+                        elif "팀2" in w_sel: tours[tid]["matches"][idx]["winner"] = "team2"
+                        else: tours[tid]["matches"][idx]["winner"] = ""
+                        save_tours(tours)
+                        st.success("경기 결과 보드 동기화 완료!"); st.rerun()
+
 # ==========================================
 # TAB 3: 참가자 명단 조율
 # ==========================================
 with tabs[2]:
     st.markdown("### 👥 당일 대회 참가자 선택")
     if not active:
-        st.info("💡 진행 중인 대회가 없습니다. [📅 대회 생성 및 매칭] 탭에서 대회를 먼저 만들어주세요.")
+        st.info("💡 진행 중인 대회가 없습니다. [📅 새 대회 개설]을 먼저 진행하세요.")
     else:
         tid = active[-1]
         all_m = load_members()
         if not all_m:
-            st.warning("등록된 전체 클럽 회원이 없습니다. 마지막 탭에서 명단 혹은 엑셀을 먼저 올려주세요.")
+            st.warning("등록된 전체 회원이 없습니다. 마지막 탭에서 명단 혹은 엑셀을 먼저 올려주세요.")
         else:
-            st.write(f"**현재 관리 중인 대회:** {tours[tid]['name']}")
+            st.write(f"**현재 활성 대회:** {tours[tid]['name']}")
             current_players = tours[tid].get("players", [])
-            
-            st.markdown("#### 아래 명단에서 오늘 참석한 회원을 체크해 주세요:")
             chosen = []
             cols = st.columns(4)
             for i, name in enumerate(all_m):
                 with cols[i % 4]:
                     is_sel = name in current_players
-                    if st.checkbox(name, value=is_sel, key=f"p_{name}"):
-                        chosen.append(name)
-            
+                    if st.checkbox(name, value=is_sel, key=f"p_{name}"): chosen.append(name)
             if st.button("💾 선택된 인원으로 명단 확정", type="primary", use_container_width=True):
                 tours[tid]["players"] = chosen
                 save_tours(tours)
                 st.success(f"✅ 총 {len(chosen)}명 참가가 확정되었습니다."); st.rerun()
 
 # ==========================================
-# TAB 4: 포인트 정산 & 명부 통합 수정 (★ 개선 및 고정 위치)
+# TAB 4: 포인트 정산 & 명부 통합 수정 (★ 순서 대결합 위치)
 # ==========================================
 with tabs[3]:
     st.markdown("### ⚙️ 마스터 데이터 통합 빌드 & 관리")
-    
-    # ── [★ 수정 포인트 1] 엑셀 업로드 메뉴를 '무조건 최상단'에 노출 ──
-    st.markdown("#### 📥 엑셀(XLSX/CSV) 파일 일괄 업로드 및 덮어쓰기")
-    st.caption("기존에 보관 중이던 마스터 랭킹 엑셀 파일을 여기에 올리면 즉시 시스템 전체에 반영 및 동기화됩니다.")
-    up_f = st.file_uploader("회원 명단 파일 선택 (이름 컬럼 필수)", type=["xlsx", "csv"])
-    
-    if up_f is not None:
-        try:
-            if up_f.name.endswith(".csv"):
-                up_df = pd.read_csv(up_f, encoding="utf-8")
-            else:
-                up_df = pd.read_excel(up_f)
-                
-            st.write("▼ 업로드된 파일 미리보기 (상위 5개 항목):")
-            st.dataframe(up_df.head(), use_container_width=True)
-            
-            if st.button("🚀 마스터 랭킹 강제 파일 빌드 실행", type="primary", use_container_width=True):
-                if "이름" not in up_df.columns:
-                    st.error("❌ 파일에 '이름' 컬럼이 존재하지 않습니다. 첫 행의 컬럼명을 확인해 주세요.")
-                else:
-                    final_df = pd.DataFrame(columns=COLS_RANK)
-                    final_df["이름"] = up_df["이름"]
-                    for c in COLS_RANK:
-                        if c == "이름": continue
-                        final_df[c] = up_df[c] if c in up_df.columns else (0 if "포인트" in c or c == "랭킹" else "")
-                    
-                    save_rank(final_df)
-                    save_members(final_df["이름"].dropna().tolist())
-                    st.success("✅ 파일 빌드 성공! 깃허브 원격 저장소에 데이터가 영구 백업되었습니다."); st.rerun()
-        except Exception as e:
-            st.error(f"파일을 읽는 중 에러가 발생했습니다: {e}")
+
+    # ── [★ 수정 결합] 대회가 있든 없든 엑셀 파일 업로드 메뉴를 항상 맨 위에 배치 ──
+    with st.expander("📥 엑셀(XLSX/CSV) 파일 일괄 업로드 및 덮어쓰기...", expanded=True):
+        up_f = st.file_uploader("회원 명단 파일 선택 (이름 컬럼 필수)", type=["xlsx", "csv"])
+        if up_f is not None:
+            try:
+                if up_f.name.endswith(".csv"): up_df = pd.read_csv(up_f, encoding="utf-8")
+                else: up_df = pd.read_excel(up_f)
+                st.write("▼ 업로드된 파일 미리보기:")
+                st.dataframe(up_df.head(), use_container_width=True)
+                if st.button("🚀 마스터 랭킹 강제 파일 빌드 실행", type="primary", use_container_width=True):
+                    if "이름" not in up_df.columns:
+                        st.error("❌ 파일에 '이름' 컬럼이 존재하지 않습니다. 첫 행의 컬럼명을 확인해 주세요.")
+                    else:
+                        final_df = pd.DataFrame(columns=COLS_RANK)
+                        final_df["이름"] = up_df["이름"]
+                        for c in COLS_RANK:
+                            if c == "이름": continue
+                            final_df[c] = up_df[c] if c in up_df.columns else (0 if "포인트" in c or c=="랭킹" else "")
+                        save_rank(final_df)
+                        save_members(final_df["이름"].dropna().tolist())
+                        st.success("✅ 파일 빌드 성공! 깃허브 원격 저장소에 마스터 데이터가 백업되었습니다."); st.rerun()
+            except Exception as e:
+                st.error(f"파일을 읽는 중 에러가 발생했습니다: {e}")
 
     st.divider()
 
-    # ── 수동 관리용 텍스트 조율 창 ──
-    with st.expander("📝 [수동 관리용] 전체 회원 텍스트 명단 직접 조율"):
+    # ── 수동 텍스트 조율 창 ──
+    with st.expander("📝 전체 회원 텍스트 명단 직접 수정창"):
         cur_m = load_members()
-        txt_area = st.text_area("클럽 전체 회원 명단 (이름을 쉼표 또는 줄바꿈으로 구분)", value=", ".join(cur_m), height=120)
-        if st.button("💾 회원 명단 동기화", use_container_width=True):
+        txt_area = st.text_area("클럽 전체 회원 명단 (이름을 쉼표 또는 줄바꿈으로 구분)", value=", ".join(cur_m), height=150)
+        if st.button("💾 회원 명단 갱신 및 동기화", use_container_width=True):
             parsed = [n.strip() for n in txt_area.replace("\n", ",").split(",") if n.strip()]
             save_members(parsed)
             rk_df = load_rank()
-            
             for p in parsed:
                 if rk_df.empty or p not in rk_df["이름"].values:
                     nr = {c: "" for c in COLS_RANK}
-                    nr["이름"] = p
-                    nr["현재 포인트"] = 0
-                    nr["지난 포인트"] = 0
-                    nr["부과점"] = 0
+                    nr["이름"] = p; nr["현재 포인트"] = 0; nr["지난 포인트"] = 0; nr["부과점"] = 0; nr["비고"] = ""
                     rk_df = pd.concat([rk_df, pd.DataFrame([nr])], ignore_index=True)
-            
             rk_df = rk_df[rk_df["이름"].isin(parsed)].reset_index(drop=True)
             save_rank(rk_df)
-            st.success("✅ 회원 명단이 성공적으로 갱신되었습니다."); st.rerun()
+            st.success("✅ 회원 데이터 셋이 성공적으로 갱신되었습니다."); st.rerun()
 
     st.divider()
 
@@ -291,7 +334,6 @@ with tabs[3]:
         else:
             updated_rows = []
             st.markdown("##### 참가자별 정산 데이터 수정")
-            
             for p in players:
                 if rk_df.empty or p not in rk_df["이름"].values:
                     nr = {c: "" for c in COLS_RANK}; nr["이름"] = p; nr["현재 포인트"] = 0; nr["지난 포인트"] = 0; nr["부과점"] = 0
@@ -300,12 +342,11 @@ with tabs[3]:
             for _, row in rk_df.iterrows():
                 r_dict = row.to_dict()
                 name = r_dict["이름"]
-                
                 if name in players:
                     c1, c2, c3, c4 = st.columns([1.5, 2, 2, 3.5])
                     with c1: st.markdown(f"**{name}**")
                     with c2: res_val = st.selectbox("결과", ["선택", "승리", "패배/참가"], key=f"res_{name}")
-                    with c3: add_p = st.number_input("추가 부과점", value=0, step=1, key=f"add_{name}")
+                    with c3: add_p = st.number_input("추가 부과점", value=int(r_dict.get("부과점", 0) or 0), step=1, key=f"add_{name}")
                     with c4: note = st.text_input("비고 사유", value=str(r_dict.get("비고", "") or ""), key=f"note_{name}")
                     
                     win_p = tours[tid].get("pt_win", 10)
@@ -313,17 +354,14 @@ with tabs[3]:
                     current_p = int(r_dict.get("현재 포인트", 0) or 0)
                     
                     if res_val == "승리":
-                        r_dict["현재 포인트"] = current_p + win_p + add_p
+                        r_dict["현재 포인트"] = current_p + win_p
                         r_dict["대회 결과"] = "승"
                     elif res_val == "패배/참가":
-                        r_dict["현재 포인트"] = current_p + lose_p + add_p
+                        r_dict["현재 포인트"] = current_p + lose_p
                         r_dict["대회 결과"] = "패"
-                    else:
-                        r_dict["현재 포인트"] = current_p + add_p
-                        
-                    r_dict["부과점"] = int(r_dict.get("부과점", 0) or 0) + add_p
-                    if note: r_dict["비고"] = note
                     
+                    r_dict["부과점"] = add_p
+                    if note: r_dict["비고"] = note
                 updated_rows.append(r_dict)
                 
             st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
@@ -332,4 +370,4 @@ with tabs[3]:
                 save_rank(new_df)
                 tours[tid]["status"] = "완료"
                 save_tours(tours)
-                st.success("✅ 정합성 확인 완료! 마스터 랭킹 보드 정렬 동기화가 마감되었습니다."); st.rerun()
+                st.success("✅ 회원 전체 부가점수와 비고 사유가 마스터 보드에 일괄 저장 및 합산되었습니다!"); st.rerun()
